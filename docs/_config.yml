@@ -1,0 +1,87 @@
+# GitHub Pages Configuration for Transfer Files API Documentation
+title: ""
+description: ""
+author: "Developer"
+
+# GitHub Pages theme
+theme: minima
+remote_theme: pages-themes/minimal@v0.2.0
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Site settings
+url: "https://proudsunburn.github.io"
+baseurl: "/ftransfer"
+repository: "proudsunburn/ftransfer"
+
+# Local development
+# url: "http://localhost:4000"
+# baseurl: ""
+
+# Navigation disabled - using JavaScript SPA navigation instead
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+  - jekyll-graphviz
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - "*.py"
+  - "requirements.txt"
+  - "venv/"
+  - ".git/"
+  - ".gitignore"
+  - ".venv/"
+
+# Include files
+include:
+  - "_pages"
+
+# Default layouts
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+
+# Site variables
+show_downloads: true
+github:
+  is_project_page: true
+  repository_name: "ftransfer"
+  owner_name: "proudsunburn"
+
+# SEO
+lang: en_US
+
+social:
+  name: Developer
+  links:
+    - https://github.com/proudsunburn

@@ -1,0 +1,5 @@
+# Local development configuration
+url: "http://localhost:4000"
+baseurl: ""
+
+# Inherit all other settings from _config.yml
