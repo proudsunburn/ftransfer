@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Home
+title: ftransfer docs
 permalink: /
 ---
 
@@ -168,7 +168,7 @@ document.body.style.color = '#f0f6fc';
 
   <p>Secure file transfer program over Tailscale networks using end-to-end encryption with automatic key exchange and peer authentication.</p>
   
-  ## System Architecture
+<h2>System Architecture</h2>
 
   <div class="architecture-diagram">
   
@@ -196,9 +196,9 @@ document.body.style.color = '#f0f6fc';
   
   </div>
 
-  ## Transfer Protocol Flow
+<h2>Transfer Protocol Flow</h2>
 
-  ### Sender Workflow
+<h3>Sender Workflow</h3>
   
   <div class="protocol-diagram">
   
@@ -233,7 +233,7 @@ document.body.style.color = '#f0f6fc';
   
   </div>
 
-  ### Receiver Workflow
+<h3>Receiver Workflow</h3>
   
   <div class="protocol-diagram">
   
@@ -266,7 +266,7 @@ document.body.style.color = '#f0f6fc';
   
   </div>
 
-  ## Security Architecture
+<h2>Security Architecture</h2>
 
   <div class="security-diagram">
   
@@ -373,124 +373,105 @@ document.body.style.color = '#f0f6fc';
 
 <!-- TailscaleDetector Section -->
 <div id="tailscaledetector" class="content-section">
-  <div class="loading-placeholder" data-src="/tailscaledetector/">Loading TailscaleDetector documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/tailscaledetector/">Loading TailscaleDetector documentation...</div>
 </div>
 
 <!-- SecureCrypto Section -->
 <div id="securecrypto" class="content-section">
-  <div class="loading-placeholder" data-src="/securecrypto/">Loading SecureCrypto documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/securecrypto/">Loading SecureCrypto documentation...</div>
 </div>
 
 
 <!-- SecureTokenGenerator Section -->
 <div id="securetokengenerator" class="content-section">
-  <div class="loading-placeholder" data-src="/securetokengenerator/">Loading SecureTokenGenerator documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/securetokengenerator/">Loading SecureTokenGenerator documentation...</div>
 </div>
 
 
 <!-- send_files Section -->
 <div id="send_files" class="content-section">
-  <div class="loading-placeholder" data-src="/send_files/">Loading send_files() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/send_files/">Loading send_files() documentation...</div>
 </div>
 
 <!-- receive_files Section -->
 <div id="receive_files" class="content-section">
-  <div class="loading-placeholder" data-src="/receive_files/">Loading receive_files() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/receive_files/">Loading receive_files() documentation...</div>
 </div>
 
 <!-- main Section -->
 <div id="main" class="content-section">
-  <div class="loading-placeholder" data-src="/main/">Loading main() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/main/">Loading main() documentation...</div>
 </div>
 
 <!-- recv_all Section -->
 <div id="recv_all" class="content-section">
-  <div class="loading-placeholder" data-src="/recv_all/">Loading recv_all() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/recv_all/">Loading recv_all() documentation...</div>
 </div>
 
 <!-- validate_files Section -->
 <div id="validate_files" class="content-section">
-  <div class="loading-placeholder" data-src="/validate_files/">Loading validate_files() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/validate_files/">Loading validate_files() documentation...</div>
 </div>
 
 
 <!-- format_speed Section -->
 <div id="format_speed" class="content-section">
-  <div class="loading-placeholder" data-src="/format_speed/">Loading format_speed() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/format_speed/">Loading format_speed() documentation...</div>
 </div>
 
 <!-- calculate_speed Section -->
 <div id="calculate_speed" class="content-section">
-  <div class="loading-placeholder" data-src="/calculate_speed/">Loading calculate_speed() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/calculate_speed/">Loading calculate_speed() documentation...</div>
 </div>
 
 
 <!-- collect_files_recursive Section -->
 <div id="collect_files_recursive" class="content-section">
-  <div class="loading-placeholder" data-src="/collect_files_recursive/">Loading collect_files_recursive() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/collect_files_recursive/">Loading collect_files_recursive() documentation...</div>
 </div>
 
 <!-- Method-level sections -->
 
 <!-- get_tailscale_ip Section -->
 <div id="get_tailscale_ip" class="content-section">
-  <div class="loading-placeholder" data-src="/get_tailscale_ip/">Loading get_tailscale_ip() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/get_tailscale_ip/">Loading get_tailscale_ip() documentation...</div>
 </div>
 
 <!-- verify_peer_ip_cached Section -->
 <div id="verify_peer_ip_cached" class="content-section">
-  <div class="loading-placeholder" data-src="/verify_peer_ip_cached/">Loading verify_peer_ip_cached() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/verify_peer_ip_cached/">Loading verify_peer_ip_cached() documentation...</div>
 </div>
 
 
 <!-- crypto_init Section -->
 <div id="crypto_init" class="content-section">
-  <div class="loading-placeholder" data-src="/crypto_init/">Loading SecureCrypto.__init__() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/crypto_init/">Loading SecureCrypto.__init__() documentation...</div>
 </div>
 
 <!-- derive_session_key Section -->
 <div id="derive_session_key" class="content-section">
-  <div class="loading-placeholder" data-src="/derive_session_key/">Loading derive_session_key() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/derive_session_key/">Loading derive_session_key() documentation...</div>
 </div>
 
 <!-- encrypt Section -->
 <div id="encrypt" class="content-section">
-  <div class="loading-placeholder" data-src="/encrypt/">Loading encrypt() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/encrypt/">Loading encrypt() documentation...</div>
 </div>
 
 <!-- decrypt Section -->
 <div id="decrypt" class="content-section">
-  <div class="loading-placeholder" data-src="/decrypt/">Loading decrypt() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/decrypt/">Loading decrypt() documentation...</div>
 </div>
 
 <!-- get_public_key_bytes Section -->
 <div id="get_public_key_bytes" class="content-section">
-  <div class="loading-placeholder" data-src="/get_public_key_bytes/">Loading get_public_key_bytes() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/get_public_key_bytes/">Loading get_public_key_bytes() documentation...</div>
 </div>
 
-<!-- get_system_entropy Section -->
-<div id="get_system_entropy" class="content-section">
-  <div class="loading-placeholder" data-src="/get_system_entropy/">Loading get_system_entropy() documentation...</div>
-</div>
-
-<!-- get_temperature_entropy Section -->
-<div id="get_temperature_entropy" class="content-section">
-  <div class="loading-placeholder" data-src="/get_temperature_entropy/">Loading get_temperature_entropy() documentation...</div>
-</div>
-
-<!-- get_network_entropy Section -->
-<div id="get_network_entropy" class="content-section">
-  <div class="loading-placeholder" data-src="/get_network_entropy/">Loading get_network_entropy() documentation...</div>
-</div>
-
-<!-- get_system_metrics Section -->
-<div id="get_system_metrics" class="content-section">
-  <div class="loading-placeholder" data-src="/get_system_metrics/">Loading get_system_metrics() documentation...</div>
-</div>
 
 <!-- generate_token Section -->
 <div id="generate_token" class="content-section">
-  <div class="loading-placeholder" data-src="/generate_token/">Loading generate_token() documentation...</div>
+  <div class="loading-placeholder" data-src="/ftransfer/generate_token/">Loading generate_token() documentation...</div>
 </div>
 
 </div>
@@ -657,7 +638,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h3>⚠️ Content Loading Error</h3>
                         <p>Failed to load comprehensive documentation from <code>${src}</code></p>
                         <p class="error-details">${error.message}</p>
-                        <p><strong>Fallback:</strong> <a href="${src}" target="_blank">View full documentation page →</a></p>
                     </div>
                 `;
             }

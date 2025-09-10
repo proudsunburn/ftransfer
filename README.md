@@ -47,7 +47,7 @@ Copy the connection string from the sender and run:
 ./transfer.py receive 100.64.1.123:ocean-tiger
 ```
 
-Files will be extracted to the current directory.
+Files will be saved to the current directory.
 
 ### Resume Interrupted Transfers
 
@@ -73,7 +73,7 @@ Excludes: `venv`, `node_modules`, `__pycache__`, `.git`, and other cache directo
 - **Authentication**: Shared secret prevents unauthorized connections
 - **Key Exchange**: Ephemeral X25519 keys for each session
 - **Network Security**: Only accepts Tailscale connections
-- **File Safety**: Path traversal protection during extraction
+- **File Safety**: Path traversal protection during file saving
 - **Integrity**: SHA-256 checksums verify file integrity
 
 ## Requirements
@@ -93,31 +93,30 @@ Excludes: `venv`, `node_modules`, `__pycache__`, `.git`, and other cache directo
 
 ## Interface
 
-**Clean, minimal output:**
+**Clean, minimal output with real-time progress:**
 ```bash
 # Sending
 type into receiver: transfer.py receive 100.101.29.44:forest-piano
 Waiting for receiver to connect...
-Transferring file...
-Progress: 100.0%
-Transfer complete: 1234567 bytes sent
+Transferring: document.pdf (15.8 MB)
+Progress: 45.2% | Speed: 2.1 MB/s | ETA: 00:03
+Transfer complete! (avg: 2.3 MB/s)
 
 # Receiving  
-Receiving 1 file(s) (1234567 bytes total)
-Progress: 100.0%
-Transfer complete!
-Completed: document.pdf
+Receiving 1 file(s) (1234567 bytes total, lz4 compressed)
+Receiving: document.pdf (15.8 MB)
+Progress: 78.4% | Speed: 1.8 MB/s | ETA: 00:01
+Transfer complete! (avg: 2.0 MB/s)
 
 # Resume interrupted transfer
 Resuming document.pdf: 524288/1234567 bytes already written
-Receiving 1 file(s) (1234567 bytes total)
-Progress: 42.5% (1.2 MB/s)
-Progress: 100.0%
-Transfer complete!
-Completed: document.pdf
+Receiving 1 file(s) (1234567 bytes total, lz4 compressed)
+Receiving: document.pdf (15.8 MB)
+Progress: 42.5% | Speed: 1.2 MB/s | ETA: 00:07
+Transfer complete! (avg: 1.5 MB/s)
 ```
 
-## Advanced Usageß
+## Advanced Usage
 
 ### High-Performance Streaming
 
@@ -185,7 +184,9 @@ Exclude common development folders that don't need transferring:
 
 ### Pod/Container Mode
 
-For containerized environments where sender and receiver run in the same network namespace:
+**Automatic Detection**: The application automatically detects containerized Tailscale environments and enables pod mode when no TUN interface is present (userspace proxy mode).
+
+For containerized environments or manual pod mode where sender and receiver run in the same network namespace:
 
 ```bash
 # Sender binds to localhost and accepts localhost connections
@@ -205,15 +206,7 @@ For containerized environments where sender and receiver run in the same network
 
 ## Documentation
 
-📖 **[Complete Documentation](https://proudsunburn.github.io/ftransfer/)** - Comprehensive guides and API reference
-
-- **[API Documentation](https://proudsunburn.github.io/ftransfer/api/)** - Detailed function documentation
-- **[Usage Examples](https://proudsunburn.github.io/ftransfer/examples/)** - Common use cases
-- **[Security Details](https://proudsunburn.github.io/ftransfer/security/)** - Cryptographic implementation
-
-## Contributing
-
-Contributions are welcome! Please see our documentation site for development guidelines.
+**[Complete Documentation](https://proudsunburn.github.io/ftransfer/)** - Comprehensive guides and API reference
 
 ## Troubleshooting
 
@@ -225,4 +218,4 @@ Contributions are welcome! Please see our documentation site for development gui
 
 ## License
 
-This project is available under the MIT License.
+This project is available under the AGPL-3.0 License.
