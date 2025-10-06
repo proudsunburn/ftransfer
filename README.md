@@ -11,7 +11,7 @@ A simple, secure file transfer tool for Tailscale networks. Transfer files and f
 - **Reliable**: File integrity verification and progress indicators
 - **Resumable**: Interrupted transfers can be resumed with `--resume` flag
 - **Memory Efficient**: Incremental file saving prevents RAM accumulation
-- **Smart**: Excludes virtual environments and cache folders with `--novenv`
+- **Smart**: Automatically detects and offers to exclude virtual environments and cache folders
 - **Easy**: Short connection strings with 2-word tokens
 
 ## Installation
@@ -58,14 +58,15 @@ If a transfer is interrupted, use the `--resume` flag to continue:
 
 The receiver will check for `.part` files and resume from the last verified position.
 
-### Exclude Virtual Environments
+### Virtual Environment Detection
 
-Use `--novenv` to skip common development folders:
+The program automatically detects virtual environment and cache directories and asks if you want to exclude them:
 ```bash
-./transfer.py send --novenv my_project/
+./transfer.py send my_project/
+# Output: Found virtual environment/cache directories: venv, __pycache__, node_modules. Skip? [Y/n]:
 ```
 
-Excludes: `venv`, `node_modules`, `__pycache__`, `.git`, and other cache directories.
+Detects: `venv`, `node_modules`, `__pycache__`, `.git`, and other common development cache directories.
 
 ## Security
 
@@ -169,9 +170,9 @@ Interrupted transfers can be resumed without re-downloading completed portions:
 Exclude common development folders that don't need transferring:
 
 ```bash
-# Exclude virtual environments and cache folders
-./transfer.py send --novenv my_python_project/
-# Output: "Excluded 3 virtual environment/cache directories"
+# Automatically detects and offers to exclude virtual environments and cache folders
+./transfer.py send my_python_project/
+# Output: "Found virtual environment/cache directories: venv, __pycache__, node_modules. Skip? [Y/n]:"
 
 # Can reduce transfer size by 80-95% for development projects
 ```
