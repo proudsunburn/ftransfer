@@ -1006,27 +1006,30 @@ class TransferLockManager:
         self._save_lock_file()
 
 
-def send_single_file(client_socket, crypto, file_path: str, relative_path: str) -> str:
+def send_single_file(client_socket, crypto, file_path: str, relative_path: str, use_compression: bool = True) -> str:
     """Send a single file and return its hash"""
     hasher = hashlib.sha256()
     file_size = os.path.getsize(file_path)
-    
+
     with open(file_path, 'rb') as f:
         bytes_sent = 0
         while bytes_sent < file_size:
             chunk = f.read(CHUNK_SIZE)
             if not chunk:
                 break
-            
+
             # Update hash
             hasher.update(chunk)
-            
-            # Compress chunk
-            compressed_chunk = blosc.compress(chunk, cname=BLOSC_COMPRESSOR, clevel=BLOSC_LEVEL)
-            
-            # Encrypt compressed chunk
+
+            # Conditionally compress chunk
+            if use_compression:
+                chunk_to_send = blosc.compress(chunk, cname=BLOSC_COMPRESSOR, clevel=BLOSC_LEVEL)
+            else:
+                chunk_to_send = chunk
+
+            # Encrypt chunk
             nonce = secrets.token_bytes(12)
-            encrypted_chunk = crypto.encrypt(compressed_chunk, nonce)
+            encrypted_chunk = crypto.encrypt(chunk_to_send, nonce)
             
             # Send encrypted chunk
             client_socket.send(len(nonce).to_bytes(4, 'big'))
@@ -1251,16 +1254,19 @@ def send_files(file_paths: List[str], pod: bool = False):
                     
                     # When buffer reaches target size, compress entire buffer and send
                     while len(buffer) >= buffer_size:
-                        # Extract 1MB of uncompressed data
-                        uncompressed_chunk = bytes(buffer[:buffer_size])
+                        # Extract 1MB of data
+                        chunk_data = bytes(buffer[:buffer_size])
                         buffer = buffer[buffer_size:]
-                        
-                        # Compress the entire 1MB uncompressed buffer
-                        compressed_chunk = blosc.compress(uncompressed_chunk, cname=BLOSC_COMPRESSOR, clevel=BLOSC_LEVEL)
-                        
+
+                        # Conditionally compress based on user choice
+                        if use_compression:
+                            chunk_to_send = blosc.compress(chunk_data, cname=BLOSC_COMPRESSOR, clevel=BLOSC_LEVEL)
+                        else:
+                            chunk_to_send = chunk_data
+
                         # Encrypt and send
                         nonce = secrets.token_bytes(12)
-                        encrypted_chunk = crypto.encrypt(compressed_chunk, nonce)
+                        encrypted_chunk = crypto.encrypt(chunk_to_send, nonce)
                         
                         client_socket.send(len(nonce).to_bytes(4, 'big'))
                         client_socket.send(nonce)
@@ -1298,13 +1304,17 @@ def send_files(file_paths: List[str], pod: bool = False):
             file_hashes[relative_path] = hasher.hexdigest()
             current_file_start += file_size
         
-        # Send remaining buffer (compress if non-empty)
+        # Send remaining buffer if non-empty
         if buffer:
-            # Compress remaining uncompressed data
-            compressed_buffer = blosc.compress(bytes(buffer), cname=BLOSC_COMPRESSOR, clevel=BLOSC_LEVEL)
-            
+            # Conditionally compress remaining data
+            remaining_data = bytes(buffer)
+            if use_compression:
+                data_to_send = blosc.compress(remaining_data, cname=BLOSC_COMPRESSOR, clevel=BLOSC_LEVEL)
+            else:
+                data_to_send = remaining_data
+
             nonce = secrets.token_bytes(12)
-            encrypted_chunk = crypto.encrypt(compressed_buffer, nonce)
+            encrypted_chunk = crypto.encrypt(data_to_send, nonce)
             
             client_socket.send(len(nonce).to_bytes(4, 'big'))
             client_socket.send(nonce)
@@ -1390,7 +1400,7 @@ def send_files(file_paths: List[str], pod: bool = False):
                                                 break
                                 
                                 if actual_file_path:
-                                    retry_file_hashes[failed_filename] = send_single_file(client_socket, crypto, actual_file_path, failed_filename)
+                                    retry_file_hashes[failed_filename] = send_single_file(client_socket, crypto, actual_file_path, failed_filename, use_compression)
                                 break
                 
                 # Send retry file hashes
