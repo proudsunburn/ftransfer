@@ -1,39 +1,128 @@
 ---
 ---
 
-@import "{{ site.theme }}";
+/* Minimal Base Styles for Jekyll Layout */
+* {
+  box-sizing: border-box;
+}
 
-/* Dark Mode Theme for Transfer Files API Docs */
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.wrapper {
+  min-height: 100vh;
+}
+
+header, section, footer {
+  position: relative;
+}
+
+/* Basic Typography Reset */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
+p, ul, ol, dl {
+  margin: 0;
+  padding: 0;
+}
+
+ul, ol {
+  list-style-position: inside;
+}
+
+a {
+  text-decoration: none;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* Basic code styling */
+pre, code {
+  font-family: monospace;
+}
+
 :root {
-  --bg-color: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-tertiary: #21262d;
-  --text-primary: #f0f6fc;
-  --text-secondary: #8b949e;
-  --text-muted: #656d76;
-  --accent-blue: #58a6ff;
+  --bg-primary: #36393f;
+  --bg-secondary: #2f3136;
+  --bg-tertiary: #202225;
+  --bg-quaternary: #1e2124;
+  --text-primary: #ffffff;
+  --text-secondary: #b9bbbe;
+  --text-muted: #72767d;
+  /* Violet colors with fallbacks for better browser compatibility */
+  --violet-primary: #5865F2;
+  --violet-secondary: #4752C4;
+  --violet-tertiary: #7983F5;
   --accent-green: #3fb950;
   --accent-orange: #f85149;
   --accent-yellow: #d29922;
-  --border-color: #30363d;
-  --code-bg: #161b22;
-  --link-color: #58a6ff;
-  --link-hover: #79c0ff;
+  --border-primary: #40444b;
+  --border-secondary: #4f545c;
+  --code-bg: #2f3136;
+  /* Ensure link colors use violet variables */
+  --link-color: var(--violet-primary, #5865F2);
+  --link-hover: var(--violet-secondary, #4752C4);
+  /* Legacy variable aliases for compatibility */
+  --bg-color: var(--bg-primary);
+  --border-color: var(--border-primary);
+  --accent-blue: var(--violet-primary, #5865F2);
 }
 
-/* Base styling - Let wrapper handle layout */
-body {
-  background-color: var(--bg-color) !important;
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f2f3f5;
+  --bg-tertiary: #e3e5e8;
+  --bg-quaternary: #d1d5db;
+  --text-primary: #2e3338;
+  --text-secondary: #4e5058;
+  --text-muted: #6a6d75;
+  /* Violet colors with fallbacks for better browser compatibility */
+  --violet-primary: #5865F2;
+  --violet-secondary: #4752C4;
+  --violet-tertiary: #6b73f5;
+  --accent-green: #1a7f37;
+  --accent-orange: #cf222e;
+  --accent-yellow: #bf8700;
+  --border-primary: #d1d5db;
+  --border-secondary: #c1c6cd;
+  --code-bg: #f6f8fa;
+  /* Ensure link colors use violet variables */
+  --link-color: var(--violet-primary, #5865F2);
+  --link-hover: var(--violet-secondary, #4752C4);
+  /* Legacy variable aliases for compatibility */
+  --bg-color: var(--bg-primary);
+  --border-color: var(--border-primary);
+  --accent-blue: var(--violet-primary, #5865F2);
+}
+
+html body {
+  background-color: var(--bg-primary) !important;
   color: var(--text-primary) !important;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif !important;
+  font-family: "Whitney", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
   margin: 0 !important;
   padding: 0 !important;
+  font-size: 16px !important;
+  line-height: 1.4 !important;
 }
 
-/* Headers */
-h1, h2, h3, h4, h5, h6 {
+html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
   color: var(--text-primary) !important;
-  border-bottom-color: var(--border-color) !important;
+  border-bottom-color: var(--border-primary) !important;
+  font-family: "Whitney", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-weight: 600 !important;
 }
 
 /* Fix color accessibility for dark mode */
@@ -42,14 +131,13 @@ strong, b {
   font-weight: 600 !important;
 }
 
-/* Links */
-a {
-  color: var(--link-color) !important;
+html body a {
+  color: var(--violet-primary, #5865F2) !important;
   text-decoration: none !important;
 }
 
-a:hover {
-  color: var(--link-hover) !important;
+html body a:hover {
+  color: var(--violet-secondary, #4752C4) !important;
   text-decoration: underline !important;
 }
 
@@ -112,8 +200,8 @@ code {
 /* Blockquotes */
 blockquote {
   background-color: var(--bg-secondary) !important;
-  border-left: 4px solid var(--accent-blue) !important;
-  color: #c9d1d9 !important;
+  border-left: 4px solid var(--violet-primary) !important;
+  color: var(--text-secondary) !important;
   padding: 8px 16px !important;
   margin: 16px 0 !important;
 }
@@ -375,7 +463,7 @@ p {
 /* Security level badges */
 .security-high {
   background-color: var(--accent-orange) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
   padding: 2px 8px !important;
   border-radius: 12px !important;
   font-size: 0.75em !important;
@@ -384,7 +472,7 @@ p {
 
 .security-medium {
   background-color: var(--accent-yellow) !important;
-  color: #000000 !important;
+  color: var(--bg-primary) !important;
   padding: 2px 8px !important;
   border-radius: 12px !important;
   font-size: 0.75em !important;
@@ -393,7 +481,7 @@ p {
 
 .security-low {
   background-color: var(--accent-green) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
   padding: 2px 8px !important;
   border-radius: 12px !important;
   font-size: 0.75em !important;
@@ -474,21 +562,7 @@ p {
 }
 
 
-/* Main Content Wrapper - CSS Grid Layout */
-body .wrapper,
-.page-content .wrapper {
-  display: grid !important;
-  grid-template-areas: 
-    "sidebar content" !important;
-  grid-template-rows: 1fr !important;
-  grid-template-columns: 280px 1fr !important;
-  min-height: 100vh !important;
-  background-color: var(--bg-color) !important;
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
+/* Grid layout is now handled by the CSS in index.md */
 
 /* Legacy nav styling for backward compatibility */
 .nav {
@@ -606,11 +680,11 @@ header h1 {
   background-color: var(--code-bg) !important;
 }
 
-.highlight .c { color: #7c7c7c !important; } /* Comment */
-.highlight .k { color: #ff7b72 !important; } /* Keyword */
-.highlight .s { color: #a5c261 !important; } /* String */
+.highlight .c { color: var(--text-muted) !important; } /* Comment */
+.highlight .k { color: var(--violet-primary) !important; } /* Keyword */
+.highlight .s { color: var(--accent-green) !important; } /* String */
 .highlight .n { color: var(--text-primary) !important; } /* Name */
-.highlight .o { color: #ff7b72 !important; } /* Operator */
+.highlight .o { color: var(--violet-secondary) !important; } /* Operator */
 .highlight .p { color: var(--text-primary) !important; } /* Punctuation */
 
 /* Print styles */
@@ -622,7 +696,7 @@ header h1 {
   
   .site-header, .site-footer {
     background-color: white !important;
-    border-color: #ccc !important;
+    border-color: var(--border-primary) !important;
   }
 }
 
@@ -713,7 +787,7 @@ header h1 {
 .table-of-contents .nav-items a {
   display: block !important;
   padding: 6px 12px !important;
-  color: #c9d1d9 !important;
+  color: var(--violet-primary, #5865F2) !important;
   text-decoration: none !important;
   border-radius: 4px !important;
   transition: all 0.2s ease !important;
@@ -727,8 +801,8 @@ header h1 {
 }
 
 .table-of-contents .nav-items a.active {
-  background-color: var(--accent-blue) !important;
-  color: white !important;
+  background-color: var(--violet-primary) !important;
+  color: var(--text-primary) !important;
   font-weight: 500 !important;
 }
 
@@ -788,7 +862,7 @@ header h1 {
 .table-of-contents .method-nav a {
   font-size: 0.85em !important;
   padding: 4px 8px !important;
-  color: #8b949e !important;
+  color: var(--violet-primary, #5865F2) !important;
   font-weight: normal !important;
 }
 
@@ -798,8 +872,8 @@ header h1 {
 }
 
 .table-of-contents .method-nav a.active {
-  background-color: rgba(88, 166, 255, 0.8) !important;
-  color: white !important;
+  background-color: var(--violet-primary) !important;
+  color: var(--text-primary) !important;
   font-weight: 500 !important;
 }
 

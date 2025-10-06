@@ -73,7 +73,6 @@ digraph {
 |-----------|------|-------------|
 | `file_paths` | `List[str]` | List of file/directory paths to send |
 | `pod` | `bool` | Bind to localhost for containerized environments (default: False) |
-| `novenv` | `bool` | Exclude virtual environment and cache directories (default: False) |
 
 ## Return Value
 
@@ -89,6 +88,10 @@ send_files() shall validate all file paths before transmission when file_paths p
 send_files() shall perform key exchange with connecting client when client connection is established where the exchange uses X25519 ECDH with shared authentication token.
 
 send_files() shall encrypt all transmitted data using ChaCha20Poly1305 when session key is derived where encryption provides confidentiality and integrity.
+
+send_files() shall prompt user to exclude virtual environment directories when venv patterns are detected where exclusion improves transfer efficiency by skipping cache directories.
+
+send_files() shall prompt user to enable compression when preparing to transfer files where compression defaults to No and uses Blosc+LZ4 when enabled.
 
 send_files() shall stream files using 1MB buffers when transmitting data where streaming optimizes performance for large files and many small files.
 
@@ -107,12 +110,16 @@ digraph {
     edge [color="#6e7681"];
     
     // Start
-    start [label="Start: send_files(file_paths, pod, novenv)" shape=ellipse style=filled fillcolor="#58a6ff" fontcolor="white"];
+    start [label="Start: send_files(file_paths, pod)" shape=ellipse style=filled fillcolor="#58a6ff" fontcolor="white"];
     
     // Validation phase
     validate_input [label="validate_files(file_paths)" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
     collect_files [label="collect_files_recursive()\nBuild file manifest" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    
+
+    // User prompts
+    venv_prompt [label="Prompt: Exclude venv dirs?\n[Y/n]" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
+    compression_prompt [label="Prompt: Use compression?\n[y/N]" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
+
     // Network setup
     get_ip [label="get_tailscale_ip()\nGet local IP" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
     bind_check [label="pod == True?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
@@ -152,7 +159,9 @@ digraph {
     // Main flow
     start -> validate_input;
     validate_input -> collect_files;
-    collect_files -> get_ip;
+    collect_files -> venv_prompt;
+    venv_prompt -> compression_prompt;
+    compression_prompt -> get_ip;
     get_ip -> bind_check;
     bind_check -> bind_localhost [label="Yes" color="green"];
     bind_check -> bind_tailscale [label="No" color="blue"];

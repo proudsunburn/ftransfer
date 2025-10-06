@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: 'en_US' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <title>{% if page.title %}{{ page.title | escape }} | {{ site.title | escape }}{% else %}{{ site.title | escape }}{% endif %}</title>
+    
+    <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 | escape }}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ '/assets/fonts/whitney.css' | relative_url }}">
+    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ '/favicon.ico' | relative_url }}">
+    
+    <!-- SEO -->
+    {% if site.plugins contains 'jekyll-seo-tag' %}
+        {% seo %}
+    {% endif %}
+    
+    <!-- Theme toggle script (inline to prevent FOUC) -->
+    <script>
+        (function() {
+            const theme = localStorage.getItem('ftransfer-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <!-- Navigation will be injected here by JavaScript -->
+        </header>
+        
+        <div class="resize-divider"></div>
+        
+        <section>
+            {{ content }}
+        </section>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ '/assets/js/theme-toggle.js' | relative_url }}"></script>
+</body>
+</html>

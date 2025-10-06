@@ -1,11 +1,9 @@
 # GitHub Pages Configuration for Transfer Files API Documentation
 title: ""
-description: ""
+description: " "
 author: "Developer"
 
-# GitHub Pages theme
-theme: minima
-remote_theme: pages-themes/minimal@v0.2.0
+# GitHub Pages theme removed to use custom styling
 
 # Build settings
 markdown: kramdown

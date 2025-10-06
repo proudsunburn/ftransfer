@@ -7,9 +7,9 @@ A simple, secure file transfer tool for Tailscale networks. Transfer files and f
 - **Secure**: ChaCha20Poly1305 encryption with X25519 key exchange
 - **Simple**: Clean two-command interface with minimal output
 - **Safe**: Only works between verified Tailscale network peers
-- **Fast**: High-performance streaming with Blosc+LZ4 compression optimized for all file types
+- **Fast**: High-performance streaming with optional Blosc+LZ4 compression
 - **Reliable**: File integrity verification and progress indicators
-- **Resumable**: Interrupted transfers can be resumed with `--resume` flag
+- **Resumable**: Interrupted transfers automatically resume from last verified position
 - **Memory Efficient**: Incremental file saving prevents RAM accumulation
 - **Smart**: Automatically detects and offers to exclude virtual environments and cache folders
 - **Easy**: Short connection strings with 2-word tokens
@@ -49,14 +49,14 @@ Copy the connection string from the sender and run:
 
 Files will be saved to the current directory.
 
-### Resume Interrupted Transfers
+### Automatic Resume
 
-If a transfer is interrupted, use the `--resume` flag to continue:
+Transfers automatically resume if interrupted. Simply run the same receive command again:
 ```bash
-./transfer.py receive --resume 100.64.1.123:ocean-tiger
+./transfer.py receive 100.64.1.123:ocean-tiger
 ```
 
-The receiver will check for `.part` files and resume from the last verified position.
+The receiver will automatically detect `.part` files and lock files, then resume from the last verified position.
 
 ### Virtual Environment Detection
 
@@ -66,7 +66,7 @@ The program automatically detects virtual environment and cache directories and 
 # Output: Found virtual environment/cache directories: venv, __pycache__, node_modules. Skip? [Y/n]:
 ```
 
-Detects: `venv`, `node_modules`, `__pycache__`, `.git`, and other common development cache directories.
+Detects: `venv`, `node_modules`, `__pycache__`, `.cache`, `.git`, and other common development cache directories.
 
 ## Security
 
@@ -85,12 +85,12 @@ Detects: `venv`, `node_modules`, `__pycache__`, `.git`, and other common develop
 
 ## How It Works
 
-1. **Sender** prepares files (Blosc+LZ4 compression for all data)
+1. **Sender** prepares files with optional Blosc+LZ4 compression (user prompted)
 2. **Simple token** generated using cryptographically secure randomness (2 words from 200+ vocabulary)
-3. **Secure connection** established over Tailscale with key exchange  
+3. **Secure connection** established over Tailscale with key exchange
 4. **Authentication** using the shared token prevents unauthorized access
 5. **Encrypted transfer** with clean progress indicators
-6. **Incremental save** with `.part` files and resume capability using hash verification
+6. **Incremental save** with `.part` files and automatic resume using hash verification
 
 ## Interface
 
@@ -103,15 +103,15 @@ Transferring: document.pdf (15.8 MB)
 Progress: 45.2% | Speed: 2.1 MB/s | ETA: 00:03
 Transfer complete! (avg: 2.3 MB/s)
 
-# Receiving  
-Receiving 1 file(s) (1234567 bytes total, lz4 compressed)
+# Receiving
+Receiving 1 file(s) (1234567 bytes total)
 Receiving: document.pdf (15.8 MB)
 Progress: 78.4% | Speed: 1.8 MB/s | ETA: 00:01
 Transfer complete! (avg: 2.0 MB/s)
 
-# Resume interrupted transfer
+# Automatic Resume
 Resuming document.pdf: 524288/1234567 bytes already written
-Receiving 1 file(s) (1234567 bytes total, lz4 compressed)
+Receiving 1 file(s) (1234567 bytes total)
 Receiving: document.pdf (15.8 MB)
 Progress: 42.5% | Speed: 1.2 MB/s | ETA: 00:07
 Transfer complete! (avg: 1.5 MB/s)
@@ -121,23 +121,23 @@ Transfer complete! (avg: 1.5 MB/s)
 
 ### High-Performance Streaming
 
-Uses a unified streaming protocol with incremental file saving and Blosc+LZ4 compression optimized for speed and reliability:
+Uses a unified streaming protocol with incremental file saving and optional Blosc+LZ4 compression:
 
-- **Blosc+LZ4 Compression**: Ultra-fast compression with 4-thread optimization for maximum speed
+- **Optional Blosc+LZ4 Compression**: Ultra-fast compression with 4-thread optimization (user prompted, default: No)
 - **Incremental Saving**: Files written to disk as chunks arrive (no RAM accumulation)
-- **Single-Pass I/O**: Files are read, compressed, hashed, and streamed in one operation  
+- **Single-Pass I/O**: Files are read, optionally compressed, hashed, and streamed in one operation
 - **Batch Metadata**: All file information sent upfront to reduce overhead
 - **Optimized for Many Small Files**: 5-20x faster for Python libraries, virtual environments with compression
 - **Memory Efficient**: Transfer size independent of available RAM
 
 **Performance Benefits:**
-- **Ultra-Fast Compression**: Blosc+LZ4 provides >500 MB/s compression speed per core
-- **Bandwidth Reduction**: 30-80% smaller transfer sizes depending on file types
-- **Eliminates Double File Reads**: Single-pass read→compress→hash→stream (50% I/O reduction)
+- **Ultra-Fast Compression** (when enabled): Blosc+LZ4 provides >500 MB/s compression speed per core
+- **Bandwidth Reduction** (when enabled): 30-80% smaller transfer sizes depending on file types
+- **Single-Pass I/O**: Files read→hash→stream in one operation (50% I/O reduction)
 - **Reduces Network Round-trips**: Batch metadata transmission (80-95% overhead reduction)
-- **Multi-threaded Compression**: 4-thread Blosc optimization maximizes CPU utilization
+- **Multi-threaded Compression** (when enabled): 4-thread Blosc optimization maximizes CPU utilization
 - **Prevents Memory Exhaustion**: Stream-to-disk architecture with controlled buffers
-- **Enables Resumable Transfers**: Hash verification with compression awareness
+- **Automatic Resume**: Hash verification enables intelligent continuation from last verified position
 
 ```bash
 # All transfers automatically use optimized streaming

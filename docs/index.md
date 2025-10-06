@@ -4,14 +4,10 @@ title: ftransfer docs
 permalink: /
 ---
 
-<script>
-document.documentElement.style.setProperty('--bg-color', '#0d1117');
-document.body.style.backgroundColor = '#0d1117';
-document.body.style.color = '#f0f6fc';
-</script>
 
-<!-- Navigation Styling -->
+<!-- Page-specific Layout and Navigation Styling -->
 <style>
+/* CSS variables are now handled by external CSS - removed duplicates */
 .table-of-contents {
     max-width: 250px;
 }
@@ -23,8 +19,10 @@ document.body.style.color = '#f0f6fc';
 .nav-header {
     margin: 0 0 8px 0;
     padding: 4px 0;
-    color: #f0f6fc;
+    color: var(--text-primary);
     cursor: default;
+    font-family: var(--font-primary) !important;
+    font-weight: var(--font-weight-medium) !important;
 }
 
 .nav-header.expandable {
@@ -61,21 +59,26 @@ document.body.style.color = '#f0f6fc';
 .nav-items a {
     display: block;
     padding: 3px 8px;
-    color: #7d8590;
+    color: var(--violet-primary) !important;
     text-decoration: none;
     font-size: 13px;
     border-radius: 4px;
     transition: all 0.2s;
+    font-family: var(--font-primary) !important;
+    font-weight: var(--font-weight-normal) !important;
 }
 
 .nav-items a:hover {
-    color: #f0f6fc;
-    background-color: #21262d;
+    color: var(--violet-secondary) !important;
+    background-color: var(--bg-tertiary);
 }
 
-.nav-items a.active {
-    color: #58a6ff;
-    background-color: #1f2937;
+.nav-items a.active, .table-of-contents .nav-items a.active, [data-target].active {
+    color: #ffffff !important;
+    background-color: var(--violet-primary) !important;
+    font-weight: var(--font-weight-medium) !important;
+    border-radius: 4px !important;
+    padding: 6px 12px !important;
 }
 
 .class-link.expandable {
@@ -103,60 +106,160 @@ document.body.style.color = '#f0f6fc';
 
 .method-nav a {
     font-size: 12px;
-    color: #6e7681;
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    color: var(--violet-primary, #5865F2) !important;
+    font-family: var(--font-mono) !important;
 }
 
 .method-nav a:hover {
-    color: #e6edf3;
-    background-color: #1c2128;
+    color: var(--text-secondary);
+    background-color: var(--bg-secondary);
 }
 
 .class-item {
     margin-bottom: 8px;
 }
 
-.architecture-diagram, .protocol-diagram, .security-diagram {
-    text-align: center;
-    margin: 20px 0;
-    padding: 20px;
-    background: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 8px;
+/* Theme Toggle Styles */
+.theme-toggle-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-primary);
 }
 
-.protocol-diagram {
-    background: #161b22;
+.theme-toggle-container {
+    display: flex;
+    justify-content: center;
 }
 
-.security-diagram {
-    background: #0d1117;
-    border-color: #30363d;
+.theme-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    color: var(--text-primary);
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    justify-content: center;
+    font-family: var(--font-primary) !important;
+    font-weight: var(--font-weight-medium) !important;
 }
 
-.components-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-    color: #e6edf3;
+.theme-toggle-btn:hover {
+    background: var(--violet-primary) !important;
+    border-color: var(--violet-secondary) !important;
+    color: #ffffff !important;
 }
 
-.components-table th {
-    background: #21262d;
-    padding: 12px;
-    border: 1px solid #30363d;
-    color: #f0f6fc;
-    text-align: left;
+.theme-icon {
+    font-size: 16px;
+    transition: opacity 0.2s ease;
 }
 
-.components-table td {
-    padding: 10px;
-    border: 1px solid #30363d;
+.light-icon {
+    opacity: 0.4;
 }
 
-.components-table tr:nth-child(even) {
-    background: #161b22;
+.dark-icon {
+    opacity: 1;
 }
+
+/* Light mode styles */
+[data-theme="light"] .theme-toggle-btn {
+    background: var(--bg-secondary);
+    border-color: var(--border-primary);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+    background: var(--violet-primary) !important;
+    border-color: var(--violet-secondary) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="light"] .light-icon {
+    opacity: 1;
+}
+
+[data-theme="light"] .dark-icon {
+    opacity: 0.4;
+}
+
+/* Essential page-specific grid layout - external CSS handles theming */
+
+/* Resizable Layout System */
+.wrapper {
+    display: grid !important;
+    grid-template-areas: "sidebar divider content" !important;
+    grid-template-columns: var(--sidebar-width, 270px) 4px 1fr !important;
+    grid-template-rows: 1fr !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+header {
+    grid-area: sidebar !important;
+    position: static !important;
+    float: none !important;
+    width: auto !important;
+}
+
+.resize-divider {
+    grid-area: divider !important;
+    background: var(--border-primary) !important;
+    cursor: col-resize !important;
+    position: relative !important;
+    user-select: none !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.resize-divider:hover {
+    background: var(--violet-primary) !important;
+}
+
+.resize-divider::before {
+    content: '';
+    position: absolute !important;
+    top: 0 !important;
+    left: -2px !important;
+    right: -2px !important;
+    bottom: 0 !important;
+    cursor: col-resize !important;
+}
+
+section {
+    grid-area: content !important;
+    position: static !important;
+    float: none !important;
+    width: auto !important;
+}
+
+/* Responsive Layout */
+@media (max-width: 768px) {
+    .wrapper {
+        grid-template-areas: "sidebar" "content" !important;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto 1fr !important;
+    }
+    
+    .resize-divider {
+        display: none !important;
+    }
+    
+    header {
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-primary) !important;
+    }
+}
+
+/* Content styling now handled by external CSS - removed duplicates */
 </style>
 
 <!-- Main Content Area -->
@@ -320,7 +423,8 @@ document.body.style.color = '#f0f6fc';
   <h2>Performance Features</h2>
 
   <ul>
-    <li><strong>Unified Streaming Protocol</strong>: Single-pass I/O (read → hash → stream)</li>
+    <li><strong>Optional Blosc+LZ4 Compression</strong>: User-selectable compression for bandwidth reduction (default: No)</li>
+    <li><strong>Unified Streaming Protocol</strong>: Single-pass I/O (read → optionally compress → hash → stream)</li>
     <li><strong>1MB Buffer Strategy</strong>: Memory-efficient for large files, 3-10x faster for many small files</li>
     <li><strong>Batch Metadata Transmission</strong>: Reduces network overhead for libraries/venvs</li>
     <li><strong>Connection Caching</strong>: 30-second TTL for peer verification</li>
@@ -522,6 +626,25 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <li><a href="#generate_token" data-target="generate_token">generate_token()</a></li>
                                 </ul>
                             </li>
+                            <li class="class-item">
+                                <a href="#transferlockmanager" data-target="transferlockmanager" class="class-link expandable" data-section="transferlockmanager-methods">TransferLockManager</a>
+                                <ul class="nav-items method-nav transferlockmanager-methods-nav" style="display: none;">
+                                    <li><a href="#create_lock_file" data-target="create_lock_file">create_lock_file()</a></li>
+                                    <li><a href="#load_existing_lock" data-target="load_existing_lock">load_existing_lock()</a></li>
+                                    <li><a href="#get_resume_plan" data-target="get_resume_plan">get_resume_plan()</a></li>
+                                    <li><a href="#update_file_status" data-target="update_file_status">update_file_status()</a></li>
+                                    <li><a href="#verify_source_files_unchanged" data-target="verify_source_files_unchanged">verify_source_files_unchanged()</a></li>
+                                    <li><a href="#cleanup_on_completion" data-target="cleanup_on_completion">cleanup_on_completion()</a></li>
+                                </ul>
+                            </li>
+                            <li class="class-item">
+                                <a href="#resourcemonitor" data-target="resourcemonitor" class="class-link expandable" data-section="resourcemonitor-methods">ResourceMonitor</a>
+                                <ul class="nav-items method-nav resourcemonitor-methods-nav" style="display: none;">
+                                    <li><a href="#get_open_fd_count" data-target="get_open_fd_count">get_open_fd_count()</a></li>
+                                    <li><a href="#get_fd_limit" data-target="get_fd_limit">get_fd_limit()</a></li>
+                                    <li><a href="#check_fd_usage" data-target="check_fd_usage">check_fd_usage()</a></li>
+                                </ul>
+                            </li>
                         </ul>
                     </div>
                     
@@ -542,7 +665,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             <li><a href="#format_speed" data-target="format_speed">format_speed()</a></li>
                             <li><a href="#calculate_speed" data-target="calculate_speed">calculate_speed()</a></li>
                             <li><a href="#collect_files_recursive" data-target="collect_files_recursive">collect_files_recursive()</a></li>
+                            <li><a href="#log_warning" data-target="log_warning">log_warning()</a></li>
+                            <li><a href="#calculate_smoothed_speed" data-target="calculate_smoothed_speed">calculate_smoothed_speed()</a></li>
+                            <li><a href="#calculate_smoothed_eta" data-target="calculate_smoothed_eta">calculate_smoothed_eta()</a></li>
                         </ul>
+                    </div>
+                    
+                    <div class="nav-section theme-toggle-section">
+                        <div class="theme-toggle-container">
+                            <button id="theme-toggle" class="theme-toggle-btn" title="Toggle dark/light mode">
+                                <span class="theme-icon dark-icon">🌙</span>
+                                <span class="theme-icon light-icon">☀️</span>
+                                <span class="theme-label">Dark Mode</span>
+                            </button>
+                        </div>
                     </div>
                 `;
                 header.appendChild(navContainer);
@@ -587,13 +723,40 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
+        // Environment detection for correct baseurl
+        function getCorrectBaseurl() {
+            const hostname = window.location.hostname;
+            const pathname = window.location.pathname;
+            
+            // Local development detection
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return ''; // No baseurl for local development
+            }
+            
+            // GitHub Pages detection
+            if (pathname.startsWith('/ftransfer/')) {
+                return '/ftransfer'; // GitHub Pages baseurl
+            }
+            
+            // Fallback for other environments
+            return '';
+        }
+
         // Dynamic content loading function
         async function loadExternalContent(section, placeholder) {
-            const src = placeholder.dataset.src;
+            let src = placeholder.dataset.src;
             if (!src) return;
+            
+            // Adjust URL for environment (remove /ftransfer/ prefix for local development)
+            const correctBaseurl = getCorrectBaseurl();
+            if (correctBaseurl === '' && src.startsWith('/ftransfer/')) {
+                src = src.replace('/ftransfer', ''); // Remove /ftransfer for local development
+            }
             
             try {
                 placeholder.textContent = 'Loading comprehensive documentation...';
+                
+                console.log(`Loading documentation from: ${src}`);
                 
                 // Fetch the processed HTML content from Jekyll
                 const response = await fetch(src);
@@ -626,6 +789,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Replace placeholder with the comprehensive content
                     section.innerHTML = sectionHTML;
                     section.dataset.loaded = 'true';
+                    
+                    // Apply current theme to newly loaded content (including diagrams)
+                    if (window.themeManager) {
+                        window.themeManager.forceApplyThemeColors(window.themeManager.currentTheme);
+                        window.themeManager.applyDiagramFilters(window.themeManager.currentTheme);
+                        window.themeManager.applyDiagramContainerStyles(window.themeManager.currentTheme);
+                        console.log(`Applied ${window.themeManager.currentTheme} theme to loaded content`);
+                    }
                     
                     console.log(`Successfully loaded comprehensive documentation for: ${src}`);
                 } else {
@@ -819,4 +990,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<script src="/assets/js/dark-mode.js"></script>
+<!-- Resizable Divider -->
+<div class="resize-divider" id="resize-divider"></div>
+
+<script src="/assets/js/theme-toggle.js"></script>

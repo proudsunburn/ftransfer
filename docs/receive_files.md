@@ -66,7 +66,6 @@ digraph {
 |-----------|------|-------------|
 | `connection_string` | `str` | Connection string in format "ip:token" |
 | `pod` | `bool` | Accept connections from localhost for containerized environments (default: False) |
-| `resume` | `bool` | Resume from existing .part files if available (default: False) |
 
 ## Return Value
 
@@ -85,11 +84,13 @@ receive_files() shall perform key exchange with sender when TCP connection is es
 
 receive_files() shall decrypt all received data using ChaCha20Poly1305 when session key is derived where decryption ensures data confidentiality and integrity.
 
+receive_files() shall automatically detect compression from metadata when batch metadata is received where decompression is applied only if sender enabled compression.
+
 receive_files() shall receive files using streaming protocol with incremental saving when encrypted data is received where FileWriter instances handle direct stream-to-disk writing without memory accumulation.
 
 receive_files() shall accept connections from localhost when pod parameter is True where localhost acceptance enables containerized deployment.
 
-receive_files() shall resume from existing .part files when resume parameter is True where FileWriter instances verify existing data integrity before continuing transfers.
+receive_files() shall automatically detect and resume from existing lock files and .part files where TransferLockManager instances verify existing data integrity before continuing transfers.
 
 ## Algorithm Flow
 
@@ -129,7 +130,7 @@ digraph {
     // File reception with incremental saving
     receive_metadata [label="Receive batch metadata:\n{filename, size, hash, offset}" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
     create_filewriters [label="Create FileWriter instances\nfor incremental saving" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    open_part_files [label="Open .part files\n(resume if --resume flag)" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
+    open_part_files [label="Initialize TransferLockManager\n(automatic resume detection)" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
     stream_loop [label="Stream chunks:\nrecv() → decrypt() → write_chunk()" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
     complete_files [label="Complete files:\nmove .part to final names" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
     verify_integrity [label="Verify SHA-256 hashes\nfor all received files" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
@@ -197,6 +198,140 @@ digraph {
 
 </div>
 
+## Automatic Resume Workflow
+
+The receiver implements intelligent automatic resume detection without requiring manual flags or user intervention.
+
+<div class="butterfly-diagram">
+
+{% graphviz %}
+digraph {
+    rankdir=TB;
+    bgcolor="transparent";
+    edge [color="#6e7681"];
+    
+    // Start
+    start [label="receive_files() starts" shape=ellipse style=filled fillcolor="#e91e63" fontcolor="white"];
+    
+    // Lock file detection
+    check_lock [label="Initialize TransferLockManager\nCheck for .transfer_lock.json" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
+    lock_exists [label="Valid lock file\nfound?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
+    
+    // Resume path
+    load_lock [label="Load existing lock data:\nsession, file states, hashes" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
+    analyze_files [label="Analyze incoming files vs\nlock state: completed/partial/fresh" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
+    create_plan [label="Generate resume plan:\nX completed, Y partial, Z fresh" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
+    show_resume [label="Display: 'Resuming transfer:\nX completed, Y partial, Z fresh files'" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
+    
+    // Fresh path  
+    create_lock [label="Create new lock file\nwith session metadata" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
+    show_fresh [label="Display: 'Starting fresh transfer'" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
+    
+    // Common path
+    setup_writers [label="Setup FileWriter instances:\n- Resume from lock offsets\n- Fresh files from zero" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
+    
+    // File integrity retry mechanism
+    transfer_loop [label="Transfer files with\nintegrity verification" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
+    check_integrity [label="Verify SHA-256 hashes\nfor all files" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
+    integrity_ok [label="All files\npass integrity?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
+    
+    // Retry mechanism
+    retry_count [label="Retry attempts\n< 3?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
+    request_retry [label="Send retry request\nto sender for failed files" shape=box style=filled fillcolor="#ff9800" fontcolor="white"];
+    receive_retry [label="Receive retry data\nfor failed files only" shape=box style=filled fillcolor="#ff9800" fontcolor="white"];
+    
+    // Completion
+    cleanup_lock [label="Remove lock file\n(successful completion)" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
+    complete [label="Transfer complete!" shape=ellipse style=filled fillcolor="#4caf50" fontcolor="white"];
+    
+    // Error
+    final_error [label="Report integrity failure\nafter 3 attempts" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
+    
+    // Edges
+    start -> check_lock;
+    check_lock -> lock_exists;
+    lock_exists -> load_lock [label="yes"];
+    lock_exists -> create_lock [label="no"];
+    load_lock -> analyze_files;
+    analyze_files -> create_plan;
+    create_plan -> show_resume;
+    create_lock -> show_fresh;
+    show_resume -> setup_writers;
+    show_fresh -> setup_writers;
+    setup_writers -> transfer_loop;
+    transfer_loop -> check_integrity;
+    check_integrity -> integrity_ok;
+    integrity_ok -> cleanup_lock [label="pass"];
+    integrity_ok -> retry_count [label="fail"];
+    retry_count -> request_retry [label="yes"];
+    retry_count -> final_error [label="no"];
+    request_retry -> receive_retry;
+    receive_retry -> check_integrity;
+    cleanup_lock -> complete;
+}
+{% endgraphviz %}
+
+</div>
+
+### **Lock File State Management**
+
+The automatic resume system uses `.transfer_lock.json` files to track transfer state:
+
+```json
+{
+  "version": "1.0",
+  "session_id": "uuid-12345",
+  "timestamp": "2024-01-01T12:00:00Z", 
+  "sender_ip": "100.101.29.44",
+  "total_files": 1000,
+  "total_size": 1048576000,
+  "files": {
+    "document.pdf": {
+      "status": "completed",
+      "size": 524288,
+      "transferred_bytes": 524288,
+      "original_hash": "sha256-hash",
+      "partial_hash": "sha256-hash"
+    },
+    "archive.zip": {
+      "status": "in_progress", 
+      "size": 1048576,
+      "transferred_bytes": 262144,
+      "partial_hash": "sha256-partial"
+    }
+  }
+}
+```
+
+### **File Integrity Retry System**
+
+When integrity check failures occur, the receiver automatically retries up to 3 times:
+
+1. **Detection**: SHA-256 hash mismatch detected for received files
+2. **Request**: Send retry request to sender with failed file list
+3. **Resend**: Sender locates and resends only failed files  
+4. **Verification**: Re-verify integrity of retried files
+5. **Loop**: Repeat up to 3 total attempts
+6. **Completion**: Success after retry or final error report
+
+### **Resume Decision Logic**
+
+```python
+def get_resume_plan(incoming_files):
+    completed_files = []    # Skip entirely
+    resume_files = []       # Resume from partial offset  
+    fresh_files = []        # Transfer from beginning
+    
+    for file in incoming_files:
+        lock_status = lock_data.files[file.name].status
+        if lock_status == "completed":
+            completed_files.append(file.name)
+        elif lock_status == "in_progress":
+            resume_files.append((file.name, transferred_bytes))
+        else:
+            fresh_files.append(file)
+```
+
 ## Security Considerations
 
 ### **Connection Security**
@@ -217,7 +352,7 @@ digraph {
 ### **File Reception Security**
 - **Directory Traversal Prevention**: File paths validated before FileWriter creation to prevent escape attacks
 - **Incremental File Writing**: FileWriter class manages .part files with atomic completion operations
-- **Resume Verification**: Existing .part files re-hashed on resume to ensure integrity before continuation
+- **Lock File Validation**: TransferLockManager verifies existing transfer state and file integrity before resuming
 - **Integrity Verification**: SHA-256 hash verification ensures files haven't been tampered with
 - **Atomic File Operations**: Files written to .part locations then atomically renamed on completion
 

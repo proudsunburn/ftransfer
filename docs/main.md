@@ -64,8 +64,6 @@ digraph {
 | `command` | `str` | Either "send" or "receive" |
 | `files` | `List[str]` | Files/directories to send (send mode only) |
 | `connection` | `str` | Connection string ip:token (receive mode only) |
-| `--novenv` | `flag` | Exclude virtual environment and cache directories |
-| `--resume` | `flag` | Resume interrupted transfers from .part files |
 | `--pod` | `flag` | Bind to/accept connections from localhost (127.0.0.1) for containerized environments |
 
 ## Return Value
@@ -79,7 +77,7 @@ main() shall parse command-line arguments when program is executed where argumen
 
 main() shall invoke send_files() when command is "send" and file paths are provided where send mode transmits files to receiving peer.
 
-main() shall invoke receive_files() when command is "receive" and connection string is provided where receive mode accepts files from sending peer.
+main() shall invoke receive_files() when command is "receive" and connection string is provided where receive mode accepts files from sending peer with automatic resume detection.
 
 main() shall validate command-line argument combinations when parsing completes where validation ensures required arguments are present.
 
