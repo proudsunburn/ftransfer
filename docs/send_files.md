@@ -1,26 +1,9 @@
 ---
 layout: default
 title: send_files()
-permalink: /send_files/
+parent: Main Functions
+nav_order: 1
 ---
-
-<script>
-document.documentElement.style.setProperty('--bg-color', '#0d1117');
-document.body.style.backgroundColor = '#0d1117';
-document.body.style.color = '#f0f6fc';
-</script>
-
-
-<style>
-.butterfly-diagram {
-  text-align: center;
-  margin: 20px 0;
-  padding: 20px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
-}
-</style>
 
 # send_files() Function
 
@@ -32,40 +15,23 @@ Main server function that handles file transmission using optimized streaming bu
 
 ## Call Graph
 
-<div class="butterfly-diagram">
+```mermaid
+graph LR
+    main["main()"]:::red --> send_files["send_files()"]:::highlight
+    send_files --> validate_files["validate_files()"]:::green
+    send_files --> collect_files_recursive["collect_files_recursive()"]:::green
+    send_files --> get_tailscale_ip["TailscaleDetector.get_tailscale_ip()"]:::green
+    send_files --> verify_peer_ip_cached["TailscaleDetector.verify_peer_ip_cached()"]:::green
+    send_files --> generate_token["SecureTokenGenerator.generate_token()"]:::green
+    send_files --> crypto_init["SecureCrypto()"]:::green
+    send_files --> recv_all["recv_all()"]:::green
+    send_files --> calculate_speed["calculate_speed()"]:::green
+    send_files --> format_speed["format_speed()"]:::green
 
-{% graphviz %}
-digraph {
-    rankdir=LR;
-    bgcolor="transparent";
-    
-    // Nodes
-    main [label="main()" shape=box style=filled fillcolor="#f78166" fontcolor="white" fontsize=11];
-    send_files [label="send_files()" shape=box style=filled fillcolor="#58a6ff" fontcolor="white" fontsize=12 penwidth=3];
-    validate_files [label="validate_files()" shape=box style=filled fillcolor="#56d364" fontcolor="white" fontsize=11];
-    collect_files_recursive [label="collect_files_recursive()" shape=box style=filled fillcolor="#56d364" fontcolor="white" fontsize=11];
-    get_tailscale_ip [label="TailscaleDetector.get_tailscale_ip()" shape=box style=filled fillcolor="#56d364" fontcolor="white" fontsize=11];
-    verify_peer_ip_cached [label="TailscaleDetector.verify_peer_ip_cached()" shape=box style=filled fillcolor="#56d364" fontcolor="white" fontsize=11];
-    generate_token [label="SecureTokenGenerator.generate_token()" shape=box style=filled fillcolor="#56d364" fontcolor="white" fontsize=11];
-    crypto_init [label="SecureCrypto()" shape=box style=filled fillcolor="#56d364" fontcolor="white" fontsize=11];
-    recv_all [label="recv_all()" shape=box style=filled fillcolor="#56d364" fontcolor="white" fontsize=11];
-    calculate_speed [label="calculate_speed()" shape=box style=filled fillcolor="#56d364" fontcolor="white" fontsize=11];
-    format_speed [label="format_speed()" shape=box style=filled fillcolor="#56d364" fontcolor="white" fontsize=11];
-    
-    // Edges
-    main -> send_files [color="#6e7681"];
-    send_files -> validate_files [color="#6e7681"];
-    send_files -> collect_files_recursive [color="#6e7681"];
-    send_files -> get_tailscale_ip [color="#6e7681"];
-    send_files -> verify_peer_ip_cached [color="#6e7681"];
-    send_files -> generate_token [color="#6e7681"];
-    send_files -> crypto_init [color="#6e7681"];
-    send_files -> recv_all [color="#6e7681"];
-    send_files -> calculate_speed [color="#6e7681"];
-    send_files -> format_speed [color="#6e7681"];
-}
-{% endgraphviz %}
-</div>
+    classDef red fill:#f78166,stroke:#333,color:#fff
+    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
+    classDef green fill:#56d364,stroke:#333,color:#fff
+```
 
 ## Parameters
 
@@ -101,103 +67,92 @@ send_files() shall verify connecting peer IP using Tailscale peer verification w
 
 ## Algorithm Flow
 
-<div class="butterfly-diagram">
+```mermaid
+graph TD
+    start(["Start: send_files(file_paths, pod)"]):::blue
 
-{% graphviz %}
-digraph {
-    rankdir=TB;
-    bgcolor="transparent";
-    edge [color="#6e7681"];
-    
-    // Start
-    start [label="Start: send_files(file_paths, pod)" shape=ellipse style=filled fillcolor="#58a6ff" fontcolor="white"];
-    
-    // Validation phase
-    validate_input [label="validate_files(file_paths)" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    collect_files [label="collect_files_recursive()\nBuild file manifest" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
+    validate_input["validate_files(file_paths)"]:::green
+    collect_files["collect_files_recursive()<br/>Build file manifest"]:::green
 
-    // User prompts
-    venv_prompt [label="Prompt: Exclude venv dirs?\n[Y/n]" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
-    compression_prompt [label="Prompt: Use compression?\n[y/N]" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
+    venv_prompt["Prompt: Exclude venv dirs?<br/>[Y/n]"]:::pink
+    compression_prompt["Prompt: Use compression?<br/>[y/N]"]:::pink
 
-    // Network setup
-    get_ip [label="get_tailscale_ip()\nGet local IP" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    bind_check [label="pod == True?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    bind_localhost [label="Bind to 127.0.0.1:15820" shape=box style=filled fillcolor="#ff9800" fontcolor="white"];
-    bind_tailscale [label="Bind to tailscale_ip:15820" shape=box style=filled fillcolor="#ff9800" fontcolor="white"];
-    
-    // Authentication
-    generate_auth [label="generate_token()\nCreate 2-word token" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    display_token [label="Display connection string:\n'transfer.py receive ip:token'" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
-    
-    // Connection waiting
-    wait_conn [label="Accept TCP connection\n(5 minute timeout)" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    verify_peer [label="verify_peer_ip_cached()\nValidate client IP" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    
-    // Cryptographic handshake
-    crypto_init [label="SecureCrypto()\nGenerate X25519 keypair" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    exchange_keys [label="Exchange public keys\n(64 bytes total)" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    derive_key [label="derive_session_key()\nECDH + HKDF-SHA256" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    
-    // File transmission
-    send_metadata [label="Send batch metadata:\n{filename, size, hash}" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    stream_files [label="Stream files with 1MB buffers:\nread → hash → encrypt → send" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Completion
-    calc_speed [label="calculate_speed()\nCompute transfer rate" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    show_result [label="Display: 'Transfer complete:\nX bytes sent'" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
-    cleanup [label="Close connections\nCleanup resources" shape=box style=filled fillcolor="#9e9e9e" fontcolor="white"];
-    end_success [label="Return (success)" shape=ellipse style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Error paths
-    error_validation [label="Validation Error:\nFiles not found/accessible" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_network [label="Network Error:\nCannot bind/connect" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_auth [label="Authentication Error:\nPeer verification failed" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_crypto [label="Cryptographic Error:\nKey exchange failed" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    end_error [label="Raise Exception" shape=ellipse style=filled fillcolor="#f44336" fontcolor="white"];
-    
-    // Main flow
-    start -> validate_input;
-    validate_input -> collect_files;
-    collect_files -> venv_prompt;
-    venv_prompt -> compression_prompt;
-    compression_prompt -> get_ip;
-    get_ip -> bind_check;
-    bind_check -> bind_localhost [label="Yes" color="green"];
-    bind_check -> bind_tailscale [label="No" color="blue"];
-    bind_localhost -> generate_auth;
-    bind_tailscale -> generate_auth;
-    generate_auth -> display_token;
-    display_token -> wait_conn;
-    wait_conn -> verify_peer;
-    verify_peer -> crypto_init;
-    crypto_init -> exchange_keys;
-    exchange_keys -> derive_key;
-    derive_key -> send_metadata;
-    send_metadata -> stream_files;
-    stream_files -> calc_speed;
-    calc_speed -> show_result;
-    show_result -> cleanup;
-    cleanup -> end_success;
-    
-    // Error flows
-    validate_input -> error_validation [color="red" style=dashed];
-    get_ip -> error_network [color="red" style=dashed];
-    bind_localhost -> error_network [color="red" style=dashed];
-    bind_tailscale -> error_network [color="red" style=dashed];
-    wait_conn -> error_network [color="red" style=dashed];
-    verify_peer -> error_auth [color="red" style=dashed];
-    exchange_keys -> error_crypto [color="red" style=dashed];
-    derive_key -> error_crypto [color="red" style=dashed];
-    
-    error_validation -> end_error;
-    error_network -> end_error;
-    error_auth -> end_error;
-    error_crypto -> end_error;
-}
-{% endgraphviz %}
+    get_ip["get_tailscale_ip()<br/>Get local IP"]:::green
+    bind_check{"pod == True?"}:::yellow
+    bind_localhost["Bind to 127.0.0.1:15820"]:::orange
+    bind_tailscale["Bind to tailscale_ip:15820"]:::orange
 
-</div>
+    generate_auth["generate_token()<br/>Create 2-word token"]:::green
+    display_token["Display connection string:<br/>'transfer.py receive ip:token'"]:::pink
+
+    wait_conn["Accept TCP connection<br/>(5 minute timeout)"]:::lightblue
+    verify_peer["verify_peer_ip_cached()<br/>Validate client IP"]:::green
+
+    crypto_init["SecureCrypto()<br/>Generate X25519 keypair"]:::green
+    exchange_keys["Exchange public keys<br/>(64 bytes total)"]:::lightblue
+    derive_key["derive_session_key()<br/>ECDH + HKDF-SHA256"]:::green
+
+    send_metadata["Send batch metadata:<br/>{filename, size, hash}"]:::success
+    stream_files["Stream files with 1MB buffers:<br/>read → hash → encrypt → send"]:::success
+
+    calc_speed["calculate_speed()<br/>Compute transfer rate"]:::green
+    show_result["Display: 'Transfer complete:<br/>X bytes sent'"]:::pink
+    cleanup["Close connections<br/>Cleanup resources"]:::gray
+    end_success(["Return (success)"]):::success
+
+    error_validation["Validation Error:<br/>Files not found/accessible"]:::error
+    error_network["Network Error:<br/>Cannot bind/connect"]:::error
+    error_auth["Authentication Error:<br/>Peer verification failed"]:::error
+    error_crypto["Cryptographic Error:<br/>Key exchange failed"]:::error
+    end_error(["Raise Exception"]):::error
+
+    start --> validate_input
+    validate_input --> collect_files
+    collect_files --> venv_prompt
+    venv_prompt --> compression_prompt
+    compression_prompt --> get_ip
+    get_ip --> bind_check
+    bind_check -->|Yes| bind_localhost
+    bind_check -->|No| bind_tailscale
+    bind_localhost --> generate_auth
+    bind_tailscale --> generate_auth
+    generate_auth --> display_token
+    display_token --> wait_conn
+    wait_conn --> verify_peer
+    verify_peer --> crypto_init
+    crypto_init --> exchange_keys
+    exchange_keys --> derive_key
+    derive_key --> send_metadata
+    send_metadata --> stream_files
+    stream_files --> calc_speed
+    calc_speed --> show_result
+    show_result --> cleanup
+    cleanup --> end_success
+
+    validate_input -.->|error| error_validation
+    get_ip -.->|error| error_network
+    bind_localhost -.->|error| error_network
+    bind_tailscale -.->|error| error_network
+    wait_conn -.->|error| error_network
+    verify_peer -.->|error| error_auth
+    exchange_keys -.->|error| error_crypto
+    derive_key -.->|error| error_crypto
+
+    error_validation --> end_error
+    error_network --> end_error
+    error_auth --> end_error
+    error_crypto --> end_error
+
+    classDef blue fill:#58a6ff,stroke:#333,color:#fff
+    classDef green fill:#56d364,stroke:#333,color:#fff
+    classDef pink fill:#e91e63,stroke:#333,color:#fff
+    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
+    classDef orange fill:#ff9800,stroke:#333,color:#fff
+    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
+    classDef success fill:#4caf50,stroke:#333,color:#fff
+    classDef gray fill:#9e9e9e,stroke:#333,color:#fff
+    classDef error fill:#f44336,stroke:#333,color:#fff
+```
 
 ## Security Considerations
 
@@ -211,7 +166,7 @@ digraph {
 - **Authenticated Encryption**: ChaCha20Poly1305 AEAD prevents tampering and provides confidentiality
 - **Key Exchange Security**: ECDH + HKDF-SHA256 with shared token ensures mutual authentication
 
-### **Authentication Security**  
+### **Authentication Security**
 - **Two-Word Tokens**: 34.6 bits entropy (~200² combinations) provides adequate security for short-lived sessions
 - **Token Integration**: Shared token mixed into HKDF salt prevents man-in-the-middle attacks
 - **Visual Verification**: Human-readable tokens enable out-of-band verification
@@ -230,5 +185,3 @@ digraph {
 - **Replay Protection**: Ephemeral keys and nonces prevent replay attacks
 - **Timing Attack Resistance**: ChaCha20Poly1305 provides constant-time operations
 - **Side-Channel Protection**: Secure key generation and handling procedures
-
-<script src="{{ "/assets/js/dark-mode.js" | relative_url }}"></script>

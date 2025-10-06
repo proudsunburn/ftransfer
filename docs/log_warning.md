@@ -1,25 +1,9 @@
 ---
 layout: default
 title: log_warning()
-permalink: /log_warning/
+parent: Utility Functions
+nav_order: 4
 ---
-
-<script>
-document.documentElement.style.setProperty('--bg-color', '#0d1117');
-document.body.style.backgroundColor = '#0d1117';
-document.body.style.color = '#f0f6fc';
-</script>
-
-<style>
-.butterfly-diagram {
-  text-align: center;
-  margin: 20px 0;
-  padding: 20px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
-}
-</style>
 
 # log_warning() Function
 
@@ -99,52 +83,42 @@ log_warning(f"Stale lock file found (age: {age}), ignoring")
 
 ## Warning Logging Workflow
 
-<div class="butterfly-diagram">
+```mermaid
+graph TD
+    warning_event(["Warning condition<br/>detected"]):::pink
 
-{% graphviz %}
-digraph {
-    rankdir=TB;
-    bgcolor="transparent";
-    edge [color="#6e7681"];
-    
-    // Start
-    warning_event [label="Warning condition\ndetected" shape=ellipse style=filled fillcolor="#e91e63" fontcolor="white"];
-    
-    // Log decision
-    log_call [label="log_warning(message)\ncalled" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Timestamp
-    generate_timestamp [label="Generate timestamp:\nYYYY-MM-DD HH:MM:SS" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    
-    // File operations
-    open_file [label="Open transfer_warnings.log\nin append mode" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    format_entry [label="Format entry:\n[timestamp] message" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    write_entry [label="Write entry to file\nwith newline" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Error handling
-    file_error [label="File write error?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    silent_ignore [label="Silently ignore error\n(don't disrupt transfer)" shape=box style=filled fillcolor="#9e9e9e" fontcolor="white"];
-    
-    // Console output
-    console_clean [label="Console output\nremains clean" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Continue
-    continue_transfer [label="Transfer continues\nnormally" shape=ellipse style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Edges
-    warning_event -> log_call;
-    log_call -> generate_timestamp;
-    generate_timestamp -> open_file;
-    open_file -> format_entry;
-    format_entry -> write_entry;
-    write_entry -> file_error;
-    file_error -> silent_ignore [label="error"];
-    file_error -> console_clean [label="success"];
-    silent_ignore -> continue_transfer;
-    console_clean -> continue_transfer;
-}
-{% endgraphviz %}
-</div>
+    log_call["log_warning(message)<br/>called"]:::success
+
+    generate_timestamp["Generate timestamp:<br/>YYYY-MM-DD HH:MM:SS"]:::lightblue
+
+    open_file["Open transfer_warnings.log<br/>in append mode"]:::success
+    format_entry["Format entry:<br/>[timestamp] message"]:::success
+    write_entry["Write entry to file<br/>with newline"]:::success
+
+    file_error{"File write error?"}:::yellow
+    silent_ignore["Silently ignore error<br/>(don't disrupt transfer)"]:::gray
+
+    console_clean["Console output<br/>remains clean"]:::success
+
+    continue_transfer(["Transfer continues<br/>normally"]):::success
+
+    warning_event --> log_call
+    log_call --> generate_timestamp
+    generate_timestamp --> open_file
+    open_file --> format_entry
+    format_entry --> write_entry
+    write_entry --> file_error
+    file_error -->|error| silent_ignore
+    file_error -->|success| console_clean
+    silent_ignore --> continue_transfer
+    console_clean --> continue_transfer
+
+    classDef pink fill:#e91e63,stroke:#333,color:#fff
+    classDef success fill:#4caf50,stroke:#333,color:#fff
+    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
+    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
+    classDef gray fill:#9e9e9e,stroke:#333,color:#fff
+```
 
 ## Design Principles
 
@@ -234,5 +208,3 @@ $ cat transfer_warnings.log
 - **Rotation**: Consider log rotation for long-running systems
 - **Cleanup**: Remove old warning logs periodically
 - **Monitoring**: Include in system monitoring for operational insights
-
-<script src="{{ "/assets/js/theme-toggle.js" | relative_url }}"></script>

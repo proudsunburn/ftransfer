@@ -1,25 +1,9 @@
 ---
 layout: default
 title: TransferLockManager
-permalink: /transferlockmanager/
+parent: Core Classes
+nav_order: 4
 ---
-
-<script>
-document.documentElement.style.setProperty('--bg-color', '#0d1117');
-document.body.style.backgroundColor = '#0d1117';
-document.body.style.color = '#f0f6fc';
-</script>
-
-<style>
-.butterfly-diagram {
-  text-align: center;
-  margin: 20px 0;
-  padding: 20px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
-}
-</style>
 
 # TransferLockManager Class
 
@@ -34,10 +18,10 @@ Core class that handles automatic resume detection, transfer state management, a
 ```python
 class TransferLockManager:
     """Manages transfer state and automatic resume functionality"""
-    
+
     LOCK_FILE_NAME = ".transfer_lock.json"
     LOCK_VERSION = "1.0"
-    
+
     def __init__(self, working_dir: str = "."):
         self.working_dir = Path(working_dir)
         self.lock_file_path = self.working_dir / self.LOCK_FILE_NAME
@@ -51,7 +35,7 @@ Creates new transfer lock file with session metadata and file listings.
 
 **Parameters:**
 - `sender_ip` (str): IP address of sending peer
-- `file_list` (List[Dict]): List of files being transferred  
+- `file_list` (List[Dict]): List of files being transferred
 - `total_size` (int): Total transfer size in bytes
 
 **Returns:** Session UUID string
@@ -108,7 +92,7 @@ Removes lock file after successful transfer completion.
 ```json
 {
   "version": "1.0",
-  "session_id": "uuid-string", 
+  "session_id": "uuid-string",
   "timestamp": "2024-01-01T12:00:00Z",
   "sender_ip": "100.101.29.44",
   "total_files": 1234,
@@ -128,57 +112,46 @@ Removes lock file after successful transfer completion.
 
 ## Automatic Resume Workflow
 
-<div class="butterfly-diagram">
+```mermaid
+graph TD
+    start(["receiver starts"]):::pink
 
-{% graphviz %}
-digraph {
-    rankdir=TB;
-    bgcolor="transparent";
-    edge [color="#6e7681"];
-    
-    // Start
-    start [label="receiver starts" shape=ellipse style=filled fillcolor="#e91e63" fontcolor="white"];
-    
-    // Lock file detection
-    check_lock [label="Check for .transfer_lock.json" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    lock_exists [label="Lock file exists?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Lock validation
-    validate_lock [label="Validate lock structure\nand check age" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    lock_valid [label="Lock valid?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Resume plan generation
-    analyze_files [label="Analyze incoming files\nvs lock state" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    create_plan [label="Create resume plan:\ncompleted, partial, fresh" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Fresh transfer
-    create_new_lock [label="Create new lock file\nwith session data" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    
-    // Resume messaging
-    show_resume [label="Display:\n'Resuming X completed,\nY partial, Z fresh files'" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
-    show_fresh [label="Display:\n'Starting fresh transfer'" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
-    
-    // File operations
-    setup_writers [label="Setup FileWriter instances\nwith resume offsets" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    transfer [label="Begin transfer with\nautomatic state tracking" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Edges
-    start -> check_lock;
-    check_lock -> lock_exists;
-    lock_exists -> validate_lock [label="yes"];
-    lock_exists -> create_new_lock [label="no"];
-    validate_lock -> lock_valid;
-    lock_valid -> analyze_files [label="valid"];
-    lock_valid -> create_new_lock [label="invalid"];
-    analyze_files -> create_plan;
-    create_plan -> show_resume;
-    create_new_lock -> show_fresh;
-    show_resume -> setup_writers;
-    show_fresh -> setup_writers;
-    setup_writers -> transfer;
-}
-{% endgraphviz %}
-</div>
+    check_lock{"Check for .transfer_lock.json"}:::yellow
+    lock_exists{"Lock file exists?"}:::yellow
+
+    validate_lock["Validate lock structure<br/>and check age"]:::success
+    lock_valid{"Lock valid?"}:::yellow
+
+    analyze_files["Analyze incoming files<br/>vs lock state"]:::success
+    create_plan["Create resume plan:<br/>completed, partial, fresh"]:::success
+
+    create_new_lock["Create new lock file<br/>with session data"]:::lightblue
+
+    show_resume["Display:<br/>'Resuming X completed,<br/>Y partial, Z fresh files'"]:::pink
+    show_fresh["Display:<br/>'Starting fresh transfer'"]:::pink
+
+    setup_writers["Setup FileWriter instances<br/>with resume offsets"]:::success
+    transfer["Begin transfer with<br/>automatic state tracking"]:::success
+
+    start --> check_lock
+    check_lock --> lock_exists
+    lock_exists -->|yes| validate_lock
+    lock_exists -->|no| create_new_lock
+    validate_lock --> lock_valid
+    lock_valid -->|valid| analyze_files
+    lock_valid -->|invalid| create_new_lock
+    analyze_files --> create_plan
+    create_plan --> show_resume
+    create_new_lock --> show_fresh
+    show_resume --> setup_writers
+    show_fresh --> setup_writers
+    setup_writers --> transfer
+
+    classDef pink fill:#e91e63,stroke:#333,color:#fff
+    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
+    classDef success fill:#4caf50,stroke:#333,color:#fff
+    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
+```
 
 ## Security Features
 
@@ -200,7 +173,7 @@ digraph {
 ## Error Handling
 
 - **Corrupted Lock Files**: Graceful fallback to fresh transfer
-- **Missing Source Files**: Handles files that no longer exist  
+- **Missing Source Files**: Handles files that no longer exist
 - **Permission Errors**: Silent fallback with warning logging
 - **Disk Space Issues**: Robust error handling during lock file operations
 
@@ -211,7 +184,7 @@ digraph {
 - Automatic progress updates to lock file during writing
 - Status tracking through file completion lifecycle
 
-### **Receiver Integration**  
+### **Receiver Integration**
 - Automatic lock detection on receiver startup
 - Resume plan generation drives FileWriter initialization
 - Completion cleanup removes lock file
@@ -220,5 +193,3 @@ digraph {
 - File change warnings logged to transfer_warnings.log
 - Lock file errors logged for debugging
 - Stale lock cleanup logged for monitoring
-
-<script src="{{ "/assets/js/theme-toggle.js" | relative_url }}"></script>

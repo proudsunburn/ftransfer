@@ -1,7 +1,13 @@
 source "https://rubygems.org"
-  gem "github-pages", "~> 228", group: :jekyll_plugins
-  gem "jekyll-graphviz", group: :jekyll_plugins
-  gem 'csv'
-  gem 'base64'
-  gem 'bigdecimal'
-  gem 'webrick'
+
+# GitHub Pages
+gem "github-pages", "~> 228", group: :jekyll_plugins
+
+# Just the Docs theme
+gem "just-the-docs"
+
+# Required dependencies
+gem 'csv'
+gem 'base64'
+gem 'bigdecimal'
+gem 'webrick'

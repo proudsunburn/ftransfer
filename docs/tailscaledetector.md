@@ -1,14 +1,9 @@
 ---
 layout: default
 title: TailscaleDetector
-permalink: /tailscaledetector/
+parent: Core Classes
+nav_order: 1
 ---
-
-<script>
-document.documentElement.style.setProperty('--bg-color', '#0d1117');
-document.body.style.backgroundColor = '#0d1117';
-document.body.style.color = '#f0f6fc';
-</script>
 
 # TailscaleDetector Class
 
@@ -20,30 +15,25 @@ Handles Tailscale network detection, IP address resolution, and peer verificatio
 
 ## Call Graph
 
-<div class="butterfly-diagram">
+```mermaid
+graph LR
+    send_files["send_files()"]:::red
+    receive_files["receive_files()"]:::red
+    tailscaledetector["TailscaleDetector"]:::highlight
+    subprocess_run["subprocess.run()"]:::green
+    json_loads["json.loads()"]:::green
+    time_time["time.time()"]:::green
 
-{% graphviz %}
-digraph {
-    rankdir=LR;
-    bgcolor="transparent";
-    
-    // Nodes
-    send_files [label="send_files()" shape=box style=filled fillcolor="#f78166" fontcolor="white" fontsize=11];
-    receive_files [label="receive_files()" shape=box style=filled fillcolor="#f78166" fontcolor="white" fontsize=11];
-    tailscaledetector [label="TailscaleDetector" shape=box style=filled fillcolor="#58a6ff" fontcolor="white" fontsize=12 penwidth=3];
-    subprocess_run [label="subprocess.run()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    json_loads [label="json.loads()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    time_time [label="time.time()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    
-    // Edges
-    send_files -> tailscaledetector [color="#6e7681"];
-    receive_files -> tailscaledetector [color="#6e7681"];
-    tailscaledetector -> subprocess_run [color="#6e7681"];
-    tailscaledetector -> json_loads [color="#6e7681"];
-    tailscaledetector -> time_time [color="#6e7681"];
-}
-{% endgraphviz %}
-</div>
+    send_files --> tailscaledetector
+    receive_files --> tailscaledetector
+    tailscaledetector --> subprocess_run
+    tailscaledetector --> json_loads
+    tailscaledetector --> time_time
+
+    classDef red fill:#f78166,stroke:#333,color:#fff
+    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
+    classDef green fill:#56d364,stroke:#333,color:#000
+```
 
 ## Parameters
 
@@ -71,5 +61,3 @@ TailscaleDetector class shall detect local Tailscale IP address when network dis
 TailscaleDetector class shall parse Tailscale CLI output when peer information is retrieved where parsing extracts IP addresses and hostnames.
 
 TailscaleDetector class shall maintain cache freshness when peer data ages where freshness ensures accurate peer status information.
-
-<script src="{{ "/assets/js/dark-mode.js" | relative_url }}"></script>

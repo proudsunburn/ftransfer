@@ -1,26 +1,9 @@
 ---
 layout: default
 title: receive_files()
-permalink: /receive_files/
+parent: Main Functions
+nav_order: 2
 ---
-
-<script>
-document.documentElement.style.setProperty('--bg-color', '#0d1117');
-document.body.style.backgroundColor = '#0d1117';
-document.body.style.color = '#f0f6fc';
-</script>
-
-
-<style>
-.butterfly-diagram {
-  text-align: center;
-  margin: 20px 0;
-  padding: 20px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
-}
-</style>
 
 # receive_files() Function
 
@@ -32,33 +15,27 @@ Main client function that connects to sender, performs key exchange, and securel
 
 ## Call Graph
 
-<div class="butterfly-diagram">
+```mermaid
+graph LR
+    main["main()"]:::red
+    receive_files["receive_files()"]:::highlight
+    verify_peer_ip_cached["TailscaleDetector.verify_peer_ip_cached()"]:::green
+    crypto_init["SecureCrypto()"]:::green
+    recv_all["recv_all()"]:::green
+    calculate_speed["calculate_speed()"]:::green
+    format_speed["format_speed()"]:::green
 
-{% graphviz %}
-digraph {
-    rankdir=LR;
-    bgcolor="transparent";
-    
-    // Nodes
-    main [label="main()" shape=box style=filled fillcolor="#f78166" fontcolor="white" fontsize=11];
-    receive_files [label="receive_files()" shape=box style=filled fillcolor="#58a6ff" fontcolor="white" fontsize=12 penwidth=3];
-    verify_peer_ip_cached [label="TailscaleDetector.verify_peer_ip_cached()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    crypto_init [label="SecureCrypto()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    recv_all [label="recv_all()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    calculate_speed [label="calculate_speed()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    format_speed [label="format_speed()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    
-    // Edges
-    main -> receive_files [color="#6e7681"];
-    receive_files -> verify_peer_ip_cached [color="#6e7681"];
-    receive_files -> crypto_init [color="#6e7681"];
-    receive_files -> recv_all [color="#6e7681"];
-    receive_files -> calculate_speed [color="#6e7681"];
-    receive_files -> format_speed [color="#6e7681"];
-}
-{% endgraphviz %}
+    main --> receive_files
+    receive_files --> verify_peer_ip_cached
+    receive_files --> crypto_init
+    receive_files --> recv_all
+    receive_files --> calculate_speed
+    receive_files --> format_speed
 
-</div>
+    classDef red fill:#f78166,stroke:#333,color:#fff
+    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
+    classDef green fill:#56d364,stroke:#333,color:#000
+```
 
 ## Parameters
 
@@ -94,184 +71,163 @@ receive_files() shall automatically detect and resume from existing lock files a
 
 ## Algorithm Flow
 
-<div class="butterfly-diagram">
+```mermaid
+graph TD
+    start(["Start: receive_files(connection_string, pod)"]):::highlight
 
-{% graphviz %}
-digraph {
-    rankdir=TB;
-    bgcolor="transparent";
-    edge [color="#6e7681"];
-    
-    // Start
-    start [label="Start: receive_files(connection_string, pod)" shape=ellipse style=filled fillcolor="#58a6ff" fontcolor="white"];
-    
-    // Connection string parsing
-    parse_conn [label="Parse connection string\n'ip:token' format" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    validate_format [label="Valid format?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    extract_ip [label="Extract IP address\nand authentication token" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    validate_ip [label="Valid IPv4?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Peer verification
-    pod_check [label="pod == True?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    verify_peer [label="verify_peer_ip_cached(ip)\nValidate Tailscale peer" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    skip_verification [label="Skip peer verification\n(pod mode)" shape=box style=filled fillcolor="#ff9800" fontcolor="white"];
-    peer_valid [label="Peer authenticated?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Network connection
-    connect_tcp [label="TCP connect to ip:15820\n(30 second timeout)" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    connection_ok [label="Connection successful?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Cryptographic handshake
-    crypto_init [label="SecureCrypto()\nGenerate X25519 keypair" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    exchange_keys [label="Exchange public keys\nwith sender" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    derive_key [label="derive_session_key()\nECDH + HKDF-SHA256 + token" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    key_success [label="Key derivation successful?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // File reception with incremental saving
-    receive_metadata [label="Receive batch metadata:\n{filename, size, hash, offset}" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    create_filewriters [label="Create FileWriter instances\nfor incremental saving" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    open_part_files [label="Initialize TransferLockManager\n(automatic resume detection)" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    stream_loop [label="Stream chunks:\nrecv() → decrypt() → write_chunk()" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    complete_files [label="Complete files:\nmove .part to final names" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    verify_integrity [label="Verify SHA-256 hashes\nfor all received files" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    integrity_ok [label="All hashes valid?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Completion
-    calc_speed [label="calculate_speed()\nCompute transfer rate" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    show_result [label="Display: 'Transfer complete!\nSaved: files'" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
-    cleanup [label="Close connections\nCleanup resources" shape=box style=filled fillcolor="#9e9e9e" fontcolor="white"];
-    end_success [label="Return (success)" shape=ellipse style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Error paths
-    error_parse [label="ParseError:\nInvalid connection string" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_ip [label="ValueError:\nInvalid IP address" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_peer [label="AuthenticationError:\nPeer not verified" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_network [label="NetworkError:\nConnection failed" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_crypto [label="CryptographicError:\nKey exchange failed" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_integrity [label="IntegrityError:\nFile hash mismatch" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    end_error [label="Raise Exception" shape=ellipse style=filled fillcolor="#f44336" fontcolor="white"];
-    
-    // Main flow
-    start -> parse_conn;
-    parse_conn -> validate_format;
-    validate_format -> extract_ip [label="Yes" color="green"];
-    extract_ip -> validate_ip;
-    validate_ip -> pod_check [label="Yes" color="green"];
-    pod_check -> skip_verification [label="Yes" color="orange"];
-    pod_check -> verify_peer [label="No" color="blue"];
-    verify_peer -> peer_valid;
-    peer_valid -> connect_tcp [label="Yes" color="green"];
-    skip_verification -> connect_tcp;
-    connect_tcp -> connection_ok;
-    connection_ok -> crypto_init [label="Yes" color="green"];
-    crypto_init -> exchange_keys;
-    exchange_keys -> derive_key;
-    derive_key -> key_success;
-    key_success -> receive_metadata [label="Yes" color="green"];
-    receive_metadata -> create_filewriters;
-    create_filewriters -> open_part_files;
-    open_part_files -> stream_loop;
-    stream_loop -> complete_files;
-    complete_files -> verify_integrity;
-    verify_integrity -> integrity_ok;
-    integrity_ok -> calc_speed [label="Yes" color="green"];
-    calc_speed -> show_result;
-    show_result -> cleanup;
-    cleanup -> end_success;
-    
-    // Error flows
-    validate_format -> error_parse [label="No" color="red" style=dashed];
-    validate_ip -> error_ip [label="No" color="red" style=dashed];
-    peer_valid -> error_peer [label="No" color="red" style=dashed];
-    connection_ok -> error_network [label="No" color="red" style=dashed];
-    key_success -> error_crypto [label="No" color="red" style=dashed];
-    integrity_ok -> error_integrity [label="No" color="red" style=dashed];
-    
-    error_parse -> end_error;
-    error_ip -> end_error;
-    error_peer -> end_error;
-    error_network -> end_error;
-    error_crypto -> end_error;
-    error_integrity -> end_error;
-}
-{% endgraphviz %}
+    parse_conn["Parse connection string<br/>'ip:token' format"]:::green
+    validate_format{"Valid format?"}:::yellow
+    extract_ip["Extract IP address<br/>and authentication token"]:::green
+    validate_ip{"Valid IPv4?"}:::yellow
 
-</div>
+    pod_check{"pod == True?"}:::yellow
+    verify_peer["verify_peer_ip_cached(ip)<br/>Validate Tailscale peer"]:::green
+    skip_verification["Skip peer verification<br/>(pod mode)"]:::orange
+    peer_valid{"Peer authenticated?"}:::yellow
+
+    connect_tcp["TCP connect to ip:15820<br/>(30 second timeout)"]:::lightblue
+    connection_ok{"Connection successful?"}:::yellow
+
+    crypto_init["SecureCrypto()<br/>Generate X25519 keypair"]:::green
+    exchange_keys["Exchange public keys<br/>with sender"]:::lightblue
+    derive_key["derive_session_key()<br/>ECDH + HKDF-SHA256 + token"]:::green
+    key_success{"Key derivation successful?"}:::yellow
+
+    receive_metadata["Receive batch metadata:<br/>{filename, size, hash, offset}"]:::success
+    create_filewriters["Create FileWriter instances<br/>for incremental saving"]:::success
+    open_part_files["Initialize TransferLockManager<br/>(automatic resume detection)"]:::success
+    stream_loop["Stream chunks:<br/>recv() → decrypt() → write_chunk()"]:::success
+    complete_files["Complete files:<br/>move .part to final names"]:::success
+    verify_integrity["Verify SHA-256 hashes<br/>for all received files"]:::success
+    integrity_ok{"All hashes valid?"}:::yellow
+
+    calc_speed["calculate_speed()<br/>Compute transfer rate"]:::green
+    show_result["Display: 'Transfer complete!<br/>Saved: files'"]:::pink
+    cleanup["Close connections<br/>Cleanup resources"]:::gray
+    end_success(["Return (success)"]):::success
+
+    error_parse["ParseError:<br/>Invalid connection string"]:::error
+    error_ip["ValueError:<br/>Invalid IP address"]:::error
+    error_peer["AuthenticationError:<br/>Peer not verified"]:::error
+    error_network["NetworkError:<br/>Connection failed"]:::error
+    error_crypto["CryptographicError:<br/>Key exchange failed"]:::error
+    error_integrity["IntegrityError:<br/>File hash mismatch"]:::error
+    end_error(["Raise Exception"]):::error
+
+    start --> parse_conn
+    parse_conn --> validate_format
+    validate_format -->|Yes| extract_ip
+    extract_ip --> validate_ip
+    validate_ip -->|Yes| pod_check
+    pod_check -->|Yes| skip_verification
+    pod_check -->|No| verify_peer
+    verify_peer --> peer_valid
+    peer_valid -->|Yes| connect_tcp
+    skip_verification --> connect_tcp
+    connect_tcp --> connection_ok
+    connection_ok -->|Yes| crypto_init
+    crypto_init --> exchange_keys
+    exchange_keys --> derive_key
+    derive_key --> key_success
+    key_success -->|Yes| receive_metadata
+    receive_metadata --> create_filewriters
+    create_filewriters --> open_part_files
+    open_part_files --> stream_loop
+    stream_loop --> complete_files
+    complete_files --> verify_integrity
+    verify_integrity --> integrity_ok
+    integrity_ok -->|Yes| calc_speed
+    calc_speed --> show_result
+    show_result --> cleanup
+    cleanup --> end_success
+
+    validate_format -.->|No| error_parse
+    validate_ip -.->|No| error_ip
+    peer_valid -.->|No| error_peer
+    connection_ok -.->|No| error_network
+    key_success -.->|No| error_crypto
+    integrity_ok -.->|No| error_integrity
+
+    error_parse --> end_error
+    error_ip --> end_error
+    error_peer --> end_error
+    error_network --> end_error
+    error_crypto --> end_error
+    error_integrity --> end_error
+
+    classDef highlight fill:#58a6ff,stroke:#333,color:#fff
+    classDef green fill:#56d364,stroke:#333,color:#fff
+    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
+    classDef orange fill:#ff9800,stroke:#333,color:#fff
+    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
+    classDef success fill:#4caf50,stroke:#333,color:#fff
+    classDef pink fill:#e91e63,stroke:#333,color:#fff
+    classDef gray fill:#9e9e9e,stroke:#333,color:#fff
+    classDef error fill:#f44336,stroke:#333,color:#fff
+```
 
 ## Automatic Resume Workflow
 
 The receiver implements intelligent automatic resume detection without requiring manual flags or user intervention.
 
-<div class="butterfly-diagram">
+```mermaid
+graph TD
+    start(["receive_files() starts"]):::pink
 
-{% graphviz %}
-digraph {
-    rankdir=TB;
-    bgcolor="transparent";
-    edge [color="#6e7681"];
-    
-    // Start
-    start [label="receive_files() starts" shape=ellipse style=filled fillcolor="#e91e63" fontcolor="white"];
-    
-    // Lock file detection
-    check_lock [label="Initialize TransferLockManager\nCheck for .transfer_lock.json" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    lock_exists [label="Valid lock file\nfound?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Resume path
-    load_lock [label="Load existing lock data:\nsession, file states, hashes" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    analyze_files [label="Analyze incoming files vs\nlock state: completed/partial/fresh" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    create_plan [label="Generate resume plan:\nX completed, Y partial, Z fresh" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    show_resume [label="Display: 'Resuming transfer:\nX completed, Y partial, Z fresh files'" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
-    
-    // Fresh path  
-    create_lock [label="Create new lock file\nwith session metadata" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    show_fresh [label="Display: 'Starting fresh transfer'" shape=box style=filled fillcolor="#e91e63" fontcolor="white"];
-    
-    // Common path
-    setup_writers [label="Setup FileWriter instances:\n- Resume from lock offsets\n- Fresh files from zero" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // File integrity retry mechanism
-    transfer_loop [label="Transfer files with\nintegrity verification" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    check_integrity [label="Verify SHA-256 hashes\nfor all files" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    integrity_ok [label="All files\npass integrity?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Retry mechanism
-    retry_count [label="Retry attempts\n< 3?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    request_retry [label="Send retry request\nto sender for failed files" shape=box style=filled fillcolor="#ff9800" fontcolor="white"];
-    receive_retry [label="Receive retry data\nfor failed files only" shape=box style=filled fillcolor="#ff9800" fontcolor="white"];
-    
-    // Completion
-    cleanup_lock [label="Remove lock file\n(successful completion)" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    complete [label="Transfer complete!" shape=ellipse style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Error
-    final_error [label="Report integrity failure\nafter 3 attempts" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    
-    // Edges
-    start -> check_lock;
-    check_lock -> lock_exists;
-    lock_exists -> load_lock [label="yes"];
-    lock_exists -> create_lock [label="no"];
-    load_lock -> analyze_files;
-    analyze_files -> create_plan;
-    create_plan -> show_resume;
-    create_lock -> show_fresh;
-    show_resume -> setup_writers;
-    show_fresh -> setup_writers;
-    setup_writers -> transfer_loop;
-    transfer_loop -> check_integrity;
-    check_integrity -> integrity_ok;
-    integrity_ok -> cleanup_lock [label="pass"];
-    integrity_ok -> retry_count [label="fail"];
-    retry_count -> request_retry [label="yes"];
-    retry_count -> final_error [label="no"];
-    request_retry -> receive_retry;
-    receive_retry -> check_integrity;
-    cleanup_lock -> complete;
-}
-{% endgraphviz %}
+    check_lock["Initialize TransferLockManager<br/>Check for .transfer_lock.json"]:::success
+    lock_exists{"Valid lock file<br/>found?"}:::yellow
 
-</div>
+    load_lock["Load existing lock data:<br/>session, file states, hashes"]:::lightblue
+    analyze_files["Analyze incoming files vs<br/>lock state: completed/partial/fresh"]:::lightblue
+    create_plan["Generate resume plan:<br/>X completed, Y partial, Z fresh"]:::lightblue
+    show_resume["Display: 'Resuming transfer:<br/>X completed, Y partial, Z fresh files'"]:::pink
+
+    create_lock["Create new lock file<br/>with session metadata"]:::success
+    show_fresh["Display: 'Starting fresh transfer'"]:::pink
+
+    setup_writers["Setup FileWriter instances:<br/>- Resume from lock offsets<br/>- Fresh files from zero"]:::success
+
+    transfer_loop["Transfer files with<br/>integrity verification"]:::success
+    check_integrity["Verify SHA-256 hashes<br/>for all files"]:::success
+    integrity_ok{"All files<br/>pass integrity?"}:::yellow
+
+    retry_count{"Retry attempts<br/>< 3?"}:::yellow
+    request_retry["Send retry request<br/>to sender for failed files"]:::orange
+    receive_retry["Receive retry data<br/>for failed files only"]:::orange
+
+    cleanup_lock["Remove lock file<br/>(successful completion)"]:::success
+    complete(["Transfer complete!"]):::success
+
+    final_error["Report integrity failure<br/>after 3 attempts"]:::error
+
+    start --> check_lock
+    check_lock --> lock_exists
+    lock_exists -->|yes| load_lock
+    lock_exists -->|no| create_lock
+    load_lock --> analyze_files
+    analyze_files --> create_plan
+    create_plan --> show_resume
+    create_lock --> show_fresh
+    show_resume --> setup_writers
+    show_fresh --> setup_writers
+    setup_writers --> transfer_loop
+    transfer_loop --> check_integrity
+    check_integrity --> integrity_ok
+    integrity_ok -->|pass| cleanup_lock
+    integrity_ok -->|fail| retry_count
+    retry_count -->|yes| request_retry
+    retry_count -->|no| final_error
+    request_retry --> receive_retry
+    receive_retry --> check_integrity
+    cleanup_lock --> complete
+
+    classDef pink fill:#e91e63,stroke:#333,color:#fff
+    classDef success fill:#4caf50,stroke:#333,color:#fff
+    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
+    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
+    classDef orange fill:#ff9800,stroke:#333,color:#fff
+    classDef error fill:#f44336,stroke:#333,color:#fff
+```
 
 ### **Lock File State Management**
 
@@ -281,7 +237,7 @@ The automatic resume system uses `.transfer_lock.json` files to track transfer s
 {
   "version": "1.0",
   "session_id": "uuid-12345",
-  "timestamp": "2024-01-01T12:00:00Z", 
+  "timestamp": "2024-01-01T12:00:00Z",
   "sender_ip": "100.101.29.44",
   "total_files": 1000,
   "total_size": 1048576000,
@@ -294,7 +250,7 @@ The automatic resume system uses `.transfer_lock.json` files to track transfer s
       "partial_hash": "sha256-hash"
     },
     "archive.zip": {
-      "status": "in_progress", 
+      "status": "in_progress",
       "size": 1048576,
       "transferred_bytes": 262144,
       "partial_hash": "sha256-partial"
@@ -309,7 +265,7 @@ When integrity check failures occur, the receiver automatically retries up to 3 
 
 1. **Detection**: SHA-256 hash mismatch detected for received files
 2. **Request**: Send retry request to sender with failed file list
-3. **Resend**: Sender locates and resends only failed files  
+3. **Resend**: Sender locates and resends only failed files
 4. **Verification**: Re-verify integrity of retried files
 5. **Loop**: Repeat up to 3 total attempts
 6. **Completion**: Success after retry or final error report
@@ -319,9 +275,9 @@ When integrity check failures occur, the receiver automatically retries up to 3 
 ```python
 def get_resume_plan(incoming_files):
     completed_files = []    # Skip entirely
-    resume_files = []       # Resume from partial offset  
+    resume_files = []       # Resume from partial offset
     fresh_files = []        # Transfer from beginning
-    
+
     for file in incoming_files:
         lock_status = lock_data.files[file.name].status
         if lock_status == "completed":
@@ -380,10 +336,8 @@ def get_resume_plan(incoming_files):
 - **Memory Attack Prevention**: Direct stream-to-disk writing eliminates large memory allocations
 
 ### **Attack Mitigation**
-- **Replay Protection**: Ephemeral keys and session binding prevent replay attacks  
+- **Replay Protection**: Ephemeral keys and session binding prevent replay attacks
 - **DoS Protection**: Connection timeouts and resource limits prevent denial of service
 - **Data Validation**: All received data validated before processing or storage
 - **Resume Attack Prevention**: .part files validated with hash verification before continuation
 - **Side-Channel Resistance**: Cryptographic operations designed to resist timing attacks
-
-<script src="{{ "/assets/js/dark-mode.js" | relative_url }}"></script>

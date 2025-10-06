@@ -1,18 +1,13 @@
 ---
 layout: default
 title: collect_files_recursive()
-permalink: /collect_files_recursive/
+parent: Utility Functions
+nav_order: 3
 ---
-
-<script>
-document.documentElement.style.setProperty('--bg-color', '#0d1117');
-document.body.style.backgroundColor = '#0d1117';
-document.body.style.color = '#f0f6fc';
-</script>
 
 # collect_files_recursive()
 
-*Recursive file system traversal and collection for comprehensive directory processing*
+Recursive file system traversal and collection for comprehensive directory processing.
 
 ## Overview
 
@@ -20,29 +15,23 @@ Recursively traverses directory structures to collect all files with optional fi
 
 ## Call Graph
 
-<div class="butterfly-diagram">
+```mermaid
+graph LR
+    send_files["send_files()"]:::red
+    collect_files_recursive["collect_files_recursive()"]:::highlight
+    os_walk["os.walk()"]:::green
+    os_path_join["os.path.join()"]:::green
+    fnmatch["fnmatch.fnmatch()"]:::green
 
-{% graphviz %}
-digraph {
-    rankdir=LR;
-    bgcolor="transparent";
-    
-    // Nodes
-    send_files [label="send_files()" shape=box style=filled fillcolor="#f78166" fontcolor="white" fontsize=11];
-    collect_files_recursive [label="collect_files_recursive()" shape=box style=filled fillcolor="#58a6ff" fontcolor="white" fontsize=12 penwidth=3];
-    os_walk [label="os.walk()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    os_path_join [label="os.path.join()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    fnmatch [label="fnmatch.fnmatch()" shape=box style=filled fillcolor="#56d364" fontcolor="black" fontsize=11];
-    
-    // Edges
-    send_files -> collect_files_recursive [color="#6e7681"];
-    collect_files_recursive -> os_walk [color="#6e7681"];
-    collect_files_recursive -> os_path_join [color="#6e7681"];
-    collect_files_recursive -> fnmatch [color="#6e7681"];
-}
-{% endgraphviz %}
+    send_files --> collect_files_recursive
+    collect_files_recursive --> os_walk
+    collect_files_recursive --> os_path_join
+    collect_files_recursive --> fnmatch
 
-</div>
+    classDef red fill:#f78166,stroke:#333,color:#fff
+    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
+    classDef green fill:#56d364,stroke:#333,color:#000
+```
 
 ## Parameters
 
@@ -74,125 +63,6 @@ collect_files_recursive() shall apply include patterns when include_patterns par
 collect_files_recursive() shall apply exclude patterns when exclude_patterns parameter is provided where patterns filter out unwanted files.
 
 collect_files_recursive() shall return list of absolute file paths when collection completes where paths are suitable for file operations.
-
-## Algorithm Flow
-
-<div class="butterfly-diagram">
-
-{% graphviz %}
-digraph {
-    rankdir=TB;
-    bgcolor="transparent";
-    edge [color="#6e7681"];
-    
-    // Start
-    start [label="Start: collect_files_recursive(directory_path, include_patterns, exclude_patterns)" shape=ellipse style=filled fillcolor="#58a6ff" fontcolor="white"];
-    
-    // Input validation
-    check_directory [label="directory_path provided?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    validate_dir_exists [label="Directory exists and accessible?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    check_is_directory [label="Path is a directory?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Pattern validation
-    validate_include_patterns [label="include_patterns valid?\n(None or list of strings)" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    validate_exclude_patterns [label="exclude_patterns valid?\n(None or list of strings)" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Initialize collection
-    init_file_list [label="collected_files = []\nInitialize result list" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    start_walk [label="Start os.walk(directory_path)\nBegin recursive traversal" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Directory traversal loop
-    walk_loop [label="For each (root, dirs, files) in walk:" shape=box style=filled fillcolor="#ff9800" fontcolor="white"];
-    process_directory [label="Process current directory:\nroot = current directory path" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    
-    // File processing loop
-    file_loop [label="For each filename in files:" shape=box style=filled fillcolor="#ff9800" fontcolor="white"];
-    build_filepath [label="filepath = os.path.join(root, filename)\nBuild absolute file path" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // File validation
-    check_is_file [label="os.path.isfile(filepath)?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    check_readable [label="File readable?\nos.access(filepath, os.R_OK)" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Pattern matching
-    apply_include [label="include_patterns provided?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    check_include_match [label="Any include pattern matches?\nfnmatch.fnmatch()" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    apply_exclude [label="exclude_patterns provided?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    check_exclude_match [label="Any exclude pattern matches?\nfnmatch.fnmatch()" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // File collection
-    add_file [label="collected_files.append(filepath)\nAdd file to collection" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    more_files [label="More files in directory?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    more_directories [label="More directories to walk?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Finalization
-    sort_results [label="Sort collected_files\nfor consistent ordering" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    validate_results [label="Remove duplicates and\ninvalid paths" shape=box style=filled fillcolor="#56d364" fontcolor="white"];
-    return_files [label="return collected_files\nList of absolute file paths" shape=ellipse style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Error paths
-    error_no_directory [label="ValueError:\nNo directory path provided" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_dir_not_exists [label="FileNotFoundError:\nDirectory does not exist" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_not_directory [label="NotADirectoryError:\nPath is not a directory" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_permission [label="PermissionError:\nDirectory access denied" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_invalid_patterns [label="ValueError:\nInvalid pattern format" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    error_walk [label="OSError:\nFile system traversal error" shape=box style=filled fillcolor="#f44336" fontcolor="white"];
-    raise_error [label="Raise Exception" shape=ellipse style=filled fillcolor="#f44336" fontcolor="white"];
-    
-    // Main flow
-    start -> check_directory;
-    check_directory -> validate_dir_exists [label="Yes" color="green"];
-    validate_dir_exists -> check_is_directory [label="Yes" color="green"];
-    check_is_directory -> validate_include_patterns [label="Yes" color="green"];
-    validate_include_patterns -> validate_exclude_patterns [label="Yes" color="green"];
-    validate_exclude_patterns -> init_file_list [label="Yes" color="green"];
-    init_file_list -> start_walk;
-    start_walk -> walk_loop;
-    walk_loop -> process_directory;
-    process_directory -> file_loop;
-    file_loop -> build_filepath;
-    build_filepath -> check_is_file;
-    check_is_file -> check_readable [label="Yes" color="green"];
-    check_readable -> apply_include [label="Yes" color="green"];
-    apply_include -> check_include_match [label="Yes" color="blue"];
-    apply_include -> apply_exclude [label="No" color="green"];
-    check_include_match -> apply_exclude [label="Yes" color="green"];
-    apply_exclude -> check_exclude_match [label="Yes" color="blue"];
-    apply_exclude -> add_file [label="No" color="green"];
-    check_exclude_match -> add_file [label="No" color="green"];
-    add_file -> more_files;
-    more_files -> file_loop [label="Yes" color="orange"];
-    more_files -> more_directories [label="No" color="green"];
-    more_directories -> walk_loop [label="Yes" color="orange"];
-    more_directories -> sort_results [label="No" color="green"];
-    sort_results -> validate_results;
-    validate_results -> return_files;
-    
-    // Error flows
-    check_directory -> error_no_directory [label="No" color="red" style=dashed];
-    validate_dir_exists -> error_dir_not_exists [label="No" color="red" style=dashed];
-    check_is_directory -> error_not_directory [label="No" color="red" style=dashed];
-    validate_dir_exists -> error_permission [color="red" style=dashed];
-    validate_include_patterns -> error_invalid_patterns [label="No" color="red" style=dashed];
-    validate_exclude_patterns -> error_invalid_patterns [label="No" color="red" style=dashed];
-    start_walk -> error_walk [color="red" style=dashed];
-    walk_loop -> error_walk [color="red" style=dashed];
-    
-    // Skip flows
-    check_is_file -> more_files [label="No" color="gray"];
-    check_readable -> more_files [label="No" color="gray"];
-    check_include_match -> more_files [label="No" color="gray"];
-    check_exclude_match -> more_files [label="Yes" color="gray"];
-    
-    error_no_directory -> raise_error;
-    error_dir_not_exists -> raise_error;
-    error_not_directory -> raise_error;
-    error_permission -> raise_error;
-    error_invalid_patterns -> raise_error;
-    error_walk -> raise_error;
-}
-{% endgraphviz %}
-
-</div>
 
 ## Security Considerations
 
@@ -249,5 +119,3 @@ digraph {
 - **Exception Isolation**: Isolates exceptions to prevent information leakage
 - **Consistent Error Response**: Provides consistent error handling across different failure modes
 - **Recovery Safety**: Ensures partial results are properly cleaned up on failure
-
-<script src="{{ "/assets/js/dark-mode.js" | relative_url }}"></script>

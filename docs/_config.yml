@@ -1,9 +1,27 @@
-# GitHub Pages Configuration for Transfer Files API Documentation
-title: ""
-description: " "
-author: "Developer"
+# Just the Docs Theme Configuration
+remote_theme: just-the-docs/just-the-docs
 
-# GitHub Pages theme removed to use custom styling
+# Site settings
+title: ftransfer Documentation
+description: Secure file transfer over Tailscale networks with end-to-end encryption
+url: "https://proudsunburn.github.io"
+baseurl: "/ftransfer"
+repository: "proudsunburn/ftransfer"
+
+# Theme settings
+color_scheme: dark
+search_enabled: true
+heading_anchors: true
+
+# Navigation
+nav_sort: case_insensitive
+nav_external_links:
+  - title: GitHub Repository
+    url: https://github.com/proudsunburn/ftransfer
+
+# Mermaid diagrams support
+mermaid:
+  version: "10.6.1"
 
 # Build settings
 markdown: kramdown
@@ -11,30 +29,13 @@ highlighter: rouge
 kramdown:
   input: GFM
   syntax_highlighter: rouge
-
-# Site settings
-url: "https://proudsunburn.github.io"
-baseurl: "/ftransfer"
-repository: "proudsunburn/ftransfer"
-
-# Local development
-# url: "http://localhost:4000"
-# baseurl: ""
-
-# Navigation disabled - using JavaScript SPA navigation instead
-
-# Collections
-collections:
-  docs:
-    output: true
-    permalink: /:collection/:name/
+  mermaid: true
 
 # Plugins
 plugins:
   - jekyll-feed
   - jekyll-sitemap
   - jekyll-seo-tag
-  - jekyll-graphviz
 
 # Exclude from processing
 exclude:
@@ -51,26 +52,9 @@ exclude:
   - ".git/"
   - ".gitignore"
   - ".venv/"
+  - "_site/"
 
-# Include files
-include:
-  - "_pages"
-
-# Default layouts
-defaults:
-  - scope:
-      path: ""
-      type: "pages"
-    values:
-      layout: "default"
-  - scope:
-      path: ""
-      type: "posts"
-    values:
-      layout: "post"
-
-# Site variables
-show_downloads: true
+# GitHub Pages
 github:
   is_project_page: true
   repository_name: "ftransfer"
@@ -78,8 +62,11 @@ github:
 
 # SEO
 lang: en_US
+author: "proudsunburn"
 
-social:
-  name: Developer
-  links:
-    - https://github.com/proudsunburn
+# Back to top link
+back_to_top: true
+back_to_top_text: "Back to top"
+
+# Footer
+footer_content: 'Copyright &copy; 2024. Theme by <a href="https://github.com/just-the-docs/just-the-docs">Just the Docs</a>.'

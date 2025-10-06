@@ -1,25 +1,9 @@
 ---
 layout: default
 title: ResourceMonitor
-permalink: /resourcemonitor/
+parent: Core Classes
+nav_order: 5
 ---
-
-<script>
-document.documentElement.style.setProperty('--bg-color', '#0d1117');
-document.body.style.backgroundColor = '#0d1117';
-document.body.style.color = '#f0f6fc';
-</script>
-
-<style>
-.butterfly-diagram {
-  text-align: center;
-  margin: 20px 0;
-  padding: 20px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
-}
-</style>
 
 # ResourceMonitor Class
 
@@ -34,15 +18,15 @@ Static utility class that monitors system resource usage to prevent "Too many op
 ```python
 class ResourceMonitor:
     """Monitor system resource usage to prevent file descriptor exhaustion"""
-    
+
     @staticmethod
     def get_open_fd_count() -> Optional[int]:
         """Get the current number of open file descriptors for this process"""
-    
+
     @staticmethod
     def get_fd_limit() -> Optional[int]:
         """Get the soft limit for file descriptors"""
-    
+
     @staticmethod
     def check_fd_usage(file_count: int) -> bool:
         """Check if transfer would exceed safe FD limits"""
@@ -83,45 +67,37 @@ Analyzes whether a transfer with given file count would risk FD exhaustion.
 
 ## Resource Monitoring Workflow
 
-<div class="butterfly-diagram">
+```mermaid
+graph TD
+    start(["Transfer begins with<br/>N files"]):::pink
 
-{% graphviz %}
-digraph {
-    rankdir=TB;
-    bgcolor="transparent";
-    edge [color="#6e7681"];
-    
-    // Start
-    start [label="Transfer begins with\nN files" shape=ellipse style=filled fillcolor="#e91e63" fontcolor="white"];
-    
-    // Resource checking
-    get_current [label="get_open_fd_count()\nCurrent FD usage" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    get_limit [label="get_fd_limit()\nSystem FD limit" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Analysis
-    calculate [label="Calculate:\nRequired FDs = N files\n+ network sockets\n+ system overhead" shape=box style=filled fillcolor="#2196f3" fontcolor="white"];
-    
-    check_safe [label="Usage + Required\n< 80% of limit?" shape=diamond style=filled fillcolor="#ffeb3b" fontcolor="white"];
-    
-    // Outcomes
-    proceed [label="Proceed with transfer\n(safe FD usage)" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    warn [label="Log warning:\n'High FD usage detected'\nSuggest fewer files" shape=box style=filled fillcolor="#ff9800" fontcolor="white"];
-    
-    // Continue
-    transfer [label="Begin file transfer\nwith FD monitoring" shape=box style=filled fillcolor="#4caf50" fontcolor="white"];
-    
-    // Edges
-    start -> get_current;
-    get_current -> get_limit;
-    get_limit -> calculate;
-    calculate -> check_safe;
-    check_safe -> proceed [label="safe"];
-    check_safe -> warn [label="risky"];
-    proceed -> transfer;
-    warn -> transfer;
-}
-{% endgraphviz %}
-</div>
+    get_current["get_open_fd_count()<br/>Current FD usage"]:::success
+    get_limit["get_fd_limit()<br/>System FD limit"]:::success
+
+    calculate["Calculate:<br/>Required FDs = N files<br/>+ network sockets<br/>+ system overhead"]:::lightblue
+
+    check_safe{"Usage + Required<br/>< 80% of limit?"}:::yellow
+
+    proceed["Proceed with transfer<br/>(safe FD usage)"]:::success
+    warn["Log warning:<br/>'High FD usage detected'<br/>Suggest fewer files"]:::orange
+
+    transfer["Begin file transfer<br/>with FD monitoring"]:::success
+
+    start --> get_current
+    get_current --> get_limit
+    get_limit --> calculate
+    calculate --> check_safe
+    check_safe -->|safe| proceed
+    check_safe -->|risky| warn
+    proceed --> transfer
+    warn --> transfer
+
+    classDef pink fill:#e91e63,stroke:#333,color:#fff
+    classDef success fill:#4caf50,stroke:#333,color:#fff
+    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
+    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
+    classDef orange fill:#ff9800,stroke:#333,color:#fff
+```
 
 ## Platform Support
 
@@ -130,7 +106,7 @@ digraph {
 - **Accuracy**: Exact current FD count
 - **Performance**: Fast directory listing operation
 
-### **macOS/Unix Systems**  
+### **macOS/Unix Systems**
 - **Method**: `resource.getrlimit()` with estimation
 - **Accuracy**: Conservative estimates to prevent issues
 - **Fallback**: Uses known system defaults when unavailable
@@ -208,5 +184,3 @@ ulimit -n 4096
 [2024-01-01 12:00:00] High FD usage: 3200/4096 (78%) for 28712 files
 [2024-01-01 12:00:00] Consider transferring fewer files or increasing limits
 ```
-
-<script src="{{ "/assets/js/theme-toggle.js" | relative_url }}"></script>
