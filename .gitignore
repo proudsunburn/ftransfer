@@ -231,3 +231,4 @@ Thumbs.db
 
 # Development Notes
 CLAUDE.md
+.transfer_lock.json

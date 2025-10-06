@@ -1108,7 +1108,11 @@ def send_files(file_paths: List[str], pod: bool = False):
     else:
         # Regular files
         collected_files = [(f, f.name) for f in files]
-    
+
+    # Ask user about compression
+    response = input(f"Use compression? [y/N]: ").strip().lower()
+    use_compression = response == 'y'
+
     # Calculate total size and prepare metadata for all files
     total_size = sum(abs_path.stat().st_size for abs_path, _ in collected_files)
     filename = f"{len(collected_files)}_files" if len(collected_files) > 1 else collected_files[0][1]
@@ -1195,8 +1199,8 @@ def send_files(file_paths: List[str], pod: bool = False):
             'type': 'stream',
             'file_count': len(collected_files),
             'total_size': total_size,  # Original uncompressed size for progress tracking
-            'compressed': True,
-            'compressor': BLOSC_COMPRESSOR,
+            'compressed': use_compression,
+            'compressor': BLOSC_COMPRESSOR if use_compression else 'none',
             'files': files_metadata
         }
         metadata_json = json.dumps(batch_metadata).encode()
