@@ -1426,10 +1426,6 @@ def send_files(file_paths: List[str], pod: bool = False):
                     raise
                 break
         
-        # Flush any pending lock file updates before completion
-        if lock_manager:
-            lock_manager.flush_pending_updates()
-            
         # Calculate and show completion
         total_time = time.time() - start_time
         avg_speed = calculate_speed(original_bytes_processed, total_time)
@@ -1453,7 +1449,7 @@ def send_files(file_paths: List[str], pod: bool = False):
         if 'blosc_extension.error' in str(type(e)):
             print(f"Error: Data compression failed: {e}")
             print("This may indicate system resource issues or corrupted source files.")
-        elif isinstance(e, json.JSONEncodeError):
+        elif isinstance(e, json.JSONDecodeError):
             print(f"Error: Data encoding failed: {e}")
             print("This may indicate corrupted metadata or system issues.")
         else:
