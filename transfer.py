@@ -14,7 +14,11 @@ from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any
 import tempfile
 import blosc
-import resource
+# Import resource module (Unix-only) with fallback for Windows
+try:
+    import resource
+except ImportError:
+    resource = None  # Not available on Windows
 # blosc_extension is not directly importable, but blosc uses it internally
 # We'll catch the specific error type using a different approach
 
@@ -248,9 +252,12 @@ class ResourceMonitor:
             # Try to count open file descriptors in /proc/self/fd (Linux)
             if os.path.exists('/proc/self/fd'):
                 return len([f for f in os.listdir('/proc/self/fd') if f.isdigit()])
-            
-            # Fallback: use resource module (works on most Unix systems)
-            return resource.getrlimit(resource.RLIMIT_NOFILE)[0] - 100  # Conservative estimate
+
+            # Fallback: use resource module (works on most Unix systems, not Windows)
+            if resource is not None:
+                return resource.getrlimit(resource.RLIMIT_NOFILE)[0] - 100  # Conservative estimate
+
+            return None  # Not available on Windows
         except (OSError, AttributeError):
             return None
     
@@ -258,6 +265,10 @@ class ResourceMonitor:
     def get_fd_limit() -> Optional[int]:
         """Get the soft limit for file descriptors"""
         try:
+            # resource module not available on Windows
+            if resource is None:
+                return None
+
             soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
             return soft_limit
         except (OSError, AttributeError):
