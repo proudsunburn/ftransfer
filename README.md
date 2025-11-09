@@ -16,6 +16,42 @@ A simple, secure file transfer tool for Tailscale networks. Transfer files and f
 
 ## Installation
 
+### Recommended: Global Installation
+
+Install using `uv tool` to make the `transfer` command available globally from any directory:
+
+```bash
+# Install globally (works anywhere, no venv needed)
+cd /path/to/ftransfer
+uv tool install .
+```
+
+After installation, the `transfer` command will be available from any directory without activating a virtual environment.
+
+To update after changes:
+```bash
+uv tool install --reinstall .
+```
+
+To uninstall:
+```bash
+uv tool uninstall ftransfer
+```
+
+### Alternative Methods
+
+**Using pipx** (if you prefer pipx over uv):
+```bash
+pipx install .
+```
+
+**Development installation** (in a virtual environment):
+```bash
+pip install -e .  # Requires venv activation
+```
+
+**Manual installation** (no package installation):
+
 1. Install dependencies:
 ```bash
 pip install -r requirements.txt
@@ -26,25 +62,27 @@ pip install -r requirements.txt
 chmod +x transfer.py
 ```
 
+Then use `./transfer.py` instead of `transfer` in the examples below.
+
 ## Usage
 
 ### Sending Files
 
 Send one or more files or folders:
 ```bash
-./transfer.py send file1.txt folder2/ document.pdf
+transfer send file1.txt folder2/ document.pdf
 ```
 
 The program will output something like:
 ```
-type into receiver: transfer.py receive 100.64.1.123:ocean-tiger
+type into receiver: transfer receive 100.64.1.123:ocean-tiger
 ```
 
 ### Receiving Files
 
 Copy the connection string from the sender and run:
 ```bash
-./transfer.py receive 100.64.1.123:ocean-tiger
+transfer receive 100.64.1.123:ocean-tiger
 ```
 
 Files will be saved to the current directory.
@@ -53,7 +91,7 @@ Files will be saved to the current directory.
 
 Transfers automatically resume if interrupted. Simply run the same receive command again:
 ```bash
-./transfer.py receive 100.64.1.123:ocean-tiger
+transfer receive 100.64.1.123:ocean-tiger
 ```
 
 The receiver will automatically detect `.part` files and lock files, then resume from the last verified position.
@@ -62,7 +100,7 @@ The receiver will automatically detect `.part` files and lock files, then resume
 
 The program automatically detects virtual environment and cache directories and asks if you want to exclude them:
 ```bash
-./transfer.py send my_project/
+transfer send my_project/
 # Output: Found virtual environment/cache directories: venv, __pycache__, node_modules. Skip? [Y/n]:
 ```
 
@@ -141,10 +179,10 @@ Uses a unified streaming protocol with incremental file saving and optional Blos
 
 ```bash
 # All transfers automatically use optimized streaming
-./transfer.py send document.pdf folder/ library.zip
+transfer send document.pdf folder/ library.zip
 
 # Memory usage stays constant regardless of transfer size
-./transfer.py send 10GB_dataset/
+transfer send 10GB_dataset/
 ```
 
 ### Resume Capability
@@ -158,10 +196,10 @@ Interrupted transfers can be resumed without re-downloading completed portions:
 
 ```bash
 # Start transfer (creates .part files as it progresses)
-./transfer.py receive 100.64.1.123:ocean-tiger
+transfer receive 100.64.1.123:ocean-tiger
 
 # If interrupted, resume with --resume flag
-./transfer.py receive --resume 100.64.1.123:ocean-tiger
+transfer receive --resume 100.64.1.123:ocean-tiger
 # Output: "Resuming file.pdf: 5242880/10485760 bytes already written"
 ```
 
@@ -171,7 +209,7 @@ Exclude common development folders that don't need transferring:
 
 ```bash
 # Automatically detects and offers to exclude virtual environments and cache folders
-./transfer.py send my_python_project/
+transfer send my_python_project/
 # Output: "Found virtual environment/cache directories: venv, __pycache__, node_modules. Skip? [Y/n]:"
 
 # Can reduce transfer size by 80-95% for development projects
@@ -191,11 +229,11 @@ For containerized environments or manual pod mode where sender and receiver run 
 
 ```bash
 # Sender binds to localhost and accepts localhost connections
-./transfer.py send --pod document.pdf
-# Outputs: type into receiver: transfer.py receive 100.64.1.123:ocean-tiger
+transfer send --pod document.pdf
+# Outputs: type into receiver: transfer receive 100.64.1.123:ocean-tiger
 
 # Receiver accepts connections from localhost (127.0.0.1)
-./transfer.py receive 100.64.1.123:ocean-tiger --pod
+transfer receive 100.64.1.123:ocean-tiger --pod
 ```
 
 **Use cases:**

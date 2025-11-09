@@ -1134,7 +1134,7 @@ def send_files(file_paths: List[str], pod: bool = False):
     # Check for potential resource issues
     ResourceMonitor.check_fd_usage(len(collected_files))
     
-    print(f"type into receiver: transfer.py receive {tailscale_ip}:{token}")
+    print(f"type into receiver: transfer receive {tailscale_ip}:{token}")
     
     # Start server
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
