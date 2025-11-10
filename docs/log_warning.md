@@ -1,10 +1,3 @@
----
-layout: default
-title: log_warning()
-parent: Utility Functions
-nav_order: 4
----
-
 # log_warning() Function
 
 Silent warning logging system that maintains clean console output while capturing detailed warning information.

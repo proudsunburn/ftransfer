@@ -1,10 +1,3 @@
----
-layout: default
-title: derive_session_key()
-parent: Utility Functions
-nav_order: 6
----
-
 # SecureCrypto.derive_session_key()
 
 ECDH + HKDF key derivation for authenticated session establishment.

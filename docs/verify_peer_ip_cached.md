@@ -1,10 +1,3 @@
----
-layout: default
-title: verify_peer_ip_cached()
-parent: Utility Functions
-nav_order: 12
----
-
 # TailscaleDetector.verify_peer_ip_cached()
 
 Primary security validation for peer connections using cached data.

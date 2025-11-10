@@ -1,10 +1,3 @@
----
-layout: default
-title: generate_token()
-parent: Utility Functions
-nav_order: 10
----
-
 # SecureTokenGenerator.generate_token()
 
 Generate cryptographically secure two-word authentication tokens using enhanced entropy.

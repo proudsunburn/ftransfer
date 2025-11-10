@@ -1,10 +1,3 @@
----
-layout: default
-title: receive_files()
-parent: Main Functions
-nav_order: 2
----
-
 # receive_files() Function
 
 High-performance file reception client with streaming protocol and end-to-end decryption.

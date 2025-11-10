@@ -1,10 +1,3 @@
----
-layout: default
-title: get_tailscale_ip()
-parent: Utility Functions
-nav_order: 11
----
-
 # TailscaleDetector.get_tailscale_ip()
 
 Static method for obtaining the local Tailscale IP address.

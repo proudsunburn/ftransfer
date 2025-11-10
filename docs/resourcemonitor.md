@@ -1,10 +1,3 @@
----
-layout: default
-title: ResourceMonitor
-parent: Core Classes
-nav_order: 5
----
-
 # ResourceMonitor Class
 
 System resource monitoring to prevent file descriptor exhaustion during large transfers.

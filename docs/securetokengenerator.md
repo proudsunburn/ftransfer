@@ -1,10 +1,3 @@
----
-layout: default
-title: SecureTokenGenerator
-parent: Core Classes
-nav_order: 3
----
-
 # SecureTokenGenerator Class
 
 Generate secure two-word authentication tokens.

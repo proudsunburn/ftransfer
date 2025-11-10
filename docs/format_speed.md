@@ -1,10 +1,3 @@
----
-layout: default
-title: format_speed()
-parent: Utility Functions
-nav_order: 14
----
-
 # format_speed()
 
 Human-readable network transfer speed formatting utility.

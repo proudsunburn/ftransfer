@@ -1,0 +1,151 @@
+site_name: ftransfer Documentation
+site_description: Secure file transfer over Tailscale networks with end-to-end encryption
+site_url: https://proudsunburn.github.io/ftransfer
+repo_url: https://github.com/proudsunburn/ftransfer
+repo_name: proudsunburn/ftransfer
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+
+  # Color scheme (matching current dark theme default)
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  # Font configuration
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  # Material features
+  features:
+    - navigation.tabs              # Top-level navigation tabs
+    - navigation.tabs.sticky       # Sticky navigation tabs
+    - navigation.sections          # Navigation sections
+    - navigation.top               # Back to top button
+    - navigation.instant           # Instant loading
+    - navigation.instant.prefetch  # Prefetch pages
+    - navigation.tracking          # URL updates with scroll
+    - toc.integrate                # TOC integrated in sidebar
+    - search.suggest               # Search suggestions
+    - search.highlight             # Highlight search terms
+    - content.code.copy            # Copy button for code blocks
+    - content.code.annotate        # Code annotations
+    - content.action.edit          # Edit button
+    - content.action.view          # View source button
+
+  # Icon customization
+  icon:
+    repo: fontawesome/brands/github
+
+# Plugins
+plugins:
+  - search:
+      lang: en
+  - mermaid2:  # Critical: Mermaid diagram support
+      version: 10.6.1
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+  - minify:
+      minify_html: true
+
+# Markdown extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Navigation structure (flat file organization)
+nav:
+  - Home: index.md
+  - Main Functions:
+    - Overview: main-functions.md
+    - send_files(): send_files.md
+    - receive_files(): receive_files.md
+    - main(): main.md
+  - Core Classes:
+    - Overview: core-classes.md
+    - TailscaleDetector: tailscaledetector.md
+    - SecureCrypto: securecrypto.md
+    - SecureTokenGenerator: securetokengenerator.md
+    - TransferLockManager: transferlockmanager.md
+    - ResourceMonitor: resourcemonitor.md
+  - Utility Functions:
+    - Overview: utility-functions.md
+    - validate_files(): validate_files.md
+    - collect_files_recursive(): collect_files_recursive.md
+    - recv_all(): recv_all.md
+    - calculate_speed(): calculate_speed.md
+    - format_speed(): format_speed.md
+    - log_warning(): log_warning.md
+    - crypto_init(): crypto_init.md
+    - derive_session_key(): derive_session_key.md
+    - encrypt(): encrypt.md
+    - decrypt(): decrypt.md
+    - get_public_key_bytes(): get_public_key_bytes.md
+    - generate_token(): generate_token.md
+    - get_tailscale_ip(): get_tailscale_ip.md
+    - verify_peer_ip_cached(): verify_peer_ip_cached.md
+
+# Extra configuration
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/proudsunburn/ftransfer
+
+  generator: false  # Hide "Made with Material for MkDocs"
+
+# Copyright
+copyright: Copyright &copy; 2024 ftransfer contributors

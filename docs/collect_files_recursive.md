@@ -1,10 +1,3 @@
----
-layout: default
-title: collect_files_recursive()
-parent: Utility Functions
-nav_order: 3
----
-
 # collect_files_recursive()
 
 Recursive file system traversal and collection for comprehensive directory processing.

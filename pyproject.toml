@@ -37,6 +37,14 @@ dependencies = [
     "blosc>=1.11.0",
 ]
 
+[project.optional-dependencies]
+docs = [
+    "mkdocs-material>=9.0.0",
+    "mkdocs-mermaid2-plugin>=1.0.0",
+    "mkdocs-git-revision-date-localized-plugin>=1.0.0",
+    "mkdocs-minify-plugin>=0.7.0",
+]
+
 [project.urls]
 Homepage = "https://github.com/anthropics/ftransfer"
 Documentation = "https://github.com/anthropics/ftransfer#readme"

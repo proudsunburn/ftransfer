@@ -1,10 +1,3 @@
----
-layout: default
-title: get_public_key_bytes()
-parent: Utility Functions
-nav_order: 9
----
-
 # SecureCrypto.get_public_key_bytes()
 
 Extract X25519 public key for network transmission and key exchange.

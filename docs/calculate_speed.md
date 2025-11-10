@@ -1,10 +1,3 @@
----
-layout: default
-title: calculate_speed()
-parent: Utility Functions
-nav_order: 13
----
-
 # calculate_speed()
 
 Transfer speed calculation utility for real-time performance monitoring.

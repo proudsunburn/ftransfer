@@ -1,10 +1,3 @@
----
-layout: default
-title: send_files()
-parent: Main Functions
-nav_order: 1
----
-
 # send_files() Function
 
 High-performance file transmission server with streaming protocol and end-to-end encryption.

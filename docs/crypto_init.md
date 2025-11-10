@@ -1,10 +1,3 @@
----
-layout: default
-title: SecureCrypto.__init__()
-parent: Utility Functions
-nav_order: 5
----
-
 # SecureCrypto.__init__()
 
 Initialize cryptographic key pair for secure session.

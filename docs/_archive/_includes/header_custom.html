@@ -1,0 +1,74 @@
+<button class="btn js-toggle-dark-mode">☀️ Light Mode</button>
+
+<style>
+.js-toggle-dark-mode {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.js-toggle-dark-mode:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .js-toggle-dark-mode {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+</style>
+
+<script>
+jtd.onReady(function() {
+  // Override both getTheme and setTheme to toggle disabled property
+  jtd.getTheme = function() {
+    return document.getElementById('jtd-theme-dark').disabled ? 'light' : 'dark';
+  }
+
+  jtd.setTheme = function(theme) {
+    if (theme === 'dark') {
+      document.getElementById('jtd-theme-dark').disabled = false;
+      document.getElementById('jtd-theme-light').disabled = true;
+    } else {
+      document.getElementById('jtd-theme-dark').disabled = true;
+      document.getElementById('jtd-theme-light').disabled = false;
+    }
+  }
+
+  const toggleDarkMode = document.querySelector('.js-toggle-dark-mode');
+
+  // Initialize button text based on current theme
+  function updateButtonText() {
+    const theme = jtd.getTheme();
+    if (theme === 'dark') {
+      toggleDarkMode.textContent = '☀️ Light Mode';
+    } else {
+      toggleDarkMode.textContent = '🌙 Dark Mode';
+    }
+  }
+
+  // Set initial button text
+  updateButtonText();
+
+  // Add click handler using jtd.addEvent
+  jtd.addEvent(toggleDarkMode, 'click', function() {
+    if (jtd.getTheme() === 'dark') {
+      jtd.setTheme('light');
+      toggleDarkMode.textContent = '🌙 Dark Mode';
+    } else {
+      jtd.setTheme('dark');
+      toggleDarkMode.textContent = '☀️ Light Mode';
+    }
+  });
+});
+</script>

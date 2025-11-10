@@ -1,10 +1,3 @@
----
-layout: default
-title: validate_files()
-parent: Utility Functions
-nav_order: 2
----
-
 # validate_files() Function
 
 File existence and accessibility validation.

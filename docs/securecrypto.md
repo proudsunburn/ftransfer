@@ -1,10 +1,3 @@
----
-layout: default
-title: SecureCrypto
-parent: Core Classes
-nav_order: 2
----
-
 # SecureCrypto Class
 
 End-to-end encryption using modern cryptography.

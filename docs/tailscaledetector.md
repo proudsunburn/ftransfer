@@ -1,10 +1,3 @@
----
-layout: default
-title: TailscaleDetector
-parent: Core Classes
-nav_order: 1
----
-
 # TailscaleDetector Class
 
 Network peer validation and Tailscale integration.

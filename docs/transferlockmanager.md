@@ -1,10 +1,3 @@
----
-layout: default
-title: TransferLockManager
-parent: Core Classes
-nav_order: 4
----
-
 # TransferLockManager Class
 
 Manages transfer state and automatic resume functionality through lock file system.

@@ -1,10 +1,3 @@
----
-layout: default
-title: decrypt()
-parent: Utility Functions
-nav_order: 8
----
-
 # SecureCrypto.decrypt()
 
 ChaCha20Poly1305 authenticated decryption with integrity verification.

@@ -1,10 +1,3 @@
----
-layout: default
-title: recv_all()
-parent: Utility Functions
-nav_order: 1
----
-
 # recv_all() Function
 
 Reliable socket data reception with guaranteed completeness.

@@ -1,0 +1,204 @@
+<!DOCTYPE html> <html lang="en_US"> <head> <meta charset="UTF-8"> <meta http-equiv="X-UA-Compatible" content="IE=Edge"> <link rel="stylesheet" href="/assets/css/just-the-docs-dark.css" id="jtd-theme-dark"> <link rel="stylesheet" href="/assets/css/just-the-docs-light.css" id="jtd-theme-light" disabled> <link rel="stylesheet" href="/assets/css/just-the-docs-head-nav.css" id="jtd-head-nav-stylesheet"> <style id="jtd-nav-activation"> .site-nav > ul.nav-list:first-child > li > a, .site-nav > ul.nav-list:first-child > li > ul > li:not(:nth-child(2)) > a, .site-nav > ul.nav-list:first-child > li > ul > li > ul > li a { background-image: none; } .site-nav > ul.nav-list:not(:first-child) a, .site-nav li.external a { background-image: none; } .site-nav > ul.nav-list:first-child > li:nth-child(2) > ul > li:nth-child(2) > a { font-weight: 600; text-decoration: none; }.site-nav > ul.nav-list:first-child > li:nth-child(2) > button svg, .site-nav > ul.nav-list:first-child > li:nth-child(2) > ul > li:nth-child(2) > button svg { transform: rotate(-90deg); }.site-nav > ul.nav-list:first-child > li.nav-list-item:nth-child(2) > ul.nav-list, .site-nav > ul.nav-list:first-child > li.nav-list-item:nth-child(2) > ul.nav-list > li.nav-list-item:nth-child(2) > ul.nav-list { display: block; } </style> <script src="/assets/js/vendor/lunr.min.js"></script> <script src="/assets/js/just-the-docs.js"></script> <meta name="viewport" content="width=device-width, initial-scale=1"> <link rel="icon" href="/favicon.ico" type="image/x-icon"> <!-- Begin Jekyll SEO tag v2.8.0 --> <title>receive_files() | ftransfer Documentation</title> <meta name="generator" content="Jekyll v3.9.3" /> <meta property="og:title" content="receive_files()" /> <meta name="author" content="proudsunburn" /> <meta property="og:locale" content="en_US" /> <meta name="description" content="Secure file transfer over Tailscale networks with end-to-end encryption" /> <meta property="og:description" content="Secure file transfer over Tailscale networks with end-to-end encryption" /> <link rel="canonical" href="http://localhost:4000/receive_files.html" /> <meta property="og:url" content="http://localhost:4000/receive_files.html" /> <meta property="og:site_name" content="ftransfer Documentation" /> <meta property="og:type" content="website" /> <meta name="twitter:card" content="summary" /> <meta property="twitter:title" content="receive_files()" /> <script type="application/ld+json"> {"@context":"https://schema.org","@type":"WebPage","author":{"@type":"Person","name":"proudsunburn"},"description":"Secure file transfer over Tailscale networks with end-to-end encryption","headline":"receive_files()","url":"http://localhost:4000/receive_files.html"}</script> <!-- End Jekyll SEO tag --> </head> <body> <a class="skip-to-main" href="#main-content">Skip to main content</a> <svg xmlns="http://www.w3.org/2000/svg" class="d-none"> <symbol id="svg-link" viewBox="0 0 24 24"> <title>Link</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link"> <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path> </svg> </symbol> <symbol id="svg-menu" viewBox="0 0 24 24"> <title>Menu</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"> <line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line> </svg> </symbol> <symbol id="svg-arrow-right" viewBox="0 0 24 24"> <title>Expand</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </symbol> <!-- Feather. MIT License: https://github.com/feathericons/feather/blob/master/LICENSE --> <symbol id="svg-external-link" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"> <title id="svg-external-link-title">(external link)</title> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line> </symbol> <symbol id="svg-doc" viewBox="0 0 24 24"> <title>Document</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file"> <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline> </svg> </symbol> <symbol id="svg-search" viewBox="0 0 24 24"> <title>Search</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"> <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line> </svg> </symbol> <!-- Bootstrap Icons. MIT License: https://github.com/twbs/icons/blob/main/LICENSE.md --> <symbol id="svg-copy" viewBox="0 0 16 16"> <title>Copy</title> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16"> <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/> <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/> </svg> </symbol> <symbol id="svg-copied" viewBox="0 0 16 16"> <title>Copied</title> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-check-fill" viewBox="0 0 16 16"> <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3Zm3 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3Z"/> <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1A2.5 2.5 0 0 1 9.5 5h-3A2.5 2.5 0 0 1 4 2.5v-1Zm6.854 7.354-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708.708Z"/> </svg> </symbol> </svg> <div class="side-bar"> <div class="site-header" role="banner"> <a href="/" class="site-title lh-tight"> ftransfer Documentation </a> <button id="menu-button" class="site-button btn-reset" aria-label="Toggle menu" aria-pressed="false"> <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><use xlink:href="#svg-menu"></use></svg> </button> </div> <nav aria-label="Main" id="site-nav" class="site-nav"> <ul class="nav-list"><li class="nav-list-item"><a href="/" class="nav-list-link">Home</a></li><li class="nav-list-item"><button class="nav-list-expander btn-reset" aria-label="toggle items in Main Functions category" aria-pressed="false"> <svg viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#svg-arrow-right"></use></svg> </button><a href="/main-functions.html" class="nav-list-link">Main Functions</a><ul class="nav-list"><li class="nav-list-item"><a href="/send_files.html" class="nav-list-link">send_files()</a></li><li class="nav-list-item"><a href="/receive_files.html" class="nav-list-link">receive_files()</a></li><li class="nav-list-item"><a href="/main.html" class="nav-list-link">main()</a></li></ul></li><li class="nav-list-item"><button class="nav-list-expander btn-reset" aria-label="toggle items in Core Classes category" aria-pressed="false"> <svg viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#svg-arrow-right"></use></svg> </button><a href="/core-classes.html" class="nav-list-link">Core Classes</a><ul class="nav-list"><li class="nav-list-item"><a href="/tailscaledetector.html" class="nav-list-link">TailscaleDetector</a></li><li class="nav-list-item"><a href="/securecrypto.html" class="nav-list-link">SecureCrypto</a></li><li class="nav-list-item"><a href="/securetokengenerator.html" class="nav-list-link">SecureTokenGenerator</a></li><li class="nav-list-item"><a href="/transferlockmanager.html" class="nav-list-link">TransferLockManager</a></li><li class="nav-list-item"><a href="/resourcemonitor.html" class="nav-list-link">ResourceMonitor</a></li></ul></li><li class="nav-list-item"><button class="nav-list-expander btn-reset" aria-label="toggle items in Utility Functions category" aria-pressed="false"> <svg viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#svg-arrow-right"></use></svg> </button><a href="/utility-functions.html" class="nav-list-link">Utility Functions</a><ul class="nav-list"><li class="nav-list-item"><a href="/recv_all.html" class="nav-list-link">recv_all()</a></li><li class="nav-list-item"><a href="/validate_files.html" class="nav-list-link">validate_files()</a></li><li class="nav-list-item"><a href="/collect_files_recursive.html" class="nav-list-link">collect_files_recursive()</a></li><li class="nav-list-item"><a href="/log_warning.html" class="nav-list-link">log_warning()</a></li><li class="nav-list-item"><a href="/crypto_init.html" class="nav-list-link">SecureCrypto.__init__()</a></li><li class="nav-list-item"><a href="/derive_session_key.html" class="nav-list-link">derive_session_key()</a></li><li class="nav-list-item"><a href="/encrypt.html" class="nav-list-link">encrypt()</a></li><li class="nav-list-item"><a href="/decrypt.html" class="nav-list-link">decrypt()</a></li><li class="nav-list-item"><a href="/get_public_key_bytes.html" class="nav-list-link">get_public_key_bytes()</a></li><li class="nav-list-item"><a href="/generate_token.html" class="nav-list-link">generate_token()</a></li><li class="nav-list-item"><a href="/get_tailscale_ip.html" class="nav-list-link">get_tailscale_ip()</a></li><li class="nav-list-item"><a href="/verify_peer_ip_cached.html" class="nav-list-link">verify_peer_ip_cached()</a></li><li class="nav-list-item"><a href="/calculate_speed.html" class="nav-list-link">calculate_speed()</a></li><li class="nav-list-item"><a href="/format_speed.html" class="nav-list-link">format_speed()</a></li></ul></li><li class="nav-list-item"><a href="/LICENSE-THEME.html" class="nav-list-link">Documentation Theme License</a></li></ul> <ul class="nav-list"><li class="nav-list-item external"> <a href="https://github.com/proudsunburn/ftransfer" class="nav-list-link external" > GitHub Repository <svg viewBox="0 0 24 24" aria-labelledby="svg-external-link-title"><use xlink:href="#svg-external-link"></use></svg> </a> </li></ul> </nav> <footer class="site-footer"> This site uses <a href="https://github.com/just-the-docs/just-the-docs">Just the Docs</a>, a documentation theme for Jekyll. </footer> </div> <div class="main" id="top"> <div id="main-header" class="main-header"> <div class="search" role="search"> <div class="search-input-wrap"> <input type="text" id="search-input" class="search-input" tabindex="0" placeholder="Search ftransfer Documentation" aria-label="Search ftransfer Documentation" autocomplete="off"> <label for="search-input" class="search-label"><svg viewBox="0 0 24 24" class="search-icon"><use xlink:href="#svg-search"></use></svg></label> </div> <div id="search-results" class="search-results"></div> </div> <button class="btn js-toggle-dark-mode">☀️ Light Mode</button> <style> .js-toggle-dark-mode { position: fixed; top: 1rem; right: 1rem; z-index: 1000; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; transition: all 0.2s ease; font-size: 0.875rem; } .js-toggle-dark-mode:hover { opacity: 0.85; transform: translateY(-1px); } @media (max-width: 768px) { .js-toggle-dark-mode { top: 0.5rem; right: 0.5rem; padding: 0.375rem 0.75rem; font-size: 0.75rem; } } </style> <script> jtd.onReady(function() { // Override both getTheme and setTheme to toggle disabled property jtd.getTheme = function() { return document.getElementById('jtd-theme-dark').disabled ? 'light' : 'dark'; } jtd.setTheme = function(theme) { if (theme === 'dark') { document.getElementById('jtd-theme-dark').disabled = false; document.getElementById('jtd-theme-light').disabled = true; } else { document.getElementById('jtd-theme-dark').disabled = true; document.getElementById('jtd-theme-light').disabled = false; } } const toggleDarkMode = document.querySelector('.js-toggle-dark-mode'); // Initialize button text based on current theme function updateButtonText() { const theme = jtd.getTheme(); if (theme === 'dark') { toggleDarkMode.textContent = '☀️ Light Mode'; } else { toggleDarkMode.textContent = '🌙 Dark Mode'; } } // Set initial button text updateButtonText(); // Add click handler using jtd.addEvent jtd.addEvent(toggleDarkMode, 'click', function() { if (jtd.getTheme() === 'dark') { jtd.setTheme('light'); toggleDarkMode.textContent = '🌙 Dark Mode'; } else { jtd.setTheme('dark'); toggleDarkMode.textContent = '☀️ Light Mode'; } }); }); </script> </div> <div class="main-content-wrap"> <nav aria-label="Breadcrumb" class="breadcrumb-nav"> <ol class="breadcrumb-nav-list"> <li class="breadcrumb-nav-list-item"><a href="/main-functions.html">Main Functions</a></li> <li class="breadcrumb-nav-list-item"><span>receive_files()</span></li> </ol> </nav> <div id="main-content" class="main-content"> <main> <h1 id="receive_files-function"> <a href="#receive_files-function" class="anchor-heading" aria-labelledby="receive_files-function"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> receive_files() Function </h1> <p>High-performance file reception client with streaming protocol and end-to-end decryption.</p> <h2 id="overview"> <a href="#overview" class="anchor-heading" aria-labelledby="overview"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Overview </h2> <p>Main client function that connects to sender, performs key exchange, and securely receives files using the optimized streaming protocol. Handles connection parsing, peer verification, and file reconstruction from streamed data with batch metadata processing.</p> <h2 id="call-graph"> <a href="#call-graph" class="anchor-heading" aria-labelledby="call-graph"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Call Graph </h2><pre><code class="language-mermaid">graph LR
+    main["main()"]:::red
+    receive_files["receive_files()"]:::highlight
+    verify_peer_ip_cached["TailscaleDetector.verify_peer_ip_cached()"]:::green
+    crypto_init["SecureCrypto()"]:::green
+    recv_all["recv_all()"]:::green
+    calculate_speed["calculate_speed()"]:::green
+    format_speed["format_speed()"]:::green
+
+    main --&gt; receive_files
+    receive_files --&gt; verify_peer_ip_cached
+    receive_files --&gt; crypto_init
+    receive_files --&gt; recv_all
+    receive_files --&gt; calculate_speed
+    receive_files --&gt; format_speed
+
+    classDef red fill:#f78166,stroke:#333,color:#fff
+    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
+    classDef green fill:#56d364,stroke:#333,color:#000
+</code></pre><h2 id="parameters"> <a href="#parameters" class="anchor-heading" aria-labelledby="parameters"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Parameters </h2> <div class="table-wrapper"><table> <thead> <tr> <th>Parameter</th> <th>Type</th> <th>Description</th> </tr> </thead> <tbody> <tr> <td><code class="language-plaintext highlighter-rouge">connection_string</code></td> <td><code class="language-plaintext highlighter-rouge">str</code></td> <td>Connection string in format “ip:token”</td> </tr> <tr> <td><code class="language-plaintext highlighter-rouge">pod</code></td> <td><code class="language-plaintext highlighter-rouge">bool</code></td> <td>Accept connections from localhost for containerized environments (default: False)</td> </tr> </tbody> </table></div> <h2 id="return-value"> <a href="#return-value" class="anchor-heading" aria-labelledby="return-value"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Return Value </h2> <ul> <li><strong>Type</strong>: <code class="language-plaintext highlighter-rouge">None</code></li> <li><strong>Description</strong>: Function completes file reception or raises exception on failure</li> </ul> <h2 id="requirements"> <a href="#requirements" class="anchor-heading" aria-labelledby="requirements"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Requirements </h2> <p>receive_files() shall parse connection string to extract IP address and authentication token when connection_string parameter is provided where the format is “ip:token”.</p> <p>receive_files() shall establish TCP connection to sender on port 15820 when IP address is parsed where connection timeout is 30 seconds.</p> <p>receive_files() shall verify sender IP using Tailscale peer verification when pod parameter is False where verification ensures sender is authenticated peer.</p> <p>receive_files() shall perform key exchange with sender when TCP connection is established where the exchange uses X25519 ECDH with shared authentication token.</p> <p>receive_files() shall decrypt all received data using ChaCha20Poly1305 when session key is derived where decryption ensures data confidentiality and integrity.</p> <p>receive_files() shall automatically detect compression from metadata when batch metadata is received where decompression is applied only if sender enabled compression.</p> <p>receive_files() shall receive files using streaming protocol with incremental saving when encrypted data is received where FileWriter instances handle direct stream-to-disk writing without memory accumulation.</p> <p>receive_files() shall accept connections from localhost when pod parameter is True where localhost acceptance enables containerized deployment.</p> <p>receive_files() shall automatically detect and resume from existing lock files and .part files where TransferLockManager instances verify existing data integrity before continuing transfers.</p> <h2 id="algorithm-flow"> <a href="#algorithm-flow" class="anchor-heading" aria-labelledby="algorithm-flow"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Algorithm Flow </h2><pre><code class="language-mermaid">graph TD
+    start(["Start: receive_files(connection_string, pod)"]):::highlight
+
+    parse_conn["Parse connection string&lt;br/&gt;'ip:token' format"]:::green
+    validate_format{"Valid format?"}:::yellow
+    extract_ip["Extract IP address&lt;br/&gt;and authentication token"]:::green
+    validate_ip{"Valid IPv4?"}:::yellow
+
+    pod_check{"pod == True?"}:::yellow
+    verify_peer["verify_peer_ip_cached(ip)&lt;br/&gt;Validate Tailscale peer"]:::green
+    skip_verification["Skip peer verification&lt;br/&gt;(pod mode)"]:::orange
+    peer_valid{"Peer authenticated?"}:::yellow
+
+    connect_tcp["TCP connect to ip:15820&lt;br/&gt;(30 second timeout)"]:::lightblue
+    connection_ok{"Connection successful?"}:::yellow
+
+    crypto_init["SecureCrypto()&lt;br/&gt;Generate X25519 keypair"]:::green
+    exchange_keys["Exchange public keys&lt;br/&gt;with sender"]:::lightblue
+    derive_key["derive_session_key()&lt;br/&gt;ECDH + HKDF-SHA256 + token"]:::green
+    key_success{"Key derivation successful?"}:::yellow
+
+    receive_metadata["Receive batch metadata:&lt;br/&gt;{filename, size, hash, offset}"]:::success
+    create_filewriters["Create FileWriter instances&lt;br/&gt;for incremental saving"]:::success
+    open_part_files["Initialize TransferLockManager&lt;br/&gt;(automatic resume detection)"]:::success
+    stream_loop["Stream chunks:&lt;br/&gt;recv() → decrypt() → write_chunk()"]:::success
+    complete_files["Complete files:&lt;br/&gt;move .part to final names"]:::success
+    verify_integrity["Verify SHA-256 hashes&lt;br/&gt;for all received files"]:::success
+    integrity_ok{"All hashes valid?"}:::yellow
+
+    calc_speed["calculate_speed()&lt;br/&gt;Compute transfer rate"]:::green
+    show_result["Display: 'Transfer complete!&lt;br/&gt;Saved: files'"]:::pink
+    cleanup["Close connections&lt;br/&gt;Cleanup resources"]:::gray
+    end_success(["Return (success)"]):::success
+
+    error_parse["ParseError:&lt;br/&gt;Invalid connection string"]:::error
+    error_ip["ValueError:&lt;br/&gt;Invalid IP address"]:::error
+    error_peer["AuthenticationError:&lt;br/&gt;Peer not verified"]:::error
+    error_network["NetworkError:&lt;br/&gt;Connection failed"]:::error
+    error_crypto["CryptographicError:&lt;br/&gt;Key exchange failed"]:::error
+    error_integrity["IntegrityError:&lt;br/&gt;File hash mismatch"]:::error
+    end_error(["Raise Exception"]):::error
+
+    start --&gt; parse_conn
+    parse_conn --&gt; validate_format
+    validate_format --&gt;|Yes| extract_ip
+    extract_ip --&gt; validate_ip
+    validate_ip --&gt;|Yes| pod_check
+    pod_check --&gt;|Yes| skip_verification
+    pod_check --&gt;|No| verify_peer
+    verify_peer --&gt; peer_valid
+    peer_valid --&gt;|Yes| connect_tcp
+    skip_verification --&gt; connect_tcp
+    connect_tcp --&gt; connection_ok
+    connection_ok --&gt;|Yes| crypto_init
+    crypto_init --&gt; exchange_keys
+    exchange_keys --&gt; derive_key
+    derive_key --&gt; key_success
+    key_success --&gt;|Yes| receive_metadata
+    receive_metadata --&gt; create_filewriters
+    create_filewriters --&gt; open_part_files
+    open_part_files --&gt; stream_loop
+    stream_loop --&gt; complete_files
+    complete_files --&gt; verify_integrity
+    verify_integrity --&gt; integrity_ok
+    integrity_ok --&gt;|Yes| calc_speed
+    calc_speed --&gt; show_result
+    show_result --&gt; cleanup
+    cleanup --&gt; end_success
+
+    validate_format -.-&gt;|No| error_parse
+    validate_ip -.-&gt;|No| error_ip
+    peer_valid -.-&gt;|No| error_peer
+    connection_ok -.-&gt;|No| error_network
+    key_success -.-&gt;|No| error_crypto
+    integrity_ok -.-&gt;|No| error_integrity
+
+    error_parse --&gt; end_error
+    error_ip --&gt; end_error
+    error_peer --&gt; end_error
+    error_network --&gt; end_error
+    error_crypto --&gt; end_error
+    error_integrity --&gt; end_error
+
+    classDef highlight fill:#58a6ff,stroke:#333,color:#fff
+    classDef green fill:#56d364,stroke:#333,color:#fff
+    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
+    classDef orange fill:#ff9800,stroke:#333,color:#fff
+    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
+    classDef success fill:#4caf50,stroke:#333,color:#fff
+    classDef pink fill:#e91e63,stroke:#333,color:#fff
+    classDef gray fill:#9e9e9e,stroke:#333,color:#fff
+    classDef error fill:#f44336,stroke:#333,color:#fff
+</code></pre><h2 id="automatic-resume-workflow"> <a href="#automatic-resume-workflow" class="anchor-heading" aria-labelledby="automatic-resume-workflow"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Automatic Resume Workflow </h2> <p>The receiver implements intelligent automatic resume detection without requiring manual flags or user intervention.</p><pre><code class="language-mermaid">graph TD
+    start(["receive_files() starts"]):::pink
+
+    check_lock["Initialize TransferLockManager&lt;br/&gt;Check for .transfer_lock.json"]:::success
+    lock_exists{"Valid lock file&lt;br/&gt;found?"}:::yellow
+
+    load_lock["Load existing lock data:&lt;br/&gt;session, file states, hashes"]:::lightblue
+    analyze_files["Analyze incoming files vs&lt;br/&gt;lock state: completed/partial/fresh"]:::lightblue
+    create_plan["Generate resume plan:&lt;br/&gt;X completed, Y partial, Z fresh"]:::lightblue
+    show_resume["Display: 'Resuming transfer:&lt;br/&gt;X completed, Y partial, Z fresh files'"]:::pink
+
+    create_lock["Create new lock file&lt;br/&gt;with session metadata"]:::success
+    show_fresh["Display: 'Starting fresh transfer'"]:::pink
+
+    setup_writers["Setup FileWriter instances:&lt;br/&gt;- Resume from lock offsets&lt;br/&gt;- Fresh files from zero"]:::success
+
+    transfer_loop["Transfer files with&lt;br/&gt;integrity verification"]:::success
+    check_integrity["Verify SHA-256 hashes&lt;br/&gt;for all files"]:::success
+    integrity_ok{"All files&lt;br/&gt;pass integrity?"}:::yellow
+
+    retry_count{"Retry attempts&lt;br/&gt;&lt; 3?"}:::yellow
+    request_retry["Send retry request&lt;br/&gt;to sender for failed files"]:::orange
+    receive_retry["Receive retry data&lt;br/&gt;for failed files only"]:::orange
+
+    cleanup_lock["Remove lock file&lt;br/&gt;(successful completion)"]:::success
+    complete(["Transfer complete!"]):::success
+
+    final_error["Report integrity failure&lt;br/&gt;after 3 attempts"]:::error
+
+    start --&gt; check_lock
+    check_lock --&gt; lock_exists
+    lock_exists --&gt;|yes| load_lock
+    lock_exists --&gt;|no| create_lock
+    load_lock --&gt; analyze_files
+    analyze_files --&gt; create_plan
+    create_plan --&gt; show_resume
+    create_lock --&gt; show_fresh
+    show_resume --&gt; setup_writers
+    show_fresh --&gt; setup_writers
+    setup_writers --&gt; transfer_loop
+    transfer_loop --&gt; check_integrity
+    check_integrity --&gt; integrity_ok
+    integrity_ok --&gt;|pass| cleanup_lock
+    integrity_ok --&gt;|fail| retry_count
+    retry_count --&gt;|yes| request_retry
+    retry_count --&gt;|no| final_error
+    request_retry --&gt; receive_retry
+    receive_retry --&gt; check_integrity
+    cleanup_lock --&gt; complete
+
+    classDef pink fill:#e91e63,stroke:#333,color:#fff
+    classDef success fill:#4caf50,stroke:#333,color:#fff
+    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
+    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
+    classDef orange fill:#ff9800,stroke:#333,color:#fff
+    classDef error fill:#f44336,stroke:#333,color:#fff
+</code></pre><h3 id="lock-file-state-management"> <a href="#lock-file-state-management" class="anchor-heading" aria-labelledby="lock-file-state-management"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>Lock File State Management</strong> </h3> <p>The automatic resume system uses <code class="language-plaintext highlighter-rouge">.transfer_lock.json</code> files to track transfer state:</p> <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"session_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"uuid-12345"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-01-01T12:00:00Z"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"sender_ip"</span><span class="p">:</span><span class="w"> </span><span class="s2">"100.101.29.44"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"total_files"</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"total_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">1048576000</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"files"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"document.pdf"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"completed"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">524288</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"transferred_bytes"</span><span class="p">:</span><span class="w"> </span><span class="mi">524288</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"original_hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sha256-hash"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"partial_hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sha256-hash"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"archive.zip"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"in_progress"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">1048576</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"transferred_bytes"</span><span class="p">:</span><span class="w"> </span><span class="mi">262144</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"partial_hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sha256-partial"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div> <h3 id="file-integrity-retry-system"> <a href="#file-integrity-retry-system" class="anchor-heading" aria-labelledby="file-integrity-retry-system"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>File Integrity Retry System</strong> </h3> <p>When integrity check failures occur, the receiver automatically retries up to 3 times:</p> <ol> <li><strong>Detection</strong>: SHA-256 hash mismatch detected for received files</li> <li><strong>Request</strong>: Send retry request to sender with failed file list</li> <li><strong>Resend</strong>: Sender locates and resends only failed files</li> <li><strong>Verification</strong>: Re-verify integrity of retried files</li> <li><strong>Loop</strong>: Repeat up to 3 total attempts</li> <li><strong>Completion</strong>: Success after retry or final error report</li> </ol> <h3 id="resume-decision-logic"> <a href="#resume-decision-logic" class="anchor-heading" aria-labelledby="resume-decision-logic"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>Resume Decision Logic</strong> </h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_resume_plan</span><span class="p">(</span><span class="n">incoming_files</span><span class="p">):</span>
+    <span class="n">completed_files</span> <span class="o">=</span> <span class="p">[]</span>    <span class="c1"># Skip entirely
+</span>    <span class="n">resume_files</span> <span class="o">=</span> <span class="p">[]</span>       <span class="c1"># Resume from partial offset
+</span>    <span class="n">fresh_files</span> <span class="o">=</span> <span class="p">[]</span>        <span class="c1"># Transfer from beginning
+</span>
+    <span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="n">incoming_files</span><span class="p">:</span>
+        <span class="n">lock_status</span> <span class="o">=</span> <span class="n">lock_data</span><span class="p">.</span><span class="n">files</span><span class="p">[</span><span class="nb">file</span><span class="p">.</span><span class="n">name</span><span class="p">].</span><span class="n">status</span>
+        <span class="k">if</span> <span class="n">lock_status</span> <span class="o">==</span> <span class="s">"completed"</span><span class="p">:</span>
+            <span class="n">completed_files</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="nb">file</span><span class="p">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">lock_status</span> <span class="o">==</span> <span class="s">"in_progress"</span><span class="p">:</span>
+            <span class="n">resume_files</span><span class="p">.</span><span class="n">append</span><span class="p">((</span><span class="nb">file</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">transferred_bytes</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fresh_files</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>
+</code></pre></div></div> <h2 id="security-considerations"> <a href="#security-considerations" class="anchor-heading" aria-labelledby="security-considerations"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Security Considerations </h2> <h3 id="connection-security"> <a href="#connection-security" class="anchor-heading" aria-labelledby="connection-security"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>Connection Security</strong> </h3> <ul> <li><strong>Connection String Validation</strong>: Strict parsing of “ip:token” format prevents injection attacks</li> <li><strong>IP Address Validation</strong>: IPv4 format validation prevents malformed address exploitation</li> <li><strong>Connection Timeout</strong>: 30-second timeout prevents hanging connections and resource exhaustion</li> </ul> <h3 id="peer-authentication"> <a href="#peer-authentication" class="anchor-heading" aria-labelledby="peer-authentication"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>Peer Authentication</strong> </h3> <ul> <li><strong>Tailscale Peer Verification</strong>: Uses <code class="language-plaintext highlighter-rouge">verify_peer_ip_cached()</code> to ensure sender is authenticated Tailscale peer</li> <li><strong>Cached Verification</strong>: 30-second cache prevents repeated CLI calls while maintaining security</li> <li><strong>Pod Mode Override</strong>: Localhost-only mode for containerized deployments bypasses peer verification</li> </ul> <h3 id="cryptographic-security"> <a href="#cryptographic-security" class="anchor-heading" aria-labelledby="cryptographic-security"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>Cryptographic Security</strong> </h3> <ul> <li><strong>Perfect Forward Secrecy</strong>: Ephemeral X25519 keys generated per session protect past communications</li> <li><strong>Mutual Authentication</strong>: ECDH key exchange with shared token prevents man-in-the-middle attacks</li> <li><strong>Session Key Derivation</strong>: HKDF-SHA256 with token salt ensures both parties know the shared secret</li> </ul> <h3 id="file-reception-security"> <a href="#file-reception-security" class="anchor-heading" aria-labelledby="file-reception-security"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>File Reception Security</strong> </h3> <ul> <li><strong>Directory Traversal Prevention</strong>: File paths validated before FileWriter creation to prevent escape attacks</li> <li><strong>Incremental File Writing</strong>: FileWriter class manages .part files with atomic completion operations</li> <li><strong>Lock File Validation</strong>: TransferLockManager verifies existing transfer state and file integrity before resuming</li> <li><strong>Integrity Verification</strong>: SHA-256 hash verification ensures files haven’t been tampered with</li> <li><strong>Atomic File Operations</strong>: Files written to .part locations then atomically renamed on completion</li> </ul> <h3 id="data-protection"> <a href="#data-protection" class="anchor-heading" aria-labelledby="data-protection"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>Data Protection</strong> </h3> <ul> <li><strong>Authenticated Decryption</strong>: ChaCha20Poly1305 AEAD prevents accepting tampered data</li> <li><strong>Streaming Decryption</strong>: Data decrypted in chunks and written directly to disk without memory accumulation</li> <li><strong>Memory Efficiency</strong>: FileWriter approach eliminates large memory buffers, reducing attack surface</li> <li><strong>Secure Cleanup</strong>: Connection resources and .part files properly cleaned up on failure</li> </ul> <h3 id="error-handling-security"> <a href="#error-handling-security" class="anchor-heading" aria-labelledby="error-handling-security"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>Error Handling Security</strong> </h3> <ul> <li><strong>Fail-Safe Design</strong>: Any error condition results in complete operation failure</li> <li><strong>Information Disclosure Prevention</strong>: Error messages don’t reveal sensitive network or cryptographic details</li> <li><strong>Resource Cleanup</strong>: Ensures connections and partial files cleaned up on failure</li> </ul> <h3 id="network-security"> <a href="#network-security" class="anchor-heading" aria-labelledby="network-security"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>Network Security</strong> </h3> <ul> <li><strong>Port Consistency</strong>: Fixed port 15820 provides predictable endpoint for firewall configuration</li> <li><strong>Connection Limits</strong>: Single connection per session prevents resource exhaustion</li> <li><strong>Timeout Protection</strong>: Network timeouts prevent indefinite blocking</li> </ul> <h3 id="filewriter-security"> <a href="#filewriter-security" class="anchor-heading" aria-labelledby="filewriter-security"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>FileWriter Security</strong> </h3> <ul> <li><strong>Incremental Hash Verification</strong>: Continuous SHA-256 hashing during writing ensures data integrity</li> <li><strong>Resume Integrity</strong>: Existing .part files re-hashed completely before resuming to detect tampering</li> <li><strong>Atomic Completion</strong>: Files moved from .part to final names only after complete verification</li> <li><strong>Partial File Isolation</strong>: Incomplete transfers isolated with .part extension to prevent confusion</li> <li><strong>Memory Attack Prevention</strong>: Direct stream-to-disk writing eliminates large memory allocations</li> </ul> <h3 id="attack-mitigation"> <a href="#attack-mitigation" class="anchor-heading" aria-labelledby="attack-mitigation"><svg viewBox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> <strong>Attack Mitigation</strong> </h3> <ul> <li><strong>Replay Protection</strong>: Ephemeral keys and session binding prevent replay attacks</li> <li><strong>DoS Protection</strong>: Connection timeouts and resource limits prevent denial of service</li> <li><strong>Data Validation</strong>: All received data validated before processing or storage</li> <li><strong>Resume Attack Prevention</strong>: .part files validated with hash verification before continuation</li> <li><strong>Side-Channel Resistance</strong>: Cryptographic operations designed to resist timing attacks</li> </ul> </main> <hr> <footer> <p><a href="#top" id="back-to-top">Back to top</a></p> <p class="text-small text-grey-dk-100 mb-0">Copyright &copy; 2024. Theme by <a href="https://github.com/just-the-docs/just-the-docs">Just the Docs</a>.</p> </footer> </div> </div> <div class="search-overlay"></div> </div> <script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.esm.min.mjs'; var config = {} ; mermaid.initialize(config); mermaid.run({ querySelector: '.language-mermaid', }); </script> </body> </html>

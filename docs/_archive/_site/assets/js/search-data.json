@@ -1,0 +1,1311 @@
+{"0": {
+    "doc": "calculate_speed()",
+    "title": "calculate_speed()",
+    "content": "Transfer speed calculation utility for real-time performance monitoring. ",
+    "url": "/calculate_speed.html",
+    
+    "relUrl": "/calculate_speed.html"
+  },"1": {
+    "doc": "calculate_speed()",
+    "title": "Overview",
+    "content": "Calculates transfer speed in bytes per second based on the number of bytes transferred and elapsed time. This utility function provides accurate speed measurements for file transfers, network operations, and performance monitoring, with built-in protection against division-by-zero errors. ",
+    "url": "/calculate_speed.html#overview",
+    
+    "relUrl": "/calculate_speed.html#overview"
+  },"2": {
+    "doc": "calculate_speed()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red receive_files[\"receive_files()\"]:::red format_speed[\"format_speed()\"]:::red calculate_speed[\"calculate_speed()\"]:::highlight send_files --&gt; calculate_speed receive_files --&gt; calculate_speed format_speed --&gt; calculate_speed classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px . ",
+    "url": "/calculate_speed.html#call-graph",
+    
+    "relUrl": "/calculate_speed.html#call-graph"
+  },"3": {
+    "doc": "calculate_speed()",
+    "title": "Parameters",
+    "content": ". | bytes_transferred (int): Total number of bytes transferred . | Range: 0 to very large values (limited by system memory) | Units: Bytes | . | elapsed_time (float): Time elapsed during transfer in seconds . | Range: &gt; 0.0 for meaningful calculations | Precision: Supports microsecond precision | . | . ",
+    "url": "/calculate_speed.html#parameters",
+    
+    "relUrl": "/calculate_speed.html#parameters"
+  },"4": {
+    "doc": "calculate_speed()",
+    "title": "Return Value",
+    "content": ". | Type: float | Units: Bytes per second | Range: 0.0 to theoretical maximum based on input values | Special Cases: Returns 0.0 for zero elapsed time or negative values | . ",
+    "url": "/calculate_speed.html#return-value",
+    
+    "relUrl": "/calculate_speed.html#return-value"
+  },"5": {
+    "doc": "calculate_speed()",
+    "title": "Requirements",
+    "content": "calculate_speed() shall compute bytes per second when bytes_transferred and elapsed_time parameters are provided where computation uses simple division. calculate_speed() shall return zero when elapsed_time is zero or negative where zero prevents division-by-zero errors. calculate_speed() shall return zero when bytes_transferred is zero or negative where zero indicates no transfer occurred. calculate_speed() shall return float value when computation succeeds where the value represents transfer rate in bytes per second. calculate_speed() shall handle very large byte counts when high-volume transfers are measured where computation maintains numeric precision. ",
+    "url": "/calculate_speed.html#requirements",
+    
+    "relUrl": "/calculate_speed.html#requirements"
+  },"6": {
+    "doc": "collect_files_recursive()",
+    "title": "collect_files_recursive()",
+    "content": "Recursive file system traversal and collection for comprehensive directory processing. ",
+    "url": "/collect_files_recursive.html",
+    
+    "relUrl": "/collect_files_recursive.html"
+  },"7": {
+    "doc": "collect_files_recursive()",
+    "title": "Overview",
+    "content": "Recursively traverses directory structures to collect all files with optional filtering capabilities. This utility function provides comprehensive file discovery with pattern matching, symbolic link handling, and access permission validation for building complete file inventories and transfer manifests. ",
+    "url": "/collect_files_recursive.html#overview",
+    
+    "relUrl": "/collect_files_recursive.html#overview"
+  },"8": {
+    "doc": "collect_files_recursive()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red collect_files_recursive[\"collect_files_recursive()\"]:::highlight os_walk[\"os.walk()\"]:::green os_path_join[\"os.path.join()\"]:::green fnmatch[\"fnmatch.fnmatch()\"]:::green send_files --&gt; collect_files_recursive collect_files_recursive --&gt; os_walk collect_files_recursive --&gt; os_path_join collect_files_recursive --&gt; fnmatch classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/collect_files_recursive.html#call-graph",
+    
+    "relUrl": "/collect_files_recursive.html#call-graph"
+  },"9": {
+    "doc": "collect_files_recursive()",
+    "title": "Parameters",
+    "content": ". | directory_path (str): Root directory path for recursive traversal . | Type: String representing valid directory path | Requirements: Must exist and be accessible | . | include_patterns (list, optional): Glob patterns for file inclusion . | Default: None (include all files) | Examples: ['*.txt', '*.pdf'], ['data_*.csv'] | . | exclude_patterns (list, optional): Glob patterns for file exclusion . | Default: None (no exclusions) | Examples: ['*.tmp', '__pycache__/*'], ['.git/*'] | . | . ",
+    "url": "/collect_files_recursive.html#parameters",
+    
+    "relUrl": "/collect_files_recursive.html#parameters"
+  },"10": {
+    "doc": "collect_files_recursive()",
+    "title": "Return Value",
+    "content": ". | Type: list | Content: List of absolute file paths as strings | Ordering: Typically sorted by path for consistent results | Empty: Returns empty list if no files found or directory inaccessible | . ",
+    "url": "/collect_files_recursive.html#return-value",
+    
+    "relUrl": "/collect_files_recursive.html#return-value"
+  },"11": {
+    "doc": "collect_files_recursive()",
+    "title": "Requirements",
+    "content": "collect_files_recursive() shall traverse directory structure recursively when directory_path parameter is provided where traversal includes all subdirectories. collect_files_recursive() shall collect all accessible files when traversing directories where files include regular files and exclude directories. collect_files_recursive() shall apply include patterns when include_patterns parameter is provided where patterns use glob-style matching. collect_files_recursive() shall apply exclude patterns when exclude_patterns parameter is provided where patterns filter out unwanted files. collect_files_recursive() shall return list of absolute file paths when collection completes where paths are suitable for file operations. ",
+    "url": "/collect_files_recursive.html#requirements",
+    
+    "relUrl": "/collect_files_recursive.html#requirements"
+  },"12": {
+    "doc": "collect_files_recursive()",
+    "title": "Security Considerations",
+    "content": "Directory Traversal Security . | Path Validation: Validates directory paths to prevent traversal attacks using “../” sequences | Absolute Path Resolution: Converts all paths to absolute form to prevent relative path confusion | Symbolic Link Handling: Safely processes symbolic links without following dangerous links outside intended scope | Access Control: Respects file system permissions and only accesses authorized directories | . File System Security . | Permission Checking: Validates read permissions before attempting file operations | Safe Traversal: Uses os.walk() which provides safe directory traversal with built-in protections | Error Handling: Gracefully handles permission errors, broken links, and inaccessible files | Resource Limits: Naturally limited by file system structure, preventing infinite recursion | . Pattern Security . | Glob Pattern Validation: Validates include/exclude patterns to prevent malicious pattern injection | Pattern Sanitization: Uses fnmatch.fnmatch() which provides safe pattern matching | Case Sensitivity: Handles case sensitivity consistently across different file systems | Special Character Handling: Safely processes filenames with special characters and Unicode | . Path Injection Prevention . | Input Sanitization: Validates all input paths before processing | Path Canonicalization: Resolves paths to canonical form to prevent ambiguous representations | Boundary Enforcement: Ensures traversal stays within specified directory boundaries | Malicious Filename Handling: Safely processes files with unusual names that might cause issues | . Resource Protection . | Memory Management: Efficiently handles large directory structures without excessive memory use | Traversal Limits: Natural limits from file system structure prevent resource exhaustion | Handle Management: Properly manages directory handles and file descriptors | Exception Safety: Ensures resources are properly cleaned up on errors | . Information Disclosure Prevention . | Access Control Respect: Only returns information about accessible files | Error Message Safety: Error messages don’t reveal sensitive file system details | Directory Structure Protection: Doesn’t expose information about inaccessible directories | Metadata Security: Only collects necessary path information, not sensitive metadata | . Attack Surface Minimization . | Read-Only Operations: Function only reads file system state, never modifies | Limited Scope: Only operates on specified directories and their contents | No Network Operations: Purely local file system operations with no external dependencies | Minimal System Calls: Uses efficient system calls to minimize attack surface | . File System Attack Mitigation . | Race Condition Resistance: Uses atomic file system operations where possible | TOCTOU Protection: Minimizes time between path validation and use | Symlink Attack Prevention: Careful handling of symbolic links to prevent unauthorized access | Permission Bypass Prevention: Validates permissions at each access point | . Error Handling Security . | Fail-Safe Design: Fails securely when encountering errors rather than exposing information | Exception Isolation: Isolates exceptions to prevent information leakage | Consistent Error Response: Provides consistent error handling across different failure modes | Recovery Safety: Ensures partial results are properly cleaned up on failure | . ",
+    "url": "/collect_files_recursive.html#security-considerations",
+    
+    "relUrl": "/collect_files_recursive.html#security-considerations"
+  },"13": {
+    "doc": "Core Classes",
+    "title": "Core Classes",
+    "content": "Security-critical classes providing encryption, network validation, authentication, and transfer management. ",
+    "url": "/core-classes.html",
+    
+    "relUrl": "/core-classes.html"
+  },"14": {
+    "doc": "Core Classes",
+    "title": "Classes",
+    "content": ". | TailscaleDetector - Network peer validation and IP discovery | SecureCrypto - End-to-end encryption and key management | SecureTokenGenerator - Human-readable authentication token generation | TransferLockManager - Automatic resume state management | ResourceMonitor - File descriptor and resource monitoring | . ",
+    "url": "/core-classes.html#classes",
+    
+    "relUrl": "/core-classes.html#classes"
+  },"15": {
+    "doc": "SecureCrypto.__init__()",
+    "title": "SecureCrypto.init()",
+    "content": "Initialize cryptographic key pair for secure session. ",
+    "url": "/crypto_init.html#securecryptoinit",
+    
+    "relUrl": "/crypto_init.html#securecryptoinit"
+  },"16": {
+    "doc": "SecureCrypto.__init__()",
+    "title": "Overview",
+    "content": "The constructor initializes a fresh X25519 elliptic curve key pair for each SecureCrypto instance, establishing the foundation for secure key exchange and session encryption. This method generates ephemeral keys that provide perfect forward secrecy, ensuring that compromised keys cannot decrypt past communications. ",
+    "url": "/crypto_init.html#overview",
+    
+    "relUrl": "/crypto_init.html#overview"
+  },"17": {
+    "doc": "SecureCrypto.__init__()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red receive_files[\"receive_files()\"]:::red crypto_init[\"SecureCrypto.__init__()\"]:::highlight x25519_generate[\"x25519.X25519PrivateKey.generate()\"]:::green public_key[\"private_key.public_key()\"]:::green send_files --&gt; crypto_init receive_files --&gt; crypto_init crypto_init --&gt; x25519_generate crypto_init --&gt; public_key classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/crypto_init.html#call-graph",
+    
+    "relUrl": "/crypto_init.html#call-graph"
+  },"18": {
+    "doc": "SecureCrypto.__init__()",
+    "title": "Parameters",
+    "content": "None - Standard constructor with no parameters required. ",
+    "url": "/crypto_init.html#parameters",
+    
+    "relUrl": "/crypto_init.html#parameters"
+  },"19": {
+    "doc": "SecureCrypto.__init__()",
+    "title": "Return Value",
+    "content": ". | Type: SecureCrypto instance | Description: Initialized cryptographic context with fresh X25519 key pair | . ",
+    "url": "/crypto_init.html#return-value",
+    
+    "relUrl": "/crypto_init.html#return-value"
+  },"20": {
+    "doc": "SecureCrypto.__init__()",
+    "title": "Requirements",
+    "content": "SecureCrypto.init() shall generate fresh X25519 private key when constructor is invoked where the key provides elliptic curve cryptographic capabilities. SecureCrypto.init() shall derive public key from private key when private key generation completes where the public key enables key exchange operations. SecureCrypto.init() shall initialize cipher attribute to None when key pair is established where the cipher will be set during session key derivation. SecureCrypto.init() shall use cryptographically secure random number generation when generating private key where randomness ensures key unpredictability. SecureCrypto.init() shall provide perfect forward secrecy when key pair is generated where ephemeral keys cannot decrypt past communications if compromised. ",
+    "url": "/crypto_init.html#requirements",
+    
+    "relUrl": "/crypto_init.html#requirements"
+  },"21": {
+    "doc": "SecureCrypto.__init__()",
+    "title": "SecureCrypto.__init__()",
+    "content": " ",
+    "url": "/crypto_init.html",
+    
+    "relUrl": "/crypto_init.html"
+  },"22": {
+    "doc": "decrypt()",
+    "title": "SecureCrypto.decrypt()",
+    "content": "ChaCha20Poly1305 authenticated decryption with integrity verification. ",
+    "url": "/decrypt.html#securecryptodecrypt",
+    
+    "relUrl": "/decrypt.html#securecryptodecrypt"
+  },"23": {
+    "doc": "decrypt()",
+    "title": "Overview",
+    "content": "Performs authenticated decryption using ChaCha20Poly1305 AEAD, automatically verifying data integrity and authenticity before returning plaintext. This method provides the inverse operation of encrypt(), ensuring that only authentic, unmodified ciphertext can be successfully decrypted. ",
+    "url": "/decrypt.html#overview",
+    
+    "relUrl": "/decrypt.html#overview"
+  },"24": {
+    "doc": "decrypt()",
+    "title": "Call Graph",
+    "content": "graph LR receive_files[\"receive_files()\"]:::red decrypt[\"decrypt()\"]:::highlight cipher_decrypt[\"cipher.decrypt()\"]:::green receive_files --&gt; decrypt decrypt --&gt; cipher_decrypt classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/decrypt.html#call-graph",
+    
+    "relUrl": "/decrypt.html#call-graph"
+  },"25": {
+    "doc": "decrypt()",
+    "title": "Parameters",
+    "content": ". | ciphertext (bytes): Ciphertext with integrated authentication tag (minimum 16 bytes) | nonce (bytes): 12-byte nonce that was used during encryption | . ",
+    "url": "/decrypt.html#parameters",
+    
+    "relUrl": "/decrypt.html#parameters"
+  },"26": {
+    "doc": "decrypt()",
+    "title": "Return Value",
+    "content": ". | Type: bytes | Content: Decrypted plaintext data | Size: len(encrypted_data) - 16 bytes (authentication tag removed) | . ",
+    "url": "/decrypt.html#return-value",
+    
+    "relUrl": "/decrypt.html#return-value"
+  },"27": {
+    "doc": "decrypt()",
+    "title": "Requirements",
+    "content": "decrypt() shall return plaintext data when provided with valid ciphertext and matching nonce where the ciphertext contains integrated authentication tag. decrypt() shall verify authentication tag before returning plaintext when decryption is attempted where verification ensures data integrity and authenticity. decrypt() shall use ChaCha20Poly1305 AEAD algorithm when session key has been established via derive_session_key() where the session key provides 256-bit security strength. decrypt() shall fail with authentication error when ciphertext has been tampered with where failure prevents accepting corrupted data. decrypt() shall produce plaintext of size len(ciphertext) - 16 bytes when decryption succeeds where the 16 bytes are the removed authentication tag. ",
+    "url": "/decrypt.html#requirements",
+    
+    "relUrl": "/decrypt.html#requirements"
+  },"28": {
+    "doc": "decrypt()",
+    "title": "decrypt()",
+    "content": " ",
+    "url": "/decrypt.html",
+    
+    "relUrl": "/decrypt.html"
+  },"29": {
+    "doc": "derive_session_key()",
+    "title": "SecureCrypto.derive_session_key()",
+    "content": "ECDH + HKDF key derivation for authenticated session establishment. ",
+    "url": "/derive_session_key.html#securecryptoderive_session_key",
+    
+    "relUrl": "/derive_session_key.html#securecryptoderive_session_key"
+  },"30": {
+    "doc": "derive_session_key()",
+    "title": "Overview",
+    "content": "The core cryptographic method that establishes a secure session key using Elliptic Curve Diffie-Hellman (ECDH) key exchange combined with HKDF key derivation. This method fuses the ephemeral key exchange with a pre-shared authentication token to create a session key that provides both perfect forward secrecy and mutual authentication. ",
+    "url": "/derive_session_key.html#overview",
+    
+    "relUrl": "/derive_session_key.html#overview"
+  },"31": {
+    "doc": "derive_session_key()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red receive_files[\"receive_files()\"]:::red derive_session_key[\"derive_session_key()\"]:::highlight x25519_from_public[\"x25519.X25519PublicKey.from_public_bytes()\"]:::green private_exchange[\"private_key.exchange()\"]:::green hkdf[\"HKDF\"]:::green chacha20[\"ChaCha20Poly1305()\"]:::green send_files --&gt; derive_session_key receive_files --&gt; derive_session_key derive_session_key --&gt; x25519_from_public derive_session_key --&gt; private_exchange derive_session_key --&gt; hkdf derive_session_key --&gt; chacha20 classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/derive_session_key.html#call-graph",
+    
+    "relUrl": "/derive_session_key.html#call-graph"
+  },"32": {
+    "doc": "derive_session_key()",
+    "title": "Parameters",
+    "content": ". | peer_public_key_bytes (bytes): Raw peer’s X25519 public key (exactly 32 bytes) | shared_token (str): Authentication token in format “word-word” (e.g., “ocean-tiger”) | . ",
+    "url": "/derive_session_key.html#parameters",
+    
+    "relUrl": "/derive_session_key.html#parameters"
+  },"33": {
+    "doc": "derive_session_key()",
+    "title": "Return Value",
+    "content": "None - Method modifies internal state by setting self.cipher for subsequent encryption/decryption operations. ",
+    "url": "/derive_session_key.html#return-value",
+    
+    "relUrl": "/derive_session_key.html#return-value"
+  },"34": {
+    "doc": "derive_session_key()",
+    "title": "Requirements",
+    "content": "derive_session_key() shall compute shared secret using X25519 ECDH when peer public key bytes are provided where the shared secret enables secure communication. derive_session_key() shall derive session key using HKDF-SHA256 when shared secret is computed where the derivation combines shared secret with authentication token. derive_session_key() shall initialize ChaCha20Poly1305 cipher when session key is derived where the cipher enables authenticated encryption operations. derive_session_key() shall use authentication token as HKDF salt when deriving session key where the token provides mutual authentication. derive_session_key() shall produce 256-bit session key when key derivation completes where the key provides sufficient cryptographic strength. ",
+    "url": "/derive_session_key.html#requirements",
+    
+    "relUrl": "/derive_session_key.html#requirements"
+  },"35": {
+    "doc": "derive_session_key()",
+    "title": "derive_session_key()",
+    "content": " ",
+    "url": "/derive_session_key.html",
+    
+    "relUrl": "/derive_session_key.html"
+  },"36": {
+    "doc": "encrypt()",
+    "title": "SecureCrypto.encrypt()",
+    "content": "ChaCha20Poly1305 authenticated encryption for secure data transmission. ",
+    "url": "/encrypt.html#securecryptoencrypt",
+    
+    "relUrl": "/encrypt.html#securecryptoencrypt"
+  },"37": {
+    "doc": "encrypt()",
+    "title": "Overview",
+    "content": "Provides authenticated encryption using the ChaCha20Poly1305 AEAD (Authenticated Encryption with Associated Data) algorithm. This method simultaneously encrypts data for confidentiality and generates an authentication tag to prevent tampering, providing both secrecy and integrity in a single operation. ",
+    "url": "/encrypt.html#overview",
+    
+    "relUrl": "/encrypt.html#overview"
+  },"38": {
+    "doc": "encrypt()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red encrypt[\"encrypt()\"]:::highlight cipher_encrypt[\"cipher.encrypt()\"]:::green send_files --&gt; encrypt encrypt --&gt; cipher_encrypt classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/encrypt.html#call-graph",
+    
+    "relUrl": "/encrypt.html#call-graph"
+  },"39": {
+    "doc": "encrypt()",
+    "title": "Parameters",
+    "content": ". | data (bytes): Plaintext data to encrypt (any length from 0 to ~256 GB) | nonce (bytes): 12-byte nonce that must be unique for each encryption with the same key | . ",
+    "url": "/encrypt.html#parameters",
+    
+    "relUrl": "/encrypt.html#parameters"
+  },"40": {
+    "doc": "encrypt()",
+    "title": "Return Value",
+    "content": ". | Type: bytes | Content: Encrypted ciphertext with integrated authentication tag | Size: len(data) + 16 bytes (16-byte authentication tag appended) | . ",
+    "url": "/encrypt.html#return-value",
+    
+    "relUrl": "/encrypt.html#return-value"
+  },"41": {
+    "doc": "encrypt()",
+    "title": "Requirements",
+    "content": "encrypt() shall return ciphertext with integrated authentication tag when provided with valid plaintext data and unique nonce where the authentication tag prevents tampering detection. encrypt() shall use ChaCha20Poly1305 AEAD algorithm when session key has been established via derive_session_key() where the session key provides 256-bit security strength. encrypt() shall generate unique 12-byte nonce when nonce parameter is not provided where uniqueness prevents cryptographic attacks. encrypt() shall fail with authentication error when session key is not established where failure prevents insecure transmission. encrypt() shall produce ciphertext of size len(data) + 16 bytes when encryption succeeds where the additional 16 bytes contain the authentication tag. ",
+    "url": "/encrypt.html#requirements",
+    
+    "relUrl": "/encrypt.html#requirements"
+  },"42": {
+    "doc": "encrypt()",
+    "title": "encrypt()",
+    "content": " ",
+    "url": "/encrypt.html",
+    
+    "relUrl": "/encrypt.html"
+  },"43": {
+    "doc": "format_speed()",
+    "title": "format_speed()",
+    "content": "Human-readable network transfer speed formatting utility. ",
+    "url": "/format_speed.html",
+    
+    "relUrl": "/format_speed.html"
+  },"44": {
+    "doc": "format_speed()",
+    "title": "Overview",
+    "content": "Converts raw bytes-per-second transfer rates into human-readable speed representations with appropriate units (B/s, KB/s, MB/s, GB/s). This utility function provides consistent, user-friendly speed formatting for transfer progress displays and network performance reporting. ",
+    "url": "/format_speed.html#overview",
+    
+    "relUrl": "/format_speed.html#overview"
+  },"45": {
+    "doc": "format_speed()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red receive_files[\"receive_files()\"]:::red format_speed[\"format_speed()\"]:::highlight calculate_speed[\"calculate_speed()\"]:::green send_files --&gt; format_speed receive_files --&gt; format_speed format_speed --&gt; calculate_speed classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/format_speed.html#call-graph",
+    
+    "relUrl": "/format_speed.html#call-graph"
+  },"46": {
+    "doc": "format_speed()",
+    "title": "Parameters",
+    "content": ". | bytes_per_second (float): Transfer rate in bytes per second | Range: 0.0 to very large values (theoretically unlimited) | Precision: Supports fractional bytes per second | . ",
+    "url": "/format_speed.html#parameters",
+    
+    "relUrl": "/format_speed.html#parameters"
+  },"47": {
+    "doc": "format_speed()",
+    "title": "Return Value",
+    "content": ". | Type: str | Format: \"{value:.1f} {unit}/s\" or \"{value:.0f} {unit}/s\" for large values | Units: B/s, KB/s, MB/s, GB/s, TB/s | Examples: \"1.5 MB/s\", \"825.3 KB/s\", \"45 B/s\" | . ",
+    "url": "/format_speed.html#return-value",
+    
+    "relUrl": "/format_speed.html#return-value"
+  },"48": {
+    "doc": "format_speed()",
+    "title": "Requirements",
+    "content": "format_speed() shall return human-readable speed string when bytes_per_second parameter is provided where the string includes appropriate units. format_speed() shall select appropriate unit scale when formatting speed where units progress through B/s, KB/s, MB/s, GB/s based on value magnitude. format_speed() shall round to one decimal place when speed value is less than 1000 units where rounding improves readability. format_speed() shall return “0 B/s” when provided speed is zero or negative where this provides consistent output formatting. format_speed() shall handle very large speeds when high-performance transfers are measured where formatting maintains appropriate precision. ",
+    "url": "/format_speed.html#requirements",
+    
+    "relUrl": "/format_speed.html#requirements"
+  },"49": {
+    "doc": "generate_token()",
+    "title": "SecureTokenGenerator.generate_token()",
+    "content": "Generate cryptographically secure two-word authentication tokens using enhanced entropy. ",
+    "url": "/generate_token.html#securetokengeneratorgenerate_token",
+    
+    "relUrl": "/generate_token.html#securetokengeneratorgenerate_token"
+  },"50": {
+    "doc": "generate_token()",
+    "title": "Overview",
+    "content": "Generates human-readable two-word authentication tokens using cryptographically secure random number generation enhanced with multiple entropy sources. Combines a curated vocabulary of 200+ memorable words with high-quality randomness to create tokens that are both secure and easy to communicate verbally or visually. ",
+    "url": "/generate_token.html#overview",
+    
+    "relUrl": "/generate_token.html#overview"
+  },"51": {
+    "doc": "generate_token()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red generate_token[\"generate_token()\"]:::highlight secrets_choice[\"secrets.choice()\"]:::green send_files --&gt; generate_token generate_token --&gt; secrets_choice classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/generate_token.html#call-graph",
+    
+    "relUrl": "/generate_token.html#call-graph"
+  },"52": {
+    "doc": "generate_token()",
+    "title": "Parameters",
+    "content": "None - Static method that generates tokens independently using internal entropy collection. ",
+    "url": "/generate_token.html#parameters",
+    
+    "relUrl": "/generate_token.html#parameters"
+  },"53": {
+    "doc": "generate_token()",
+    "title": "Return Value",
+    "content": ". | Type: str | Format: \"word1-word2\" (hyphen-separated) | Length: Variable (typically 10-20 characters) | Security: ~34.6 bits of entropy (2^17.3 possible combinations) | Vocabulary: Curated list of common, memorable English words | . ",
+    "url": "/generate_token.html#return-value",
+    
+    "relUrl": "/generate_token.html#return-value"
+  },"54": {
+    "doc": "generate_token()",
+    "title": "Requirements",
+    "content": "generate_token() shall return two-word authentication token when method is invoked where the token format is “word1-word2” with hyphen separator. generate_token() shall use cryptographically secure random number generation when selecting words where randomness prevents token prediction. generate_token() shall select words from curated vocabulary when generating tokens where vocabulary contains 200+ memorable English words. generate_token() shall provide ~34.6 bits of entropy when token is generated where entropy level ensures adequate security for authentication. generate_token() shall ensure tokens are human-readable when generated where tokens can be easily communicated verbally or visually. ",
+    "url": "/generate_token.html#requirements",
+    
+    "relUrl": "/generate_token.html#requirements"
+  },"55": {
+    "doc": "generate_token()",
+    "title": "generate_token()",
+    "content": " ",
+    "url": "/generate_token.html",
+    
+    "relUrl": "/generate_token.html"
+  },"56": {
+    "doc": "get_public_key_bytes()",
+    "title": "SecureCrypto.get_public_key_bytes()",
+    "content": "Extract X25519 public key for network transmission and key exchange. ",
+    "url": "/get_public_key_bytes.html#securecryptoget_public_key_bytes",
+    
+    "relUrl": "/get_public_key_bytes.html#securecryptoget_public_key_bytes"
+  },"57": {
+    "doc": "get_public_key_bytes()",
+    "title": "Overview",
+    "content": "Extracts the X25519 public key as raw bytes suitable for network transmission during the key exchange phase. This method provides the public component of the ephemeral key pair that enables secure ECDH key agreement without exposing the private key material. ",
+    "url": "/get_public_key_bytes.html#overview",
+    
+    "relUrl": "/get_public_key_bytes.html#overview"
+  },"58": {
+    "doc": "get_public_key_bytes()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red receive_files[\"receive_files()\"]:::red get_public_key_bytes[\"get_public_key_bytes()\"]:::highlight public_bytes[\"public_key.public_bytes()\"]:::green send_files --&gt; get_public_key_bytes receive_files --&gt; get_public_key_bytes get_public_key_bytes --&gt; public_bytes classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/get_public_key_bytes.html#call-graph",
+    
+    "relUrl": "/get_public_key_bytes.html#call-graph"
+  },"59": {
+    "doc": "get_public_key_bytes()",
+    "title": "Parameters",
+    "content": "None - Method extracts the public key from the instance’s key pair. ",
+    "url": "/get_public_key_bytes.html#parameters",
+    
+    "relUrl": "/get_public_key_bytes.html#parameters"
+  },"60": {
+    "doc": "get_public_key_bytes()",
+    "title": "Return Value",
+    "content": ". | Type: bytes | Size: Exactly 32 bytes (256 bits) | Format: Raw X25519 public key in standard encoding | Usage: Safe for network transmission and public distribution | . ",
+    "url": "/get_public_key_bytes.html#return-value",
+    
+    "relUrl": "/get_public_key_bytes.html#return-value"
+  },"61": {
+    "doc": "get_public_key_bytes()",
+    "title": "Requirements",
+    "content": "get_public_key_bytes() shall return 32-byte public key when method is invoked where the key is in standard X25519 encoding format. get_public_key_bytes() shall extract public key from established key pair when key pair exists where the key pair was generated during initialization. get_public_key_bytes() shall provide key suitable for network transmission when extraction completes where the key can be safely shared with peers. get_public_key_bytes() shall maintain key pair security when public key is extracted where private key remains protected within the instance. get_public_key_bytes() shall enable key exchange operations when public key is transmitted where the key enables ECDH shared secret computation. ",
+    "url": "/get_public_key_bytes.html#requirements",
+    
+    "relUrl": "/get_public_key_bytes.html#requirements"
+  },"62": {
+    "doc": "get_public_key_bytes()",
+    "title": "get_public_key_bytes()",
+    "content": " ",
+    "url": "/get_public_key_bytes.html",
+    
+    "relUrl": "/get_public_key_bytes.html"
+  },"63": {
+    "doc": "get_tailscale_ip()",
+    "title": "TailscaleDetector.get_tailscale_ip()",
+    "content": "Static method for obtaining the local Tailscale IP address. ",
+    "url": "/get_tailscale_ip.html#tailscaledetectorget_tailscale_ip",
+    
+    "relUrl": "/get_tailscale_ip.html#tailscaledetectorget_tailscale_ip"
+  },"64": {
+    "doc": "get_tailscale_ip()",
+    "title": "Overview",
+    "content": "Executes the tailscale ip --4 command to retrieve the local machine’s Tailscale IPv4 address. This method provides the primary mechanism for determining the sender’s network endpoint when establishing file transfer connections over Tailscale networks. ",
+    "url": "/get_tailscale_ip.html#overview",
+    
+    "relUrl": "/get_tailscale_ip.html#overview"
+  },"65": {
+    "doc": "get_tailscale_ip()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red get_tailscale_ip[\"get_tailscale_ip()\"]:::highlight subprocess_run[\"subprocess.run()\"]:::green send_files --&gt; get_tailscale_ip get_tailscale_ip --&gt; subprocess_run classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/get_tailscale_ip.html#call-graph",
+    
+    "relUrl": "/get_tailscale_ip.html#call-graph"
+  },"66": {
+    "doc": "get_tailscale_ip()",
+    "title": "Parameters",
+    "content": "None - This is a static method that requires no instance or parameters. ",
+    "url": "/get_tailscale_ip.html#parameters",
+    
+    "relUrl": "/get_tailscale_ip.html#parameters"
+  },"67": {
+    "doc": "get_tailscale_ip()",
+    "title": "Return Value",
+    "content": ". | Type: Optional[str] | Success: IPv4 address string in dotted decimal notation (e.g., \"100.101.29.44\") | Failure: None if Tailscale is unavailable, stopped, or command execution fails | . ",
+    "url": "/get_tailscale_ip.html#return-value",
+    
+    "relUrl": "/get_tailscale_ip.html#return-value"
+  },"68": {
+    "doc": "get_tailscale_ip()",
+    "title": "Requirements",
+    "content": "get_tailscale_ip() shall execute “tailscale ip –4” command when method is invoked where the command retrieves the local IPv4 address. get_tailscale_ip() shall return IPv4 address string when Tailscale command succeeds where the address is in dotted decimal notation. get_tailscale_ip() shall return None when Tailscale is not installed or not running where failure indicates unavailable service. get_tailscale_ip() shall validate IP address format when command output is received where validation ensures proper IPv4 format. get_tailscale_ip() shall timeout after 5 seconds when command execution hangs where timeout prevents indefinite blocking. ",
+    "url": "/get_tailscale_ip.html#requirements",
+    
+    "relUrl": "/get_tailscale_ip.html#requirements"
+  },"69": {
+    "doc": "get_tailscale_ip()",
+    "title": "get_tailscale_ip()",
+    "content": " ",
+    "url": "/get_tailscale_ip.html",
+    
+    "relUrl": "/get_tailscale_ip.html"
+  },"70": {
+    "doc": "Home",
+    "title": "Transfer Files System Overview",
+    "content": "Secure file transfer program over Tailscale networks using end-to-end encryption with automatic key exchange and peer authentication. ",
+    "url": "/#transfer-files-system-overview",
+    
+    "relUrl": "/#transfer-files-system-overview"
+  },"71": {
+    "doc": "Home",
+    "title": "System Architecture",
+    "content": "graph TD sender[\"Sender&lt;br/&gt;(send_files)\"]:::blue tailscale[\"Tailscale Network&lt;br/&gt;(Encrypted Tunnel)\"]:::green receiver[\"Receiver&lt;br/&gt;(receive_files)\"]:::blue crypto[\"X25519 + ChaCha20Poly1305&lt;br/&gt;End-to-End Encryption\"]:::red sender --&gt;|Port 15820| tailscale tailscale --&gt;|Encrypted Data| receiver sender -.-&gt;|uses| crypto receiver -.-&gt;|uses| crypto classDef blue fill:#58a6ff,stroke:#333,color:#fff classDef green fill:#56d364,stroke:#333,color:#fff classDef red fill:#f78166,stroke:#333,color:#fff . ",
+    "url": "/#system-architecture",
+    
+    "relUrl": "/#system-architecture"
+  },"72": {
+    "doc": "Home",
+    "title": "Transfer Protocol Flow",
+    "content": "Sender Workflow . graph LR main[\"main()\"]:::red --&gt; send[\"send_files()\"]:::blue send --&gt; validate[\"validate_files()\"]:::green validate --&gt; getip[\"get_tailscale_ip()\"]:::green getip --&gt; token[\"generate_token()\"]:::green token --&gt; crypto1[\"SecureCrypto()\"]:::green crypto1 --&gt; stream[\"Stream Files&lt;br/&gt;(1MB buffers)\"]:::green classDef red fill:#f78166,stroke:#333,color:#fff classDef blue fill:#58a6ff,stroke:#333,color:#fff classDef green fill:#56d364,stroke:#333,color:#fff . Receiver Workflow . graph LR main2[\"main()\"]:::red --&gt; receive[\"receive_files()\"]:::blue receive --&gt; verify[\"verify_peer_ip_cached()\"]:::green verify --&gt; crypto2[\"SecureCrypto()\"]:::green crypto2 --&gt; recvall[\"recv_all()\"]:::green recvall --&gt; decrypt[\"decrypt()\"]:::green classDef red fill:#f78166,stroke:#333,color:#fff classDef blue fill:#58a6ff,stroke:#333,color:#fff classDef green fill:#56d364,stroke:#333,color:#fff . ",
+    "url": "/#transfer-protocol-flow",
+    
+    "relUrl": "/#transfer-protocol-flow"
+  },"73": {
+    "doc": "Home",
+    "title": "Security Architecture",
+    "content": "graph TD subgraph network[\" Network Security \"] tailscale_net[\"Tailscale Peer Verification\"]:::green port[\"Fixed Port 15820\"]:::green end subgraph cryptography[\" Cryptographic Security \"] x25519[\"X25519 ECDH&lt;br/&gt;Key Exchange\"]:::blue chacha20[\"ChaCha20Poly1305&lt;br/&gt;AEAD Encryption\"]:::blue hkdf[\"HKDF-SHA256&lt;br/&gt;Key Derivation\"]:::blue end subgraph auth[\" Authentication \"] tokens[\"2-Word Tokens&lt;br/&gt;34.6 bits entropy\"]:::red end tailscale_net --&gt; x25519 x25519 --&gt; hkdf hkdf --&gt; chacha20 tokens --&gt; x25519 classDef blue fill:#58a6ff,stroke:#333,color:#fff classDef green fill:#56d364,stroke:#333,color:#fff classDef red fill:#f78166,stroke:#333,color:#fff . ",
+    "url": "/#security-architecture",
+    
+    "relUrl": "/#security-architecture"
+  },"74": {
+    "doc": "Home",
+    "title": "Performance Features",
+    "content": ". | Optional Blosc+LZ4 Compression: User-selectable compression for bandwidth reduction (default: No) | Unified Streaming Protocol: Single-pass I/O (read → optionally compress → hash → stream) | 1MB Buffer Strategy: Memory-efficient for large files, 3-10x faster for many small files | Batch Metadata Transmission: Reduces network overhead for libraries/venvs | Connection Caching: 30-second TTL for peer verification | Perfect Forward Secrecy: Ephemeral X25519 keys protect past communications | . ",
+    "url": "/#performance-features",
+    
+    "relUrl": "/#performance-features"
+  },"75": {
+    "doc": "Home",
+    "title": "Key Components",
+    "content": "| Component | Purpose | Security Level | . | TailscaleDetector | Network peer validation and IP discovery | Safety-Critical | . | SecureCrypto | End-to-end encryption and key management | Safety-Critical | . | SecureTokenGenerator | Human-readable authentication tokens | Security-Critical | . | send_files() / receive_files() | Main transfer coordination | Security-Critical | . | Utility Functions | File validation, speed calculation, etc. | Reliability-Critical | . Use the navigation panel to explore detailed documentation for each component. All documentation includes formal specifications, call graphs, and security analysis. ",
+    "url": "/#key-components",
+    
+    "relUrl": "/#key-components"
+  },"76": {
+    "doc": "Home",
+    "title": "Home",
+    "content": " ",
+    "url": "/",
+    
+    "relUrl": "/"
+  },"77": {
+    "doc": "log_warning()",
+    "title": "log_warning() Function",
+    "content": "Silent warning logging system that maintains clean console output while capturing detailed warning information. ",
+    "url": "/log_warning.html#log_warning-function",
+    
+    "relUrl": "/log_warning.html#log_warning-function"
+  },"78": {
+    "doc": "log_warning()",
+    "title": "Overview",
+    "content": "Core logging function that writes warnings to transfer_warnings.log file instead of console output. Ensures clean user interface while providing comprehensive warning information for troubleshooting and monitoring. ",
+    "url": "/log_warning.html#overview",
+    
+    "relUrl": "/log_warning.html#overview"
+  },"79": {
+    "doc": "log_warning()",
+    "title": "Function Signature",
+    "content": "def log_warning(message: str): \"\"\"Log warning message to transfer_warnings.log file\"\"\" try: timestamp = datetime.datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\") with open(\"transfer_warnings.log\", \"a\", encoding=\"utf-8\") as f: f.write(f\"[{timestamp}] {message}\\n\") except Exception: # Silently ignore logging failures to avoid disrupting transfer pass . ",
+    "url": "/log_warning.html#function-signature",
+    
+    "relUrl": "/log_warning.html#function-signature"
+  },"80": {
+    "doc": "log_warning()",
+    "title": "Parameters",
+    "content": "| Parameter | Type | Description | . | message | str | Warning message to log to file | . ",
+    "url": "/log_warning.html#parameters",
+    
+    "relUrl": "/log_warning.html#parameters"
+  },"81": {
+    "doc": "log_warning()",
+    "title": "Return Value",
+    "content": ". | Type: None | Description: Function writes to log file or silently ignores failures | . ",
+    "url": "/log_warning.html#return-value",
+    
+    "relUrl": "/log_warning.html#return-value"
+  },"82": {
+    "doc": "log_warning()",
+    "title": "Warning Categories",
+    "content": "File Access Warnings . log_warning(f\"Permission denied accessing {current_path}\") log_warning(f\"Skipping {path} (not a regular file or directory)\") . File Operation Warnings . log_warning(f\"Failed to write to {self.part_file}: {e}\") log_warning(f\"Failed to complete file {self.filename}: {e}\") log_warning(f\"Could not locate final file for {writer.filename}\") . Resource Monitoring Warnings . log_warning(f\"High FD usage: {current}/{limit} ({percent}%) for {file_count} files\") log_warning(f\"Consider transferring fewer files or increasing limits\") . Lock File System Warnings . log_warning(f\"Source file changed: {filename} (will be retransferred)\") log_warning(f\"Invalid lock file structure, ignoring: {lock_file_path}\") log_warning(f\"Stale lock file found (age: {age}), ignoring\") . ",
+    "url": "/log_warning.html#warning-categories",
+    
+    "relUrl": "/log_warning.html#warning-categories"
+  },"83": {
+    "doc": "log_warning()",
+    "title": "Log File Format",
+    "content": "File Location . | Filename: transfer_warnings.log | Location: Current working directory | Encoding: UTF-8 | . Entry Format . [YYYY-MM-DD HH:MM:SS] Warning message text [2024-01-01 12:34:56] Permission denied accessing /protected/file.txt [2024-01-01 12:35:12] Failed to write to document.pdf.part: No space left on device [2024-01-01 12:35:45] Source file changed: config.json (will be retransferred) . ",
+    "url": "/log_warning.html#log-file-format",
+    
+    "relUrl": "/log_warning.html#log-file-format"
+  },"84": {
+    "doc": "log_warning()",
+    "title": "Warning Logging Workflow",
+    "content": "graph TD warning_event([\"Warning condition&lt;br/&gt;detected\"]):::pink log_call[\"log_warning(message)&lt;br/&gt;called\"]:::success generate_timestamp[\"Generate timestamp:&lt;br/&gt;YYYY-MM-DD HH:MM:SS\"]:::lightblue open_file[\"Open transfer_warnings.log&lt;br/&gt;in append mode\"]:::success format_entry[\"Format entry:&lt;br/&gt;[timestamp] message\"]:::success write_entry[\"Write entry to file&lt;br/&gt;with newline\"]:::success file_error{\"File write error?\"}:::yellow silent_ignore[\"Silently ignore error&lt;br/&gt;(don't disrupt transfer)\"]:::gray console_clean[\"Console output&lt;br/&gt;remains clean\"]:::success continue_transfer([\"Transfer continues&lt;br/&gt;normally\"]):::success warning_event --&gt; log_call log_call --&gt; generate_timestamp generate_timestamp --&gt; open_file open_file --&gt; format_entry format_entry --&gt; write_entry write_entry --&gt; file_error file_error --&gt;|error| silent_ignore file_error --&gt;|success| console_clean silent_ignore --&gt; continue_transfer console_clean --&gt; continue_transfer classDef pink fill:#e91e63,stroke:#333,color:#fff classDef success fill:#4caf50,stroke:#333,color:#fff classDef lightblue fill:#2196f3,stroke:#333,color:#fff classDef yellow fill:#ffeb3b,stroke:#333,color:#000 classDef gray fill:#9e9e9e,stroke:#333,color:#fff . ",
+    "url": "/log_warning.html#warning-logging-workflow",
+    
+    "relUrl": "/log_warning.html#warning-logging-workflow"
+  },"85": {
+    "doc": "log_warning()",
+    "title": "Design Principles",
+    "content": "Silent Operation . | No Console Output: Warnings never appear on console | Clean Interface: User sees only essential transfer information | Non-Disruptive: Logging failures don’t interrupt transfers | . Comprehensive Logging . | All Warning Types: File, resource, lock, and operation warnings | Detailed Context: Includes relevant file paths, error details, and system information | Timestamp Precision: Second-level accuracy for debugging | . Robust Error Handling . | Graceful Degradation: Logging failures are silently ignored | Transfer Priority: Never let logging issues affect file transfer | Exception Safety: Broad exception catching prevents crashes | . ",
+    "url": "/log_warning.html#design-principles",
+    
+    "relUrl": "/log_warning.html#design-principles"
+  },"86": {
+    "doc": "log_warning()",
+    "title": "Integration Points",
+    "content": "File Operations . # Replace console warnings with file logging # Old: print(f\"Warning: Permission denied accessing {path}\") # New: log_warning(f\"Permission denied accessing {path}\") . FileWriter Class . | Write operation failures logged instead of printed | File completion issues logged for debugging | Part file management warnings captured | . TransferLockManager . | Source file change detection warnings | Lock file validation issues | Stale lock cleanup notifications | . ResourceMonitor . | File descriptor usage warnings | System resource limit approaches | Performance optimization suggestions | . ",
+    "url": "/log_warning.html#integration-points",
+    
+    "relUrl": "/log_warning.html#integration-points"
+  },"87": {
+    "doc": "log_warning()",
+    "title": "User Experience",
+    "content": "Console Output Remains Clean . # What user sees (clean) Connecting to sender... Authentication successful Resuming transfer: 50 completed, 3 partial, 2 fresh files Receiving 55 file(s) (1234567 bytes total) Progress: 100.0% (1.5 MB/s) Transfer complete! # Warnings are silently logged to file . Warning Log Available for Troubleshooting . # User can check warnings if needed $ cat transfer_warnings.log [2024-01-01 12:34:56] Permission denied accessing /protected/config [2024-01-01 12:35:12] Source file changed: data.json (will be retransferred) [2024-01-01 12:35:45] High FD usage: 3200/4096 (78%) for 28712 files . ",
+    "url": "/log_warning.html#user-experience",
+    
+    "relUrl": "/log_warning.html#user-experience"
+  },"88": {
+    "doc": "log_warning()",
+    "title": "Monitoring and Analysis",
+    "content": "Log Analysis . | Pattern Detection: Identify recurring permission issues | Performance Insights: Track resource usage patterns | Transfer Diagnostics: Debug intermittent transfer issues | . Operational Benefits . | Clean User Experience: No warning spam on console | Complete Audit Trail: All warnings preserved for analysis | System Health Monitoring: Resource and file system insights | . ",
+    "url": "/log_warning.html#monitoring-and-analysis",
+    
+    "relUrl": "/log_warning.html#monitoring-and-analysis"
+  },"89": {
+    "doc": "log_warning()",
+    "title": "Error Recovery Guidance",
+    "content": "Common Warning Patterns . | Permission Issues: Check file/directory permissions | Disk Space: Monitor available storage during transfers | Resource Limits: Adjust system limits for large transfers | File Changes: Source file modifications during transfer | . Log File Management . | Rotation: Consider log rotation for long-running systems | Cleanup: Remove old warning logs periodically | Monitoring: Include in system monitoring for operational insights | . ",
+    "url": "/log_warning.html#error-recovery-guidance",
+    
+    "relUrl": "/log_warning.html#error-recovery-guidance"
+  },"90": {
+    "doc": "log_warning()",
+    "title": "log_warning()",
+    "content": " ",
+    "url": "/log_warning.html",
+    
+    "relUrl": "/log_warning.html"
+  },"91": {
+    "doc": "Main Functions",
+    "title": "Main Functions",
+    "content": "Core file transfer coordination functions that handle the sending and receiving workflow, including CLI entry point. ",
+    "url": "/main-functions.html",
+    
+    "relUrl": "/main-functions.html"
+  },"92": {
+    "doc": "Main Functions",
+    "title": "Functions",
+    "content": ". | send_files() - Server-side file transmission with streaming protocol | receive_files() - Client-side file reception with automatic resume | main() - CLI entry point and argument parsing | . ",
+    "url": "/main-functions.html#functions",
+    
+    "relUrl": "/main-functions.html#functions"
+  },"93": {
+    "doc": "main()",
+    "title": "main() Function",
+    "content": "CLI entry point and argument parser. ",
+    "url": "/main.html#main-function",
+    
+    "relUrl": "/main.html#main-function"
+  },"94": {
+    "doc": "main()",
+    "title": "Overview",
+    "content": "Main entry point that handles command-line argument parsing and dispatches to appropriate send or receive functions. Provides user interface for the Transfer Files system. ",
+    "url": "/main.html#overview",
+    
+    "relUrl": "/main.html#overview"
+  },"95": {
+    "doc": "main()",
+    "title": "Call Graph",
+    "content": "graph LR cli[\"CLI execution\"]:::red main[\"main()\"]:::highlight send_files[\"send_files()\"]:::green receive_files[\"receive_files()\"]:::green argparse[\"argparse.ArgumentParser()\"]:::green sys_exit[\"sys.exit()\"]:::green cli --&gt; main main --&gt; send_files main --&gt; receive_files main --&gt; argparse main --&gt; sys_exit classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/main.html#call-graph",
+    
+    "relUrl": "/main.html#call-graph"
+  },"96": {
+    "doc": "main()",
+    "title": "Parameters",
+    "content": "| Parameter | Type | Description | . | command | str | Either “send” or “receive” | . | files | List[str] | Files/directories to send (send mode only) | . | connection | str | Connection string ip:token (receive mode only) | . | --pod | flag | Bind to/accept connections from localhost (127.0.0.1) for containerized environments | . ",
+    "url": "/main.html#parameters",
+    
+    "relUrl": "/main.html#parameters"
+  },"97": {
+    "doc": "main()",
+    "title": "Return Value",
+    "content": ". | Type: None | Description: Function exits with status code 0 on success or raises SystemExit on failure | . ",
+    "url": "/main.html#return-value",
+    
+    "relUrl": "/main.html#return-value"
+  },"98": {
+    "doc": "main()",
+    "title": "Requirements",
+    "content": "main() shall parse command-line arguments when program is executed where arguments determine send or receive operation mode. main() shall invoke send_files() when command is “send” and file paths are provided where send mode transmits files to receiving peer. main() shall invoke receive_files() when command is “receive” and connection string is provided where receive mode accepts files from sending peer with automatic resume detection. main() shall validate command-line argument combinations when parsing completes where validation ensures required arguments are present. main() shall exit with appropriate status codes when operations complete or fail where status codes indicate success or failure to shell. ",
+    "url": "/main.html#requirements",
+    
+    "relUrl": "/main.html#requirements"
+  },"99": {
+    "doc": "main()",
+    "title": "main()",
+    "content": " ",
+    "url": "/main.html",
+    
+    "relUrl": "/main.html"
+  },"100": {
+    "doc": "receive_files()",
+    "title": "receive_files() Function",
+    "content": "High-performance file reception client with streaming protocol and end-to-end decryption. ",
+    "url": "/receive_files.html#receive_files-function",
+    
+    "relUrl": "/receive_files.html#receive_files-function"
+  },"101": {
+    "doc": "receive_files()",
+    "title": "Overview",
+    "content": "Main client function that connects to sender, performs key exchange, and securely receives files using the optimized streaming protocol. Handles connection parsing, peer verification, and file reconstruction from streamed data with batch metadata processing. ",
+    "url": "/receive_files.html#overview",
+    
+    "relUrl": "/receive_files.html#overview"
+  },"102": {
+    "doc": "receive_files()",
+    "title": "Call Graph",
+    "content": "graph LR main[\"main()\"]:::red receive_files[\"receive_files()\"]:::highlight verify_peer_ip_cached[\"TailscaleDetector.verify_peer_ip_cached()\"]:::green crypto_init[\"SecureCrypto()\"]:::green recv_all[\"recv_all()\"]:::green calculate_speed[\"calculate_speed()\"]:::green format_speed[\"format_speed()\"]:::green main --&gt; receive_files receive_files --&gt; verify_peer_ip_cached receive_files --&gt; crypto_init receive_files --&gt; recv_all receive_files --&gt; calculate_speed receive_files --&gt; format_speed classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/receive_files.html#call-graph",
+    
+    "relUrl": "/receive_files.html#call-graph"
+  },"103": {
+    "doc": "receive_files()",
+    "title": "Parameters",
+    "content": "| Parameter | Type | Description | . | connection_string | str | Connection string in format “ip:token” | . | pod | bool | Accept connections from localhost for containerized environments (default: False) | . ",
+    "url": "/receive_files.html#parameters",
+    
+    "relUrl": "/receive_files.html#parameters"
+  },"104": {
+    "doc": "receive_files()",
+    "title": "Return Value",
+    "content": ". | Type: None | Description: Function completes file reception or raises exception on failure | . ",
+    "url": "/receive_files.html#return-value",
+    
+    "relUrl": "/receive_files.html#return-value"
+  },"105": {
+    "doc": "receive_files()",
+    "title": "Requirements",
+    "content": "receive_files() shall parse connection string to extract IP address and authentication token when connection_string parameter is provided where the format is “ip:token”. receive_files() shall establish TCP connection to sender on port 15820 when IP address is parsed where connection timeout is 30 seconds. receive_files() shall verify sender IP using Tailscale peer verification when pod parameter is False where verification ensures sender is authenticated peer. receive_files() shall perform key exchange with sender when TCP connection is established where the exchange uses X25519 ECDH with shared authentication token. receive_files() shall decrypt all received data using ChaCha20Poly1305 when session key is derived where decryption ensures data confidentiality and integrity. receive_files() shall automatically detect compression from metadata when batch metadata is received where decompression is applied only if sender enabled compression. receive_files() shall receive files using streaming protocol with incremental saving when encrypted data is received where FileWriter instances handle direct stream-to-disk writing without memory accumulation. receive_files() shall accept connections from localhost when pod parameter is True where localhost acceptance enables containerized deployment. receive_files() shall automatically detect and resume from existing lock files and .part files where TransferLockManager instances verify existing data integrity before continuing transfers. ",
+    "url": "/receive_files.html#requirements",
+    
+    "relUrl": "/receive_files.html#requirements"
+  },"106": {
+    "doc": "receive_files()",
+    "title": "Algorithm Flow",
+    "content": "graph TD start([\"Start: receive_files(connection_string, pod)\"]):::highlight parse_conn[\"Parse connection string&lt;br/&gt;'ip:token' format\"]:::green validate_format{\"Valid format?\"}:::yellow extract_ip[\"Extract IP address&lt;br/&gt;and authentication token\"]:::green validate_ip{\"Valid IPv4?\"}:::yellow pod_check{\"pod == True?\"}:::yellow verify_peer[\"verify_peer_ip_cached(ip)&lt;br/&gt;Validate Tailscale peer\"]:::green skip_verification[\"Skip peer verification&lt;br/&gt;(pod mode)\"]:::orange peer_valid{\"Peer authenticated?\"}:::yellow connect_tcp[\"TCP connect to ip:15820&lt;br/&gt;(30 second timeout)\"]:::lightblue connection_ok{\"Connection successful?\"}:::yellow crypto_init[\"SecureCrypto()&lt;br/&gt;Generate X25519 keypair\"]:::green exchange_keys[\"Exchange public keys&lt;br/&gt;with sender\"]:::lightblue derive_key[\"derive_session_key()&lt;br/&gt;ECDH + HKDF-SHA256 + token\"]:::green key_success{\"Key derivation successful?\"}:::yellow receive_metadata[\"Receive batch metadata:&lt;br/&gt;{filename, size, hash, offset}\"]:::success create_filewriters[\"Create FileWriter instances&lt;br/&gt;for incremental saving\"]:::success open_part_files[\"Initialize TransferLockManager&lt;br/&gt;(automatic resume detection)\"]:::success stream_loop[\"Stream chunks:&lt;br/&gt;recv() → decrypt() → write_chunk()\"]:::success complete_files[\"Complete files:&lt;br/&gt;move .part to final names\"]:::success verify_integrity[\"Verify SHA-256 hashes&lt;br/&gt;for all received files\"]:::success integrity_ok{\"All hashes valid?\"}:::yellow calc_speed[\"calculate_speed()&lt;br/&gt;Compute transfer rate\"]:::green show_result[\"Display: 'Transfer complete!&lt;br/&gt;Saved: files'\"]:::pink cleanup[\"Close connections&lt;br/&gt;Cleanup resources\"]:::gray end_success([\"Return (success)\"]):::success error_parse[\"ParseError:&lt;br/&gt;Invalid connection string\"]:::error error_ip[\"ValueError:&lt;br/&gt;Invalid IP address\"]:::error error_peer[\"AuthenticationError:&lt;br/&gt;Peer not verified\"]:::error error_network[\"NetworkError:&lt;br/&gt;Connection failed\"]:::error error_crypto[\"CryptographicError:&lt;br/&gt;Key exchange failed\"]:::error error_integrity[\"IntegrityError:&lt;br/&gt;File hash mismatch\"]:::error end_error([\"Raise Exception\"]):::error start --&gt; parse_conn parse_conn --&gt; validate_format validate_format --&gt;|Yes| extract_ip extract_ip --&gt; validate_ip validate_ip --&gt;|Yes| pod_check pod_check --&gt;|Yes| skip_verification pod_check --&gt;|No| verify_peer verify_peer --&gt; peer_valid peer_valid --&gt;|Yes| connect_tcp skip_verification --&gt; connect_tcp connect_tcp --&gt; connection_ok connection_ok --&gt;|Yes| crypto_init crypto_init --&gt; exchange_keys exchange_keys --&gt; derive_key derive_key --&gt; key_success key_success --&gt;|Yes| receive_metadata receive_metadata --&gt; create_filewriters create_filewriters --&gt; open_part_files open_part_files --&gt; stream_loop stream_loop --&gt; complete_files complete_files --&gt; verify_integrity verify_integrity --&gt; integrity_ok integrity_ok --&gt;|Yes| calc_speed calc_speed --&gt; show_result show_result --&gt; cleanup cleanup --&gt; end_success validate_format -.-&gt;|No| error_parse validate_ip -.-&gt;|No| error_ip peer_valid -.-&gt;|No| error_peer connection_ok -.-&gt;|No| error_network key_success -.-&gt;|No| error_crypto integrity_ok -.-&gt;|No| error_integrity error_parse --&gt; end_error error_ip --&gt; end_error error_peer --&gt; end_error error_network --&gt; end_error error_crypto --&gt; end_error error_integrity --&gt; end_error classDef highlight fill:#58a6ff,stroke:#333,color:#fff classDef green fill:#56d364,stroke:#333,color:#fff classDef yellow fill:#ffeb3b,stroke:#333,color:#000 classDef orange fill:#ff9800,stroke:#333,color:#fff classDef lightblue fill:#2196f3,stroke:#333,color:#fff classDef success fill:#4caf50,stroke:#333,color:#fff classDef pink fill:#e91e63,stroke:#333,color:#fff classDef gray fill:#9e9e9e,stroke:#333,color:#fff classDef error fill:#f44336,stroke:#333,color:#fff . ",
+    "url": "/receive_files.html#algorithm-flow",
+    
+    "relUrl": "/receive_files.html#algorithm-flow"
+  },"107": {
+    "doc": "receive_files()",
+    "title": "Automatic Resume Workflow",
+    "content": "The receiver implements intelligent automatic resume detection without requiring manual flags or user intervention. graph TD start([\"receive_files() starts\"]):::pink check_lock[\"Initialize TransferLockManager&lt;br/&gt;Check for .transfer_lock.json\"]:::success lock_exists{\"Valid lock file&lt;br/&gt;found?\"}:::yellow load_lock[\"Load existing lock data:&lt;br/&gt;session, file states, hashes\"]:::lightblue analyze_files[\"Analyze incoming files vs&lt;br/&gt;lock state: completed/partial/fresh\"]:::lightblue create_plan[\"Generate resume plan:&lt;br/&gt;X completed, Y partial, Z fresh\"]:::lightblue show_resume[\"Display: 'Resuming transfer:&lt;br/&gt;X completed, Y partial, Z fresh files'\"]:::pink create_lock[\"Create new lock file&lt;br/&gt;with session metadata\"]:::success show_fresh[\"Display: 'Starting fresh transfer'\"]:::pink setup_writers[\"Setup FileWriter instances:&lt;br/&gt;- Resume from lock offsets&lt;br/&gt;- Fresh files from zero\"]:::success transfer_loop[\"Transfer files with&lt;br/&gt;integrity verification\"]:::success check_integrity[\"Verify SHA-256 hashes&lt;br/&gt;for all files\"]:::success integrity_ok{\"All files&lt;br/&gt;pass integrity?\"}:::yellow retry_count{\"Retry attempts&lt;br/&gt;&lt; 3?\"}:::yellow request_retry[\"Send retry request&lt;br/&gt;to sender for failed files\"]:::orange receive_retry[\"Receive retry data&lt;br/&gt;for failed files only\"]:::orange cleanup_lock[\"Remove lock file&lt;br/&gt;(successful completion)\"]:::success complete([\"Transfer complete!\"]):::success final_error[\"Report integrity failure&lt;br/&gt;after 3 attempts\"]:::error start --&gt; check_lock check_lock --&gt; lock_exists lock_exists --&gt;|yes| load_lock lock_exists --&gt;|no| create_lock load_lock --&gt; analyze_files analyze_files --&gt; create_plan create_plan --&gt; show_resume create_lock --&gt; show_fresh show_resume --&gt; setup_writers show_fresh --&gt; setup_writers setup_writers --&gt; transfer_loop transfer_loop --&gt; check_integrity check_integrity --&gt; integrity_ok integrity_ok --&gt;|pass| cleanup_lock integrity_ok --&gt;|fail| retry_count retry_count --&gt;|yes| request_retry retry_count --&gt;|no| final_error request_retry --&gt; receive_retry receive_retry --&gt; check_integrity cleanup_lock --&gt; complete classDef pink fill:#e91e63,stroke:#333,color:#fff classDef success fill:#4caf50,stroke:#333,color:#fff classDef yellow fill:#ffeb3b,stroke:#333,color:#000 classDef lightblue fill:#2196f3,stroke:#333,color:#fff classDef orange fill:#ff9800,stroke:#333,color:#fff classDef error fill:#f44336,stroke:#333,color:#fff . Lock File State Management . The automatic resume system uses .transfer_lock.json files to track transfer state: . { \"version\": \"1.0\", \"session_id\": \"uuid-12345\", \"timestamp\": \"2024-01-01T12:00:00Z\", \"sender_ip\": \"100.101.29.44\", \"total_files\": 1000, \"total_size\": 1048576000, \"files\": { \"document.pdf\": { \"status\": \"completed\", \"size\": 524288, \"transferred_bytes\": 524288, \"original_hash\": \"sha256-hash\", \"partial_hash\": \"sha256-hash\" }, \"archive.zip\": { \"status\": \"in_progress\", \"size\": 1048576, \"transferred_bytes\": 262144, \"partial_hash\": \"sha256-partial\" } } } . File Integrity Retry System . When integrity check failures occur, the receiver automatically retries up to 3 times: . | Detection: SHA-256 hash mismatch detected for received files | Request: Send retry request to sender with failed file list | Resend: Sender locates and resends only failed files | Verification: Re-verify integrity of retried files | Loop: Repeat up to 3 total attempts | Completion: Success after retry or final error report | . Resume Decision Logic . def get_resume_plan(incoming_files): completed_files = [] # Skip entirely resume_files = [] # Resume from partial offset fresh_files = [] # Transfer from beginning for file in incoming_files: lock_status = lock_data.files[file.name].status if lock_status == \"completed\": completed_files.append(file.name) elif lock_status == \"in_progress\": resume_files.append((file.name, transferred_bytes)) else: fresh_files.append(file) . ",
+    "url": "/receive_files.html#automatic-resume-workflow",
+    
+    "relUrl": "/receive_files.html#automatic-resume-workflow"
+  },"108": {
+    "doc": "receive_files()",
+    "title": "Security Considerations",
+    "content": "Connection Security . | Connection String Validation: Strict parsing of “ip:token” format prevents injection attacks | IP Address Validation: IPv4 format validation prevents malformed address exploitation | Connection Timeout: 30-second timeout prevents hanging connections and resource exhaustion | . Peer Authentication . | Tailscale Peer Verification: Uses verify_peer_ip_cached() to ensure sender is authenticated Tailscale peer | Cached Verification: 30-second cache prevents repeated CLI calls while maintaining security | Pod Mode Override: Localhost-only mode for containerized deployments bypasses peer verification | . Cryptographic Security . | Perfect Forward Secrecy: Ephemeral X25519 keys generated per session protect past communications | Mutual Authentication: ECDH key exchange with shared token prevents man-in-the-middle attacks | Session Key Derivation: HKDF-SHA256 with token salt ensures both parties know the shared secret | . File Reception Security . | Directory Traversal Prevention: File paths validated before FileWriter creation to prevent escape attacks | Incremental File Writing: FileWriter class manages .part files with atomic completion operations | Lock File Validation: TransferLockManager verifies existing transfer state and file integrity before resuming | Integrity Verification: SHA-256 hash verification ensures files haven’t been tampered with | Atomic File Operations: Files written to .part locations then atomically renamed on completion | . Data Protection . | Authenticated Decryption: ChaCha20Poly1305 AEAD prevents accepting tampered data | Streaming Decryption: Data decrypted in chunks and written directly to disk without memory accumulation | Memory Efficiency: FileWriter approach eliminates large memory buffers, reducing attack surface | Secure Cleanup: Connection resources and .part files properly cleaned up on failure | . Error Handling Security . | Fail-Safe Design: Any error condition results in complete operation failure | Information Disclosure Prevention: Error messages don’t reveal sensitive network or cryptographic details | Resource Cleanup: Ensures connections and partial files cleaned up on failure | . Network Security . | Port Consistency: Fixed port 15820 provides predictable endpoint for firewall configuration | Connection Limits: Single connection per session prevents resource exhaustion | Timeout Protection: Network timeouts prevent indefinite blocking | . FileWriter Security . | Incremental Hash Verification: Continuous SHA-256 hashing during writing ensures data integrity | Resume Integrity: Existing .part files re-hashed completely before resuming to detect tampering | Atomic Completion: Files moved from .part to final names only after complete verification | Partial File Isolation: Incomplete transfers isolated with .part extension to prevent confusion | Memory Attack Prevention: Direct stream-to-disk writing eliminates large memory allocations | . Attack Mitigation . | Replay Protection: Ephemeral keys and session binding prevent replay attacks | DoS Protection: Connection timeouts and resource limits prevent denial of service | Data Validation: All received data validated before processing or storage | Resume Attack Prevention: .part files validated with hash verification before continuation | Side-Channel Resistance: Cryptographic operations designed to resist timing attacks | . ",
+    "url": "/receive_files.html#security-considerations",
+    
+    "relUrl": "/receive_files.html#security-considerations"
+  },"109": {
+    "doc": "receive_files()",
+    "title": "receive_files()",
+    "content": " ",
+    "url": "/receive_files.html",
+    
+    "relUrl": "/receive_files.html"
+  },"110": {
+    "doc": "recv_all()",
+    "title": "recv_all() Function",
+    "content": "Reliable socket data reception with guaranteed completeness. ",
+    "url": "/recv_all.html#recv_all-function",
+    
+    "relUrl": "/recv_all.html#recv_all-function"
+  },"111": {
+    "doc": "recv_all()",
+    "title": "Overview",
+    "content": "Utility function that ensures complete reception of a specified amount of data from a socket connection. Handles partial receives and network interruptions to guarantee data integrity. ",
+    "url": "/recv_all.html#overview",
+    
+    "relUrl": "/recv_all.html#overview"
+  },"112": {
+    "doc": "recv_all()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red receive_files[\"receive_files()\"]:::red recv_all[\"recv_all()\"]:::highlight socket_recv[\"socket.recv()\"]:::green send_files --&gt; recv_all receive_files --&gt; recv_all recv_all --&gt; socket_recv classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/recv_all.html#call-graph",
+    
+    "relUrl": "/recv_all.html#call-graph"
+  },"113": {
+    "doc": "recv_all()",
+    "title": "Parameters",
+    "content": "| Parameter | Type | Description | . | sock | socket.socket | TCP socket connection to read from | . | size | int | Exact number of bytes to receive | . ",
+    "url": "/recv_all.html#parameters",
+    
+    "relUrl": "/recv_all.html#parameters"
+  },"114": {
+    "doc": "recv_all()",
+    "title": "Return Value",
+    "content": ". | Type: bytes | Description: Exactly size bytes of data from the socket | . ",
+    "url": "/recv_all.html#return-value",
+    
+    "relUrl": "/recv_all.html#return-value"
+  },"115": {
+    "doc": "recv_all()",
+    "title": "Requirements",
+    "content": "recv_all() shall receive exactly the requested number of bytes when size parameter is provided where the function handles partial receives. recv_all() shall loop until all bytes are received when socket provides partial data where looping ensures complete data reception. recv_all() shall handle connection interruptions when network issues occur where the function attempts to continue receiving. recv_all() shall raise exception when connection is closed prematurely where closure prevents complete data reception. recv_all() shall return bytes object of exact size when all data is received where the size matches the requested size parameter. ",
+    "url": "/recv_all.html#requirements",
+    
+    "relUrl": "/recv_all.html#requirements"
+  },"116": {
+    "doc": "recv_all()",
+    "title": "Security Considerations",
+    "content": "Network Security . | Connection Validation: Verifies socket is properly connected before attempting data reception | Timeout Protection: Relies on socket timeout settings to prevent indefinite blocking | Resource Management: Limits individual recv() calls to prevent memory exhaustion | Connection State Monitoring: Detects connection closure to fail fast on network issues | . Data Integrity . | Complete Reception Guarantee: Ensures exactly the requested number of bytes are received | Partial Receive Handling: Properly handles TCP’s stream nature where data may arrive in chunks | Size Validation: Validates received data matches expected size before returning | Buffer Management: Safely accumulates received data without corruption | . DoS Attack Mitigation . | Memory Limits: Chunks reception into reasonable sizes (64KB) to prevent memory exhaustion | Progress Tracking: Enables monitoring of reception progress for detecting stalls | Fail-Fast Design: Immediately fails on connection errors rather than hanging indefinitely | Resource Bounds: Natural bounds on memory usage based on expected data size | . Error Handling Security . | Connection Failure Detection: Properly detects when peer closes connection unexpectedly | Exception Safety: Ensures no partial data returned on errors | Information Leakage Prevention: Error messages don’t reveal sensitive network details | Graceful Degradation: Fails cleanly without corrupting application state | . Socket Security . | Socket State Validation: Verifies socket is in proper state for receiving data | Error Propagation: Properly propagates socket errors without masking security issues | Resource Cleanup: Doesn’t manage socket lifecycle, leaves that to caller | Protocol Compliance: Works within TCP/IP protocol constraints | . Attack Surface Minimization . | Simple Operation: Performs only data reception, no protocol interpretation | No Network Logic: Doesn’t make networking decisions, just receives requested data | Caller Responsibility: Pushes security decisions to calling functions | Minimal Dependencies: Uses only standard socket operations | . ",
+    "url": "/recv_all.html#security-considerations",
+    
+    "relUrl": "/recv_all.html#security-considerations"
+  },"117": {
+    "doc": "recv_all()",
+    "title": "recv_all()",
+    "content": " ",
+    "url": "/recv_all.html",
+    
+    "relUrl": "/recv_all.html"
+  },"118": {
+    "doc": "ResourceMonitor",
+    "title": "ResourceMonitor Class",
+    "content": "System resource monitoring to prevent file descriptor exhaustion during large transfers. ",
+    "url": "/resourcemonitor.html#resourcemonitor-class",
+    
+    "relUrl": "/resourcemonitor.html#resourcemonitor-class"
+  },"119": {
+    "doc": "ResourceMonitor",
+    "title": "Overview",
+    "content": "Static utility class that monitors system resource usage to prevent “Too many open files” errors when transferring large numbers of files. Provides cross-platform file descriptor monitoring and proactive warnings for resource-intensive transfers. ",
+    "url": "/resourcemonitor.html#overview",
+    
+    "relUrl": "/resourcemonitor.html#overview"
+  },"120": {
+    "doc": "ResourceMonitor",
+    "title": "Class Definition",
+    "content": "class ResourceMonitor: \"\"\"Monitor system resource usage to prevent file descriptor exhaustion\"\"\" @staticmethod def get_open_fd_count() -&gt; Optional[int]: \"\"\"Get the current number of open file descriptors for this process\"\"\" @staticmethod def get_fd_limit() -&gt; Optional[int]: \"\"\"Get the soft limit for file descriptors\"\"\" @staticmethod def check_fd_usage(file_count: int) -&gt; bool: \"\"\"Check if transfer would exceed safe FD limits\"\"\" . ",
+    "url": "/resourcemonitor.html#class-definition",
+    
+    "relUrl": "/resourcemonitor.html#class-definition"
+  },"121": {
+    "doc": "ResourceMonitor",
+    "title": "Method Details",
+    "content": "get_open_fd_count() . Returns current number of open file descriptors for the process. Returns: Optional[int] - Current FD count, or None if unavailable . Implementation Strategy: . | Linux: Counts entries in /proc/self/fd/ | Other Unix: Uses resource module with conservative estimate | Fallback: Returns None for unsupported platforms | . get_fd_limit() . Returns the soft limit for file descriptors from system resource limits. Returns: Optional[int] - Soft FD limit, or None if unavailable . Uses: resource.getrlimit(resource.RLIMIT_NOFILE) on Unix systems . check_fd_usage() . Analyzes whether a transfer with given file count would risk FD exhaustion. Parameters: . | file_count (int): Number of files in planned transfer | . Returns: bool - True if transfer appears safe, False if risky . Algorithm: . | Gets current FD usage and system limits | Estimates additional FDs needed for transfer | Calculates safety margin (typically 10-20% of limit) | Issues warnings if approaching limits | . ",
+    "url": "/resourcemonitor.html#method-details",
+    
+    "relUrl": "/resourcemonitor.html#method-details"
+  },"122": {
+    "doc": "ResourceMonitor",
+    "title": "Resource Monitoring Workflow",
+    "content": "graph TD start([\"Transfer begins with&lt;br/&gt;N files\"]):::pink get_current[\"get_open_fd_count()&lt;br/&gt;Current FD usage\"]:::success get_limit[\"get_fd_limit()&lt;br/&gt;System FD limit\"]:::success calculate[\"Calculate:&lt;br/&gt;Required FDs = N files&lt;br/&gt;+ network sockets&lt;br/&gt;+ system overhead\"]:::lightblue check_safe{\"Usage + Required&lt;br/&gt;&lt; 80% of limit?\"}:::yellow proceed[\"Proceed with transfer&lt;br/&gt;(safe FD usage)\"]:::success warn[\"Log warning:&lt;br/&gt;'High FD usage detected'&lt;br/&gt;Suggest fewer files\"]:::orange transfer[\"Begin file transfer&lt;br/&gt;with FD monitoring\"]:::success start --&gt; get_current get_current --&gt; get_limit get_limit --&gt; calculate calculate --&gt; check_safe check_safe --&gt;|safe| proceed check_safe --&gt;|risky| warn proceed --&gt; transfer warn --&gt; transfer classDef pink fill:#e91e63,stroke:#333,color:#fff classDef success fill:#4caf50,stroke:#333,color:#fff classDef lightblue fill:#2196f3,stroke:#333,color:#fff classDef yellow fill:#ffeb3b,stroke:#333,color:#000 classDef orange fill:#ff9800,stroke:#333,color:#fff . ",
+    "url": "/resourcemonitor.html#resource-monitoring-workflow",
+    
+    "relUrl": "/resourcemonitor.html#resource-monitoring-workflow"
+  },"123": {
+    "doc": "ResourceMonitor",
+    "title": "Platform Support",
+    "content": "Linux Systems . | Primary Method: /proc/self/fd/ directory enumeration | Accuracy: Exact current FD count | Performance: Fast directory listing operation | . macOS/Unix Systems . | Method: resource.getrlimit() with estimation | Accuracy: Conservative estimates to prevent issues | Fallback: Uses known system defaults when unavailable | . Containerized Environments . | Detection: Works within container FD limits | Docker Support: Respects container resource constraints | Kubernetes: Compatible with pod resource limits | . ",
+    "url": "/resourcemonitor.html#platform-support",
+    
+    "relUrl": "/resourcemonitor.html#platform-support"
+  },"124": {
+    "doc": "ResourceMonitor",
+    "title": "Error Prevention",
+    "content": "File Descriptor Exhaustion . Error: Too many open files - system file descriptor limit exceeded This typically happens when reading very large numbers of files. Try transferring fewer files at once or increase system limits. Prevention Strategy: . | Proactive monitoring before transfer begins | Early warning when approaching limits | Suggested remediation (batch transfers, limit increases) | . Resource Optimization . | Lazy File Opening: FileWriter opens files only when needed | Immediate Closure: Files closed immediately after operations | Minimal FD Usage: Network sockets reused efficiently | . ",
+    "url": "/resourcemonitor.html#error-prevention",
+    
+    "relUrl": "/resourcemonitor.html#error-prevention"
+  },"125": {
+    "doc": "ResourceMonitor",
+    "title": "Integration with Transfer System",
+    "content": "Receiver Integration . # Check for potential resource issues ResourceMonitor.check_fd_usage(file_count) . Called during transfer initialization to prevent resource exhaustion before it occurs. Warning System Integration . | Resource warnings logged to transfer_warnings.log | Console remains clean with suggested actions only | Provides specific guidance for resolution | . Error Recovery . | Graceful handling when limits are exceeded | Clear error messages with recovery suggestions | Maintains partial files for potential resume | . ",
+    "url": "/resourcemonitor.html#integration-with-transfer-system",
+    
+    "relUrl": "/resourcemonitor.html#integration-with-transfer-system"
+  },"126": {
+    "doc": "ResourceMonitor",
+    "title": "Configuration Recommendations",
+    "content": "System Tuning . # Increase FD limits (temporary) ulimit -n 4096 # Permanent limits (/etc/security/limits.conf) * soft nofile 4096 * hard nofile 8192 . Large Transfer Guidelines . | &lt; 1,000 files: Usually safe on default systems | 1,000-10,000 files: Monitor FD usage, consider batching | &gt; 10,000 files: Increase system limits or use batched transfers | . ",
+    "url": "/resourcemonitor.html#configuration-recommendations",
+    
+    "relUrl": "/resourcemonitor.html#configuration-recommendations"
+  },"127": {
+    "doc": "ResourceMonitor",
+    "title": "Monitoring and Alerting",
+    "content": "Warning Thresholds . | 70% FD usage: Information logged | 80% FD usage: Warning issued with suggestions | 90% FD usage: Strong warning with batch transfer recommendation | . Logged Information . [2024-01-01 12:00:00] High FD usage: 3200/4096 (78%) for 28712 files [2024-01-01 12:00:00] Consider transferring fewer files or increasing limits . ",
+    "url": "/resourcemonitor.html#monitoring-and-alerting",
+    
+    "relUrl": "/resourcemonitor.html#monitoring-and-alerting"
+  },"128": {
+    "doc": "ResourceMonitor",
+    "title": "ResourceMonitor",
+    "content": " ",
+    "url": "/resourcemonitor.html",
+    
+    "relUrl": "/resourcemonitor.html"
+  },"129": {
+    "doc": "SecureCrypto",
+    "title": "SecureCrypto Class",
+    "content": "End-to-end encryption using modern cryptography. ",
+    "url": "/securecrypto.html#securecrypto-class",
+    
+    "relUrl": "/securecrypto.html#securecrypto-class"
+  },"130": {
+    "doc": "SecureCrypto",
+    "title": "Overview",
+    "content": "Implements file transfer encryption using X25519 elliptic curve Diffie-Hellman key exchange and ChaCha20Poly1305 authenticated encryption. Provides comprehensive cryptographic protection for file transfers. ",
+    "url": "/securecrypto.html#overview",
+    
+    "relUrl": "/securecrypto.html#overview"
+  },"131": {
+    "doc": "SecureCrypto",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red receive_files[\"receive_files()\"]:::red securecrypto[\"SecureCrypto\"]:::highlight x25519_generate[\"X25519PrivateKey.generate()\"]:::green chacha20_encrypt[\"ChaCha20Poly1305.encrypt()\"]:::green chacha20_decrypt[\"ChaCha20Poly1305.decrypt()\"]:::green hkdf_derive[\"HKDF.derive()\"]:::green os_urandom[\"os.urandom()\"]:::green send_files --&gt; securecrypto receive_files --&gt; securecrypto securecrypto --&gt; x25519_generate securecrypto --&gt; chacha20_encrypt securecrypto --&gt; chacha20_decrypt securecrypto --&gt; hkdf_derive securecrypto --&gt; os_urandom classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/securecrypto.html#call-graph",
+    
+    "relUrl": "/securecrypto.html#call-graph"
+  },"132": {
+    "doc": "SecureCrypto",
+    "title": "Parameters",
+    "content": "| Method | Description | . | __init__() | Initialize cryptographic key pair for session | . | derive_session_key(peer_public_key_bytes, shared_secret) | Derive session key using ECDH + HKDF | . | encrypt(data, nonce) | Encrypt data with ChaCha20Poly1305 | . | decrypt(encrypted_data, nonce) | Decrypt and authenticate ciphertext | . | get_public_key_bytes() | Get public key bytes for key exchange | . ",
+    "url": "/securecrypto.html#parameters",
+    
+    "relUrl": "/securecrypto.html#parameters"
+  },"133": {
+    "doc": "SecureCrypto",
+    "title": "Return Value",
+    "content": ". | Type: SecureCrypto instance | Description: Initialized cryptographic context with ephemeral X25519 key pair | . ",
+    "url": "/securecrypto.html#return-value",
+    
+    "relUrl": "/securecrypto.html#return-value"
+  },"134": {
+    "doc": "SecureCrypto",
+    "title": "Requirements",
+    "content": "SecureCrypto class shall provide end-to-end encryption using X25519 key exchange when cryptographic operations are needed where the key exchange enables secure communication. SecureCrypto class shall implement ChaCha20Poly1305 authenticated encryption when session keys are established where encryption provides confidentiality and integrity. SecureCrypto class shall derive session keys using HKDF-SHA256 when shared secrets are computed where key derivation combines ECDH output with authentication tokens. SecureCrypto class shall generate ephemeral key pairs when instances are created where ephemeral keys provide perfect forward secrecy. SecureCrypto class shall maintain separate methods for encryption and decryption when cryptographic operations are performed where separation provides clear functional interfaces. ",
+    "url": "/securecrypto.html#requirements",
+    
+    "relUrl": "/securecrypto.html#requirements"
+  },"135": {
+    "doc": "SecureCrypto",
+    "title": "SecureCrypto",
+    "content": " ",
+    "url": "/securecrypto.html",
+    
+    "relUrl": "/securecrypto.html"
+  },"136": {
+    "doc": "SecureTokenGenerator",
+    "title": "SecureTokenGenerator Class",
+    "content": "Generate secure two-word authentication tokens. ",
+    "url": "/securetokengenerator.html#securetokengenerator-class",
+    
+    "relUrl": "/securetokengenerator.html#securetokengenerator-class"
+  },"137": {
+    "doc": "SecureTokenGenerator",
+    "title": "Overview",
+    "content": "Generates human-readable authentication tokens using a 200+ word vocabulary. Provides cryptographically secure token generation for transfer authentication while maintaining usability through memorable word pairs. ",
+    "url": "/securetokengenerator.html#overview",
+    
+    "relUrl": "/securetokengenerator.html#overview"
+  },"138": {
+    "doc": "SecureTokenGenerator",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red token_generator[\"SecureTokenGenerator\"]:::highlight entropy_collector[\"EntropyCollector.get_system_entropy()\"]:::green len_vocab[\"len(vocabulary)\"]:::green int_from_bytes[\"int.from_bytes()\"]:::green send_files --&gt; token_generator token_generator --&gt; entropy_collector token_generator --&gt; len_vocab token_generator --&gt; int_from_bytes classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/securetokengenerator.html#call-graph",
+    
+    "relUrl": "/securetokengenerator.html#call-graph"
+  },"139": {
+    "doc": "SecureTokenGenerator",
+    "title": "Parameters",
+    "content": "| Method | Description | . | generate_token() | Generate secure two-word authentication token (static method) | . ",
+    "url": "/securetokengenerator.html#parameters",
+    
+    "relUrl": "/securetokengenerator.html#parameters"
+  },"140": {
+    "doc": "SecureTokenGenerator",
+    "title": "Return Value",
+    "content": ". | Type: SecureTokenGenerator instance | Description: Token generator with cryptographically secure random generation | . ",
+    "url": "/securetokengenerator.html#return-value",
+    
+    "relUrl": "/securetokengenerator.html#return-value"
+  },"141": {
+    "doc": "SecureTokenGenerator",
+    "title": "Requirements",
+    "content": "SecureTokenGenerator class shall generate cryptographically secure authentication tokens when token generation is requested where tokens use two-word format. SecureTokenGenerator class shall select words from curated vocabulary when generating tokens where vocabulary contains 200+ memorable English words. SecureTokenGenerator class shall provide ~34.6 bits of entropy when tokens are generated where entropy level ensures adequate security for authentication. SecureTokenGenerator class shall format tokens with hyphen separator when word selection completes where format is “word1-word2”. SecureTokenGenerator class shall ensure tokens are human-communicable when generated where tokens can be easily spoken or typed. ",
+    "url": "/securetokengenerator.html#requirements",
+    
+    "relUrl": "/securetokengenerator.html#requirements"
+  },"142": {
+    "doc": "SecureTokenGenerator",
+    "title": "SecureTokenGenerator",
+    "content": " ",
+    "url": "/securetokengenerator.html",
+    
+    "relUrl": "/securetokengenerator.html"
+  },"143": {
+    "doc": "send_files()",
+    "title": "send_files() Function",
+    "content": "High-performance file transmission server with streaming protocol and end-to-end encryption. ",
+    "url": "/send_files.html#send_files-function",
+    
+    "relUrl": "/send_files.html#send_files-function"
+  },"144": {
+    "doc": "send_files()",
+    "title": "Overview",
+    "content": "Main server function that handles file transmission using optimized streaming buffers. Sets up TCP server, performs key exchange, and securely transmits files using a unified streaming protocol optimized for maximum throughput, especially for many small files. ",
+    "url": "/send_files.html#overview",
+    
+    "relUrl": "/send_files.html#overview"
+  },"145": {
+    "doc": "send_files()",
+    "title": "Call Graph",
+    "content": "graph LR main[\"main()\"]:::red --&gt; send_files[\"send_files()\"]:::highlight send_files --&gt; validate_files[\"validate_files()\"]:::green send_files --&gt; collect_files_recursive[\"collect_files_recursive()\"]:::green send_files --&gt; get_tailscale_ip[\"TailscaleDetector.get_tailscale_ip()\"]:::green send_files --&gt; verify_peer_ip_cached[\"TailscaleDetector.verify_peer_ip_cached()\"]:::green send_files --&gt; generate_token[\"SecureTokenGenerator.generate_token()\"]:::green send_files --&gt; crypto_init[\"SecureCrypto()\"]:::green send_files --&gt; recv_all[\"recv_all()\"]:::green send_files --&gt; calculate_speed[\"calculate_speed()\"]:::green send_files --&gt; format_speed[\"format_speed()\"]:::green classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#fff . ",
+    "url": "/send_files.html#call-graph",
+    
+    "relUrl": "/send_files.html#call-graph"
+  },"146": {
+    "doc": "send_files()",
+    "title": "Parameters",
+    "content": "| Parameter | Type | Description | . | file_paths | List[str] | List of file/directory paths to send | . | pod | bool | Bind to localhost for containerized environments (default: False) | . ",
+    "url": "/send_files.html#parameters",
+    
+    "relUrl": "/send_files.html#parameters"
+  },"147": {
+    "doc": "send_files()",
+    "title": "Return Value",
+    "content": ". | Type: None | Description: Function completes file transmission or raises exception on failure | . ",
+    "url": "/send_files.html#return-value",
+    
+    "relUrl": "/send_files.html#return-value"
+  },"148": {
+    "doc": "send_files()",
+    "title": "Requirements",
+    "content": "send_files() shall establish TCP server on port 15820 when function is invoked with valid file paths where the server accepts connections from authenticated Tailscale peers. send_files() shall validate all file paths before transmission when file_paths parameter is provided where validation ensures files exist and are accessible. send_files() shall perform key exchange with connecting client when client connection is established where the exchange uses X25519 ECDH with shared authentication token. send_files() shall encrypt all transmitted data using ChaCha20Poly1305 when session key is derived where encryption provides confidentiality and integrity. send_files() shall prompt user to exclude virtual environment directories when venv patterns are detected where exclusion improves transfer efficiency by skipping cache directories. send_files() shall prompt user to enable compression when preparing to transfer files where compression defaults to No and uses Blosc+LZ4 when enabled. send_files() shall stream files using 1MB buffers when transmitting data where streaming optimizes performance for large files and many small files. send_files() shall bind to localhost when pod parameter is True where localhost binding enables containerized deployment. send_files() shall verify connecting peer IP using Tailscale peer verification when pod parameter is False where verification prevents unauthorized access. ",
+    "url": "/send_files.html#requirements",
+    
+    "relUrl": "/send_files.html#requirements"
+  },"149": {
+    "doc": "send_files()",
+    "title": "Algorithm Flow",
+    "content": "graph TD start([\"Start: send_files(file_paths, pod)\"]):::blue validate_input[\"validate_files(file_paths)\"]:::green collect_files[\"collect_files_recursive()&lt;br/&gt;Build file manifest\"]:::green venv_prompt[\"Prompt: Exclude venv dirs?&lt;br/&gt;[Y/n]\"]:::pink compression_prompt[\"Prompt: Use compression?&lt;br/&gt;[y/N]\"]:::pink get_ip[\"get_tailscale_ip()&lt;br/&gt;Get local IP\"]:::green bind_check{\"pod == True?\"}:::yellow bind_localhost[\"Bind to 127.0.0.1:15820\"]:::orange bind_tailscale[\"Bind to tailscale_ip:15820\"]:::orange generate_auth[\"generate_token()&lt;br/&gt;Create 2-word token\"]:::green display_token[\"Display connection string:&lt;br/&gt;'transfer.py receive ip:token'\"]:::pink wait_conn[\"Accept TCP connection&lt;br/&gt;(5 minute timeout)\"]:::lightblue verify_peer[\"verify_peer_ip_cached()&lt;br/&gt;Validate client IP\"]:::green crypto_init[\"SecureCrypto()&lt;br/&gt;Generate X25519 keypair\"]:::green exchange_keys[\"Exchange public keys&lt;br/&gt;(64 bytes total)\"]:::lightblue derive_key[\"derive_session_key()&lt;br/&gt;ECDH + HKDF-SHA256\"]:::green send_metadata[\"Send batch metadata:&lt;br/&gt;{filename, size, hash}\"]:::success stream_files[\"Stream files with 1MB buffers:&lt;br/&gt;read → hash → encrypt → send\"]:::success calc_speed[\"calculate_speed()&lt;br/&gt;Compute transfer rate\"]:::green show_result[\"Display: 'Transfer complete:&lt;br/&gt;X bytes sent'\"]:::pink cleanup[\"Close connections&lt;br/&gt;Cleanup resources\"]:::gray end_success([\"Return (success)\"]):::success error_validation[\"Validation Error:&lt;br/&gt;Files not found/accessible\"]:::error error_network[\"Network Error:&lt;br/&gt;Cannot bind/connect\"]:::error error_auth[\"Authentication Error:&lt;br/&gt;Peer verification failed\"]:::error error_crypto[\"Cryptographic Error:&lt;br/&gt;Key exchange failed\"]:::error end_error([\"Raise Exception\"]):::error start --&gt; validate_input validate_input --&gt; collect_files collect_files --&gt; venv_prompt venv_prompt --&gt; compression_prompt compression_prompt --&gt; get_ip get_ip --&gt; bind_check bind_check --&gt;|Yes| bind_localhost bind_check --&gt;|No| bind_tailscale bind_localhost --&gt; generate_auth bind_tailscale --&gt; generate_auth generate_auth --&gt; display_token display_token --&gt; wait_conn wait_conn --&gt; verify_peer verify_peer --&gt; crypto_init crypto_init --&gt; exchange_keys exchange_keys --&gt; derive_key derive_key --&gt; send_metadata send_metadata --&gt; stream_files stream_files --&gt; calc_speed calc_speed --&gt; show_result show_result --&gt; cleanup cleanup --&gt; end_success validate_input -.-&gt;|error| error_validation get_ip -.-&gt;|error| error_network bind_localhost -.-&gt;|error| error_network bind_tailscale -.-&gt;|error| error_network wait_conn -.-&gt;|error| error_network verify_peer -.-&gt;|error| error_auth exchange_keys -.-&gt;|error| error_crypto derive_key -.-&gt;|error| error_crypto error_validation --&gt; end_error error_network --&gt; end_error error_auth --&gt; end_error error_crypto --&gt; end_error classDef blue fill:#58a6ff,stroke:#333,color:#fff classDef green fill:#56d364,stroke:#333,color:#fff classDef pink fill:#e91e63,stroke:#333,color:#fff classDef yellow fill:#ffeb3b,stroke:#333,color:#000 classDef orange fill:#ff9800,stroke:#333,color:#fff classDef lightblue fill:#2196f3,stroke:#333,color:#fff classDef success fill:#4caf50,stroke:#333,color:#fff classDef gray fill:#9e9e9e,stroke:#333,color:#fff classDef error fill:#f44336,stroke:#333,color:#fff . ",
+    "url": "/send_files.html#algorithm-flow",
+    
+    "relUrl": "/send_files.html#algorithm-flow"
+  },"150": {
+    "doc": "send_files()",
+    "title": "Security Considerations",
+    "content": "Network Security . | Peer Verification: Uses verify_peer_ip_cached() to ensure only authenticated Tailscale peers can connect | Port Binding: Fixed port 15820 provides consistent endpoint, pod mode allows containerized deployment | Connection Timeout: 5-minute timeout prevents resource exhaustion from stalled connections | . Cryptographic Security . | Perfect Forward Secrecy: Ephemeral X25519 keys generated per session protect past communications if keys compromised | Authenticated Encryption: ChaCha20Poly1305 AEAD prevents tampering and provides confidentiality | Key Exchange Security: ECDH + HKDF-SHA256 with shared token ensures mutual authentication | . Authentication Security . | Two-Word Tokens: 34.6 bits entropy (~200² combinations) provides adequate security for short-lived sessions | Token Integration: Shared token mixed into HKDF salt prevents man-in-the-middle attacks | Visual Verification: Human-readable tokens enable out-of-band verification | . File System Security . | Path Validation: validate_files() prevents path traversal attacks and validates file accessibility | Integrity Protection: SHA-256 hashing during streaming enables end-to-end integrity verification | Access Control: File permissions checked before transmission | . Performance Security . | Memory Management: 1MB streaming buffers prevent excessive memory usage with large files | Resource Limits: Connection timeouts and buffer limits prevent DoS attacks | Streaming Protocol: Single-pass I/O minimizes data exposure time in memory | . Attack Mitigation . | Replay Protection: Ephemeral keys and nonces prevent replay attacks | Timing Attack Resistance: ChaCha20Poly1305 provides constant-time operations | Side-Channel Protection: Secure key generation and handling procedures | . ",
+    "url": "/send_files.html#security-considerations",
+    
+    "relUrl": "/send_files.html#security-considerations"
+  },"151": {
+    "doc": "send_files()",
+    "title": "send_files()",
+    "content": " ",
+    "url": "/send_files.html",
+    
+    "relUrl": "/send_files.html"
+  },"152": {
+    "doc": "TailscaleDetector",
+    "title": "TailscaleDetector Class",
+    "content": "Network peer validation and Tailscale integration. ",
+    "url": "/tailscaledetector.html#tailscaledetector-class",
+    
+    "relUrl": "/tailscaledetector.html#tailscaledetector-class"
+  },"153": {
+    "doc": "TailscaleDetector",
+    "title": "Overview",
+    "content": "Handles Tailscale network detection, IP address resolution, and peer verification. Provides caching mechanisms for performance optimization and security validation of network participants. ",
+    "url": "/tailscaledetector.html#overview",
+    
+    "relUrl": "/tailscaledetector.html#overview"
+  },"154": {
+    "doc": "TailscaleDetector",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red receive_files[\"receive_files()\"]:::red tailscaledetector[\"TailscaleDetector\"]:::highlight subprocess_run[\"subprocess.run()\"]:::green json_loads[\"json.loads()\"]:::green time_time[\"time.time()\"]:::green send_files --&gt; tailscaledetector receive_files --&gt; tailscaledetector tailscaledetector --&gt; subprocess_run tailscaledetector --&gt; json_loads tailscaledetector --&gt; time_time classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/tailscaledetector.html#call-graph",
+    
+    "relUrl": "/tailscaledetector.html#call-graph"
+  },"155": {
+    "doc": "TailscaleDetector",
+    "title": "Parameters",
+    "content": "| Method | Description | . | get_tailscale_ip() | Get local Tailscale IP address | . | verify_peer_ip_cached(ip) | Cached peer validation with time-based cache | . | verify_peer_ip(ip) | Direct real-time peer validation | . | get_tailscale_peers() | Enumerate network peers | . | is_tailscale_ip(ip) | Validate IP is in Tailscale range | . ",
+    "url": "/tailscaledetector.html#parameters",
+    
+    "relUrl": "/tailscaledetector.html#parameters"
+  },"156": {
+    "doc": "TailscaleDetector",
+    "title": "Return Value",
+    "content": ". | Type: TailscaleDetector instance | Description: Network detector with peer validation capabilities | . ",
+    "url": "/tailscaledetector.html#return-value",
+    
+    "relUrl": "/tailscaledetector.html#return-value"
+  },"157": {
+    "doc": "TailscaleDetector",
+    "title": "Requirements",
+    "content": "TailscaleDetector class shall provide network peer validation when peer verification is needed where validation ensures only authenticated peers can connect. TailscaleDetector class shall cache peer information when validation is performed where caching improves performance by avoiding repeated CLI calls. TailscaleDetector class shall detect local Tailscale IP address when network discovery is needed where detection enables connection endpoint determination. TailscaleDetector class shall parse Tailscale CLI output when peer information is retrieved where parsing extracts IP addresses and hostnames. TailscaleDetector class shall maintain cache freshness when peer data ages where freshness ensures accurate peer status information. ",
+    "url": "/tailscaledetector.html#requirements",
+    
+    "relUrl": "/tailscaledetector.html#requirements"
+  },"158": {
+    "doc": "TailscaleDetector",
+    "title": "TailscaleDetector",
+    "content": " ",
+    "url": "/tailscaledetector.html",
+    
+    "relUrl": "/tailscaledetector.html"
+  },"159": {
+    "doc": "TransferLockManager",
+    "title": "TransferLockManager Class",
+    "content": "Manages transfer state and automatic resume functionality through lock file system. ",
+    "url": "/transferlockmanager.html#transferlockmanager-class",
+    
+    "relUrl": "/transferlockmanager.html#transferlockmanager-class"
+  },"160": {
+    "doc": "TransferLockManager",
+    "title": "Overview",
+    "content": "Core class that handles automatic resume detection, transfer state management, and file change verification. Creates and manages .transfer_lock.json files containing session information, file status, and integrity hashes for seamless transfer resumption without manual flags. ",
+    "url": "/transferlockmanager.html#overview",
+    
+    "relUrl": "/transferlockmanager.html#overview"
+  },"161": {
+    "doc": "TransferLockManager",
+    "title": "Class Definition",
+    "content": "class TransferLockManager: \"\"\"Manages transfer state and automatic resume functionality\"\"\" LOCK_FILE_NAME = \".transfer_lock.json\" LOCK_VERSION = \"1.0\" def __init__(self, working_dir: str = \".\"): self.working_dir = Path(working_dir) self.lock_file_path = self.working_dir / self.LOCK_FILE_NAME self.lock_data = None . ",
+    "url": "/transferlockmanager.html#class-definition",
+    
+    "relUrl": "/transferlockmanager.html#class-definition"
+  },"162": {
+    "doc": "TransferLockManager",
+    "title": "Key Methods",
+    "content": "create_lock_file() . Creates new transfer lock file with session metadata and file listings. Parameters: . | sender_ip (str): IP address of sending peer | file_list (List[Dict]): List of files being transferred | total_size (int): Total transfer size in bytes | . Returns: Session UUID string . load_existing_lock() . Loads and validates existing lock file if present. Returns: bool - True if valid lock file was loaded . Features: . | Validates lock file structure and version | Checks for stale locks (older than 24 hours) | Handles corrupted or invalid lock files gracefully | . get_resume_plan() . Analyzes what needs to be transferred based on existing lock state. Parameters: . | incoming_files (List[Dict]): Files being transferred | . Returns: Dict with keys: . | action: “resume” or “fresh_transfer” | completed_files: List of already completed files | resume_files: List of (filename, bytes) tuples for partial files | fresh_files: List of files to transfer fresh | . update_file_status() . Updates status of specific file in lock. Parameters: . | filename (str): File being updated | status (str): One of “pending”, “in_progress”, “completed”, “failed” | transferred_bytes (int): Bytes written so far | partial_hash (str, optional): SHA-256 hash of partial data | . verify_source_files_unchanged() . Verifies source files haven’t changed since lock creation. Parameters: . | source_file_paths (Dict[str, str]): Mapping of filename to file path | . Returns: List[str] of changed file names . Features: . | SHA-256 hash comparison for change detection | Automatic marking of changed files for retransfer | Warning logging for changed files | . cleanup_on_completion() . Removes lock file after successful transfer completion. ",
+    "url": "/transferlockmanager.html#key-methods",
+    
+    "relUrl": "/transferlockmanager.html#key-methods"
+  },"163": {
+    "doc": "TransferLockManager",
+    "title": "Lock File Format",
+    "content": "{ \"version\": \"1.0\", \"session_id\": \"uuid-string\", \"timestamp\": \"2024-01-01T12:00:00Z\", \"sender_ip\": \"100.101.29.44\", \"total_files\": 1234, \"total_size\": 567890123, \"files\": { \"path/to/file1.txt\": { \"status\": \"completed|in_progress|pending|failed\", \"size\": 12345, \"original_hash\": \"sha256-hash-of-source-file\", \"transferred_bytes\": 12345, \"partial_hash\": \"sha256-hash-of-partial-data\", \"last_modified\": \"2024-01-01T11:59:00Z\" } } } . ",
+    "url": "/transferlockmanager.html#lock-file-format",
+    
+    "relUrl": "/transferlockmanager.html#lock-file-format"
+  },"164": {
+    "doc": "TransferLockManager",
+    "title": "Automatic Resume Workflow",
+    "content": "graph TD start([\"receiver starts\"]):::pink check_lock{\"Check for .transfer_lock.json\"}:::yellow lock_exists{\"Lock file exists?\"}:::yellow validate_lock[\"Validate lock structure&lt;br/&gt;and check age\"]:::success lock_valid{\"Lock valid?\"}:::yellow analyze_files[\"Analyze incoming files&lt;br/&gt;vs lock state\"]:::success create_plan[\"Create resume plan:&lt;br/&gt;completed, partial, fresh\"]:::success create_new_lock[\"Create new lock file&lt;br/&gt;with session data\"]:::lightblue show_resume[\"Display:&lt;br/&gt;'Resuming X completed,&lt;br/&gt;Y partial, Z fresh files'\"]:::pink show_fresh[\"Display:&lt;br/&gt;'Starting fresh transfer'\"]:::pink setup_writers[\"Setup FileWriter instances&lt;br/&gt;with resume offsets\"]:::success transfer[\"Begin transfer with&lt;br/&gt;automatic state tracking\"]:::success start --&gt; check_lock check_lock --&gt; lock_exists lock_exists --&gt;|yes| validate_lock lock_exists --&gt;|no| create_new_lock validate_lock --&gt; lock_valid lock_valid --&gt;|valid| analyze_files lock_valid --&gt;|invalid| create_new_lock analyze_files --&gt; create_plan create_plan --&gt; show_resume create_new_lock --&gt; show_fresh show_resume --&gt; setup_writers show_fresh --&gt; setup_writers setup_writers --&gt; transfer classDef pink fill:#e91e63,stroke:#333,color:#fff classDef yellow fill:#ffeb3b,stroke:#333,color:#000 classDef success fill:#4caf50,stroke:#333,color:#fff classDef lightblue fill:#2196f3,stroke:#333,color:#fff . ",
+    "url": "/transferlockmanager.html#automatic-resume-workflow",
+    
+    "relUrl": "/transferlockmanager.html#automatic-resume-workflow"
+  },"165": {
+    "doc": "TransferLockManager",
+    "title": "Security Features",
+    "content": "State Validation . | Lock File Integrity: JSON structure validation prevents corrupted state | Session Verification: UUID-based session tracking prevents cross-session confusion | Age Verification: Automatic cleanup of stale locks (24+ hours old) | . File Change Detection . | Hash Verification: SHA-256 comparison detects source file modifications | Automatic Retransfer: Changed files automatically marked for fresh transfer | Integrity Assurance: Partial file hash verification ensures resume safety | . Atomic Operations . | Atomic Writes: Lock file updates use temp-file-and-rename for atomicity | Graceful Failure: Corrupted locks ignored with fallback to fresh transfer | Resource Cleanup: Automatic cleanup prevents accumulation of stale state | . ",
+    "url": "/transferlockmanager.html#security-features",
+    
+    "relUrl": "/transferlockmanager.html#security-features"
+  },"166": {
+    "doc": "TransferLockManager",
+    "title": "Error Handling",
+    "content": ". | Corrupted Lock Files: Graceful fallback to fresh transfer | Missing Source Files: Handles files that no longer exist | Permission Errors: Silent fallback with warning logging | Disk Space Issues: Robust error handling during lock file operations | . ",
+    "url": "/transferlockmanager.html#error-handling",
+    
+    "relUrl": "/transferlockmanager.html#error-handling"
+  },"167": {
+    "doc": "TransferLockManager",
+    "title": "Integration Points",
+    "content": "FileWriter Integration . | FileWriter instances receive TransferLockManager reference | Automatic progress updates to lock file during writing | Status tracking through file completion lifecycle | . Receiver Integration . | Automatic lock detection on receiver startup | Resume plan generation drives FileWriter initialization | Completion cleanup removes lock file | . Warning System Integration . | File change warnings logged to transfer_warnings.log | Lock file errors logged for debugging | Stale lock cleanup logged for monitoring | . ",
+    "url": "/transferlockmanager.html#integration-points",
+    
+    "relUrl": "/transferlockmanager.html#integration-points"
+  },"168": {
+    "doc": "TransferLockManager",
+    "title": "TransferLockManager",
+    "content": " ",
+    "url": "/transferlockmanager.html",
+    
+    "relUrl": "/transferlockmanager.html"
+  },"169": {
+    "doc": "Utility Functions",
+    "title": "Utility Functions",
+    "content": "Helper functions for file operations, network communication, speed calculation, and data validation. ",
+    "url": "/utility-functions.html",
+    
+    "relUrl": "/utility-functions.html"
+  },"170": {
+    "doc": "Utility Functions",
+    "title": "Functions",
+    "content": "File &amp; Network Operations . | recv_all() - Reliable socket data reception | validate_files() - File path validation and verification | collect_files_recursive() - Recursive directory traversal | log_warning() - Silent warning logging system | . Crypto &amp; Security . | crypto_init() - SecureCrypto initialization | derive_session_key() - ECDH key derivation | encrypt() - ChaCha20Poly1305 encryption | decrypt() - ChaCha20Poly1305 decryption | get_public_key_bytes() - Public key serialization | generate_token() - Secure token generation | get_tailscale_ip() - Local Tailscale IP detection | verify_peer_ip_cached() - Peer verification with caching | . Performance &amp; Progress . | calculate_speed() - Transfer speed calculation | format_speed() - Human-readable speed formatting | . ",
+    "url": "/utility-functions.html#functions",
+    
+    "relUrl": "/utility-functions.html#functions"
+  },"171": {
+    "doc": "validate_files()",
+    "title": "validate_files() Function",
+    "content": "File existence and accessibility validation. ",
+    "url": "/validate_files.html#validate_files-function",
+    
+    "relUrl": "/validate_files.html#validate_files-function"
+  },"172": {
+    "doc": "validate_files()",
+    "title": "Overview",
+    "content": "Validates that all specified file paths exist and are accessible for reading. Converts string paths to Path objects and performs comprehensive file system checks before transfer operations. ",
+    "url": "/validate_files.html#overview",
+    
+    "relUrl": "/validate_files.html#overview"
+  },"173": {
+    "doc": "validate_files()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red validate_files[\"validate_files()\"]:::highlight pathlib_path[\"pathlib.Path()\"]:::green path_exists[\"Path.exists()\"]:::green path_is_file[\"Path.is_file()\"]:::green os_access[\"os.access()\"]:::green send_files --&gt; validate_files validate_files --&gt; pathlib_path validate_files --&gt; path_exists validate_files --&gt; path_is_file validate_files --&gt; os_access classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/validate_files.html#call-graph",
+    
+    "relUrl": "/validate_files.html#call-graph"
+  },"174": {
+    "doc": "validate_files()",
+    "title": "Parameters",
+    "content": "| Parameter | Type | Description | . | file_paths | List[str] | List of file/directory path strings to validate | . ",
+    "url": "/validate_files.html#parameters",
+    
+    "relUrl": "/validate_files.html#parameters"
+  },"175": {
+    "doc": "validate_files()",
+    "title": "Return Value",
+    "content": ". | Type: List[Path] | Description: List of validated Path objects ready for transfer | . ",
+    "url": "/validate_files.html#return-value",
+    
+    "relUrl": "/validate_files.html#return-value"
+  },"176": {
+    "doc": "validate_files()",
+    "title": "Requirements",
+    "content": "validate_files() shall convert string paths to Path objects when file_paths parameter is provided where Path objects enable modern path operations. validate_files() shall verify each path exists on filesystem when Path objects are created where verification prevents transmission of non-existent files. validate_files() shall check read permissions for each path when existence is confirmed where permission checking ensures files are accessible. validate_files() shall return list of validated Path objects when all validations pass where the list contains only accessible files and directories. validate_files() shall raise exception when any path validation fails where failure prevents transmission of inaccessible content. ",
+    "url": "/validate_files.html#requirements",
+    
+    "relUrl": "/validate_files.html#requirements"
+  },"177": {
+    "doc": "validate_files()",
+    "title": "Security Considerations",
+    "content": "Path Traversal Protection . | Absolute Path Resolution: Converts all paths to absolute paths to prevent relative path confusion | Directory Traversal Prevention: Validates paths don’t contain “../” sequences that could escape intended directories | Symbolic Link Handling: Resolves symbolic links to prevent link-based directory traversal attacks | Path Canonicalization: Uses path.resolve() to normalize paths and eliminate ambiguous representations | . File System Security . | Existence Verification: Ensures files actually exist before attempting operations to prevent time-of-check-time-of-use races | Permission Validation: Checks both OS-level permissions and actual file access to ensure readability | File Type Validation: Verifies paths point to regular files or directories, rejecting special files like devices | Access Control: Respects file system permissions to prevent unauthorized file access | . Input Validation Security . | Path String Validation: Validates input paths are well-formed strings before Path conversion | Empty Input Rejection: Rejects empty or None path lists to prevent undefined behavior | Path Length Limits: Implicitly limited by file system maximum path length restrictions | Character Encoding: Handles various path encoding schemes safely through Path object abstraction | . Race Condition Prevention . | Atomic Validation: Performs existence and permission checks in close succession to minimize race windows | Access Testing: Performs actual file access test beyond permission checks to verify current accessibility | Consistent State: Ensures file state doesn’t change between validation and subsequent operations | Error Handling: Gracefully handles files that disappear or become inaccessible between checks | . Error Information Security . | Fail-Fast Design: Immediately fails on first invalid path rather than processing remaining paths | Limited Error Details: Error messages provide necessary information without revealing sensitive file system details | No Information Leakage: Doesn’t expose directory structure or file system organization in error messages | Consistent Error Handling: All validation failures result in appropriate exception types | . Resource Security . | Limited File System Access: Only accesses files specified in input, doesn’t enumerate directories | Memory Efficiency: Uses Path objects which are lightweight representations of file system paths | Handle Management: Properly closes file handles opened during access testing | No Persistent Resources: Doesn’t maintain open file handles or locks after validation | . Attack Surface Minimization . | Read-Only Operations: Only performs read-based checks, never modifies file system state | Limited Scope: Validates only specified paths, doesn’t perform broader file system operations | No Network Operations: Purely local file system validation with no network dependencies | Minimal Dependencies: Uses standard library components with well-established security properties | . File System Attack Mitigation . | Symlink Attack Prevention: Resolves symbolic links to detect attempts to access unauthorized locations | TOCTOU Attack Resistance: Minimizes time between validation and use through immediate processing | Directory Traversal Resistance: Multiple layers of path validation prevent escape attacks | Permission Bypass Prevention: Actual access testing prevents reliance on potentially stale permission data | . ",
+    "url": "/validate_files.html#security-considerations",
+    
+    "relUrl": "/validate_files.html#security-considerations"
+  },"178": {
+    "doc": "validate_files()",
+    "title": "validate_files()",
+    "content": " ",
+    "url": "/validate_files.html",
+    
+    "relUrl": "/validate_files.html"
+  },"179": {
+    "doc": "verify_peer_ip_cached()",
+    "title": "TailscaleDetector.verify_peer_ip_cached()",
+    "content": "Primary security validation for peer connections using cached data. ",
+    "url": "/verify_peer_ip_cached.html#tailscaledetectorverify_peer_ip_cached",
+    
+    "relUrl": "/verify_peer_ip_cached.html#tailscaledetectorverify_peer_ip_cached"
+  },"180": {
+    "doc": "verify_peer_ip_cached()",
+    "title": "Overview",
+    "content": "The primary security validation method for incoming file transfer connections. This method verifies that an IP address belongs to an active Tailscale peer using cached peer information to minimize performance overhead. It serves as the first line of defense against unauthorized connections. ",
+    "url": "/verify_peer_ip_cached.html#overview",
+    
+    "relUrl": "/verify_peer_ip_cached.html#overview"
+  },"181": {
+    "doc": "verify_peer_ip_cached()",
+    "title": "Call Graph",
+    "content": "graph LR send_files[\"send_files()\"]:::red receive_files[\"receive_files()\"]:::red verify_peer_ip_cached[\"verify_peer_ip_cached()\"]:::highlight subprocess_run[\"subprocess.run()\"]:::green send_files --&gt; verify_peer_ip_cached receive_files --&gt; verify_peer_ip_cached verify_peer_ip_cached --&gt; subprocess_run classDef red fill:#f78166,stroke:#333,color:#fff classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px classDef green fill:#56d364,stroke:#333,color:#000 . ",
+    "url": "/verify_peer_ip_cached.html#call-graph",
+    
+    "relUrl": "/verify_peer_ip_cached.html#call-graph"
+  },"182": {
+    "doc": "verify_peer_ip_cached()",
+    "title": "Parameters",
+    "content": ". | ip (str): IP address to validate in dotted decimal notation (e.g., \"100.101.29.44\") | . ",
+    "url": "/verify_peer_ip_cached.html#parameters",
+    
+    "relUrl": "/verify_peer_ip_cached.html#parameters"
+  },"183": {
+    "doc": "verify_peer_ip_cached()",
+    "title": "Return Value",
+    "content": ". | Type: Tuple[bool, str] | Success: (True, peer_hostname) - IP is authenticated Tailscale peer with hostname | Failure: (False, \"unknown_tailscale_peer\") - IP validation failed or peer not found | . ",
+    "url": "/verify_peer_ip_cached.html#return-value",
+    
+    "relUrl": "/verify_peer_ip_cached.html#return-value"
+  },"184": {
+    "doc": "verify_peer_ip_cached()",
+    "title": "Requirements",
+    "content": "verify_peer_ip_cached() shall return (True, peer_hostname) when the provided IP address matches an active Tailscale peer in the cached status output where the peer has valid authentication credentials. verify_peer_ip_cached() shall return (False, “unknown_tailscale_peer”) when the provided IP address is not found in Tailscale peer list or when Tailscale CLI execution fails. verify_peer_ip_cached() shall refresh peer cache when cache age exceeds 30 seconds where cache age is measured from last successful status retrieval. verify_peer_ip_cached() shall execute “tailscale status –json” command when cache refresh is required where the command provides current peer information. verify_peer_ip_cached() shall parse JSON output to extract peer IP addresses and hostnames when Tailscale command succeeds where parsing creates IP-to-hostname mapping. ",
+    "url": "/verify_peer_ip_cached.html#requirements",
+    
+    "relUrl": "/verify_peer_ip_cached.html#requirements"
+  },"185": {
+    "doc": "verify_peer_ip_cached()",
+    "title": "verify_peer_ip_cached()",
+    "content": " ",
+    "url": "/verify_peer_ip_cached.html",
+    
+    "relUrl": "/verify_peer_ip_cached.html"
+  },"186": {
+    "doc": "Documentation Theme License",
+    "title": "Documentation Theme License",
+    "content": "# Documentation Theme License **This license applies ONLY to the `/docs` directory theme and styling.** The documentation content, diagrams, and the main ftransfer project are governed by the project's primary license. --- ## Just the Docs License The MIT License (MIT) Copyright (c) 2016-2024 Patrick Marsceill Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. --- ## Modifications This project uses the Just the Docs theme with the following modifications: - Custom mermaid diagram styling - Project-specific navigation structure - Custom content organization These modifications are permitted under the MIT license terms above. ",
+    "url": "/LICENSE-THEME.html",
+    
+    "relUrl": "/LICENSE-THEME.html"
+  }
+}

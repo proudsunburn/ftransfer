@@ -1,11 +1,3 @@
----
-layout: default
-title: Home
-nav_order: 1
-description: "Secure file transfer over Tailscale networks with end-to-end encryption"
-permalink: /
----
-
 # Transfer Files System Overview
 
 Secure file transfer program over Tailscale networks using end-to-end encryption with automatic key exchange and peer authentication.

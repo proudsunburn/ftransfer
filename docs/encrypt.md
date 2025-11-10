@@ -1,10 +1,3 @@
----
-layout: default
-title: encrypt()
-parent: Utility Functions
-nav_order: 7
----
-
 # SecureCrypto.encrypt()
 
 ChaCha20Poly1305 authenticated encryption for secure data transmission.

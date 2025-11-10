@@ -1,10 +1,3 @@
----
-layout: default
-title: main()
-parent: Main Functions
-nav_order: 3
----
-
 # main() Function
 
 CLI entry point and argument parser.
