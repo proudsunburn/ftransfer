@@ -10,20 +10,16 @@ Main server function that handles file transmission using optimized streaming bu
 
 ```mermaid
 graph LR
-    main["main()"]:::red --> send_files["send_files()"]:::highlight
-    send_files --> validate_files["validate_files()"]:::green
-    send_files --> collect_files_recursive["collect_files_recursive()"]:::green
-    send_files --> get_tailscale_ip["TailscaleDetector.get_tailscale_ip()"]:::green
-    send_files --> verify_peer_ip_cached["TailscaleDetector.verify_peer_ip_cached()"]:::green
-    send_files --> generate_token["SecureTokenGenerator.generate_token()"]:::green
-    send_files --> crypto_init["SecureCrypto()"]:::green
-    send_files --> recv_all["recv_all()"]:::green
-    send_files --> calculate_speed["calculate_speed()"]:::green
-    send_files --> format_speed["format_speed()"]:::green
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#fff
+    main["main()"] --> send_files["send_files()"]
+    send_files --> validate_files["validate_files()"]
+    send_files --> collect_files_recursive["collect_files_recursive()"]
+    send_files --> get_tailscale_ip["TailscaleDetector.get_tailscale_ip()"]
+    send_files --> verify_peer_ip_cached["TailscaleDetector.verify_peer_ip_cached()"]
+    send_files --> generate_token["SecureTokenGenerator.generate_token()"]
+    send_files --> crypto_init["SecureCrypto()"]
+    send_files --> recv_all["recv_all()"]
+    send_files --> calculate_speed["calculate_speed()"]
+    send_files --> format_speed["format_speed()"]
 ```
 
 ## Parameters
@@ -62,42 +58,42 @@ send_files() shall verify connecting peer IP using Tailscale peer verification w
 
 ```mermaid
 graph TD
-    start(["Start: send_files(file_paths, pod)"]):::blue
+    start(["Start: send_files(file_paths, pod)"])
 
-    validate_input["validate_files(file_paths)"]:::green
-    collect_files["collect_files_recursive()<br/>Build file manifest"]:::green
+    validate_input["validate_files(file_paths)"]
+    collect_files["collect_files_recursive()<br/>Build file manifest"]
 
-    venv_prompt["Prompt: Exclude venv dirs?<br/>[Y/n]"]:::pink
-    compression_prompt["Prompt: Use compression?<br/>[y/N]"]:::pink
+    venv_prompt["Prompt: Exclude venv dirs?<br/>[Y/n]"]
+    compression_prompt["Prompt: Use compression?<br/>[y/N]"]
 
-    get_ip["get_tailscale_ip()<br/>Get local IP"]:::green
-    bind_check{"pod == True?"}:::yellow
-    bind_localhost["Bind to 127.0.0.1:15820"]:::orange
-    bind_tailscale["Bind to tailscale_ip:15820"]:::orange
+    get_ip["get_tailscale_ip()<br/>Get local IP"]
+    bind_check{"pod == True?"}
+    bind_localhost["Bind to 127.0.0.1:15820"]
+    bind_tailscale["Bind to tailscale_ip:15820"]
 
-    generate_auth["generate_token()<br/>Create 2-word token"]:::green
-    display_token["Display connection string:<br/>'transfer.py receive ip:token'"]:::pink
+    generate_auth["generate_token()<br/>Create 2-word token"]
+    display_token["Display connection string:<br/>'transfer.py receive ip:token'"]
 
-    wait_conn["Accept TCP connection<br/>(5 minute timeout)"]:::lightblue
-    verify_peer["verify_peer_ip_cached()<br/>Validate client IP"]:::green
+    wait_conn["Accept TCP connection<br/>(5 minute timeout)"]
+    verify_peer["verify_peer_ip_cached()<br/>Validate client IP"]
 
-    crypto_init["SecureCrypto()<br/>Generate X25519 keypair"]:::green
-    exchange_keys["Exchange public keys<br/>(64 bytes total)"]:::lightblue
-    derive_key["derive_session_key()<br/>ECDH + HKDF-SHA256"]:::green
+    crypto_init["SecureCrypto()<br/>Generate X25519 keypair"]
+    exchange_keys["Exchange public keys<br/>(64 bytes total)"]
+    derive_key["derive_session_key()<br/>ECDH + HKDF-SHA256"]
 
-    send_metadata["Send batch metadata:<br/>{filename, size, hash}"]:::success
-    stream_files["Stream files with 1MB buffers:<br/>read → hash → encrypt → send"]:::success
+    send_metadata["Send batch metadata:<br/>{filename, size, hash}"]
+    stream_files["Stream files with 1MB buffers:<br/>read → hash → encrypt → send"]
 
-    calc_speed["calculate_speed()<br/>Compute transfer rate"]:::green
-    show_result["Display: 'Transfer complete:<br/>X bytes sent'"]:::pink
-    cleanup["Close connections<br/>Cleanup resources"]:::gray
-    end_success(["Return (success)"]):::success
+    calc_speed["calculate_speed()<br/>Compute transfer rate"]
+    show_result["Display: 'Transfer complete:<br/>X bytes sent'"]
+    cleanup["Close connections<br/>Cleanup resources"]
+    end_success(["Return (success)"])
 
-    error_validation["Validation Error:<br/>Files not found/accessible"]:::error
-    error_network["Network Error:<br/>Cannot bind/connect"]:::error
-    error_auth["Authentication Error:<br/>Peer verification failed"]:::error
-    error_crypto["Cryptographic Error:<br/>Key exchange failed"]:::error
-    end_error(["Raise Exception"]):::error
+    error_validation["Validation Error:<br/>Files not found/accessible"]
+    error_network["Network Error:<br/>Cannot bind/connect"]
+    error_auth["Authentication Error:<br/>Peer verification failed"]
+    error_crypto["Cryptographic Error:<br/>Key exchange failed"]
+    end_error(["Raise Exception"])
 
     start --> validate_input
     validate_input --> collect_files
@@ -135,16 +131,6 @@ graph TD
     error_network --> end_error
     error_auth --> end_error
     error_crypto --> end_error
-
-    classDef blue fill:#58a6ff,stroke:#333,color:#fff
-    classDef green fill:#56d364,stroke:#333,color:#fff
-    classDef pink fill:#e91e63,stroke:#333,color:#fff
-    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
-    classDef orange fill:#ff9800,stroke:#333,color:#fff
-    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
-    classDef success fill:#4caf50,stroke:#333,color:#fff
-    classDef gray fill:#9e9e9e,stroke:#333,color:#fff
-    classDef error fill:#f44336,stroke:#333,color:#fff
 ```
 
 ## Security Considerations

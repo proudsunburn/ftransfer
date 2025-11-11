@@ -10,16 +10,12 @@ Executes the `tailscale ip --4` command to retrieve the local machine's Tailscal
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    get_tailscale_ip["get_tailscale_ip()"]:::highlight
-    subprocess_run["subprocess.run()"]:::green
+    send_files["send_files()"]
+    get_tailscale_ip["get_tailscale_ip()"]
+    subprocess_run["subprocess.run()"]
 
     send_files --> get_tailscale_ip
     get_tailscale_ip --> subprocess_run
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

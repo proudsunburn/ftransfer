@@ -107,24 +107,24 @@ Removes lock file after successful transfer completion.
 
 ```mermaid
 graph TD
-    start(["receiver starts"]):::pink
+    start(["receiver starts"])
 
-    check_lock{"Check for .transfer_lock.json"}:::yellow
-    lock_exists{"Lock file exists?"}:::yellow
+    check_lock{"Check for .transfer_lock.json"}
+    lock_exists{"Lock file exists?"}
 
-    validate_lock["Validate lock structure<br/>and check age"]:::success
-    lock_valid{"Lock valid?"}:::yellow
+    validate_lock["Validate lock structure<br/>and check age"]
+    lock_valid{"Lock valid?"}
 
-    analyze_files["Analyze incoming files<br/>vs lock state"]:::success
-    create_plan["Create resume plan:<br/>completed, partial, fresh"]:::success
+    analyze_files["Analyze incoming files<br/>vs lock state"]
+    create_plan["Create resume plan:<br/>completed, partial, fresh"]
 
-    create_new_lock["Create new lock file<br/>with session data"]:::lightblue
+    create_new_lock["Create new lock file<br/>with session data"]
 
-    show_resume["Display:<br/>'Resuming X completed,<br/>Y partial, Z fresh files'"]:::pink
-    show_fresh["Display:<br/>'Starting fresh transfer'"]:::pink
+    show_resume["Display:<br/>'Resuming X completed,<br/>Y partial, Z fresh files'"]
+    show_fresh["Display:<br/>'Starting fresh transfer'"]
 
-    setup_writers["Setup FileWriter instances<br/>with resume offsets"]:::success
-    transfer["Begin transfer with<br/>automatic state tracking"]:::success
+    setup_writers["Setup FileWriter instances<br/>with resume offsets"]
+    transfer["Begin transfer with<br/>automatic state tracking"]
 
     start --> check_lock
     check_lock --> lock_exists
@@ -139,11 +139,6 @@ graph TD
     show_resume --> setup_writers
     show_fresh --> setup_writers
     setup_writers --> transfer
-
-    classDef pink fill:#e91e63,stroke:#333,color:#fff
-    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
-    classDef success fill:#4caf50,stroke:#333,color:#fff
-    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
 ```
 
 ## Security Features

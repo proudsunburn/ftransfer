@@ -10,18 +10,14 @@ Extracts the X25519 public key as raw bytes suitable for network transmission du
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    receive_files["receive_files()"]:::red
-    get_public_key_bytes["get_public_key_bytes()"]:::highlight
-    public_bytes["public_key.public_bytes()"]:::green
+    send_files["send_files()"]
+    receive_files["receive_files()"]
+    get_public_key_bytes["get_public_key_bytes()"]
+    public_bytes["public_key.public_bytes()"]
 
     send_files --> get_public_key_bytes
     receive_files --> get_public_key_bytes
     get_public_key_bytes --> public_bytes
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

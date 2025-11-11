@@ -10,20 +10,16 @@ Generates human-readable authentication tokens using a 200+ word vocabulary. Pro
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    token_generator["SecureTokenGenerator"]:::highlight
-    entropy_collector["EntropyCollector.get_system_entropy()"]:::green
-    len_vocab["len(vocabulary)"]:::green
-    int_from_bytes["int.from_bytes()"]:::green
+    send_files["send_files()"]
+    token_generator["SecureTokenGenerator"]
+    entropy_collector["EntropyCollector.get_system_entropy()"]
+    len_vocab["len(vocabulary)"]
+    int_from_bytes["int.from_bytes()"]
 
     send_files --> token_generator
     token_generator --> entropy_collector
     token_generator --> len_vocab
     token_generator --> int_from_bytes
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

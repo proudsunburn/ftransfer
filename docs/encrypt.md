@@ -10,16 +10,12 @@ Provides authenticated encryption using the ChaCha20Poly1305 AEAD (Authenticated
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    encrypt["encrypt()"]:::highlight
-    cipher_encrypt["cipher.encrypt()"]:::green
+    send_files["send_files()"]
+    encrypt["encrypt()"]
+    cipher_encrypt["cipher.encrypt()"]
 
     send_files --> encrypt
     encrypt --> cipher_encrypt
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

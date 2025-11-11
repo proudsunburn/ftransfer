@@ -10,13 +10,13 @@ Main client function that connects to sender, performs key exchange, and securel
 
 ```mermaid
 graph LR
-    main["main()"]:::red
-    receive_files["receive_files()"]:::highlight
-    verify_peer_ip_cached["TailscaleDetector.verify_peer_ip_cached()"]:::green
-    crypto_init["SecureCrypto()"]:::green
-    recv_all["recv_all()"]:::green
-    calculate_speed["calculate_speed()"]:::green
-    format_speed["format_speed()"]:::green
+    main["main()"]
+    receive_files["receive_files()"]
+    verify_peer_ip_cached["TailscaleDetector.verify_peer_ip_cached()"]
+    crypto_init["SecureCrypto()"]
+    recv_all["recv_all()"]
+    calculate_speed["calculate_speed()"]
+    format_speed["format_speed()"]
 
     main --> receive_files
     receive_files --> verify_peer_ip_cached
@@ -24,10 +24,6 @@ graph LR
     receive_files --> recv_all
     receive_files --> calculate_speed
     receive_files --> format_speed
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters
@@ -66,46 +62,46 @@ receive_files() shall automatically detect and resume from existing lock files a
 
 ```mermaid
 graph TD
-    start(["Start: receive_files(connection_string, pod)"]):::highlight
+    start(["Start: receive_files(connection_string, pod)"])
 
-    parse_conn["Parse connection string<br/>'ip:token' format"]:::green
-    validate_format{"Valid format?"}:::yellow
-    extract_ip["Extract IP address<br/>and authentication token"]:::green
-    validate_ip{"Valid IPv4?"}:::yellow
+    parse_conn["Parse connection string<br/>'ip:token' format"]
+    validate_format{"Valid format?"}
+    extract_ip["Extract IP address<br/>and authentication token"]
+    validate_ip{"Valid IPv4?"}
 
-    pod_check{"pod == True?"}:::yellow
-    verify_peer["verify_peer_ip_cached(ip)<br/>Validate Tailscale peer"]:::green
-    skip_verification["Skip peer verification<br/>(pod mode)"]:::orange
-    peer_valid{"Peer authenticated?"}:::yellow
+    pod_check{"pod == True?"}
+    verify_peer["verify_peer_ip_cached(ip)<br/>Validate Tailscale peer"]
+    skip_verification["Skip peer verification<br/>(pod mode)"]
+    peer_valid{"Peer authenticated?"}
 
-    connect_tcp["TCP connect to ip:15820<br/>(30 second timeout)"]:::lightblue
-    connection_ok{"Connection successful?"}:::yellow
+    connect_tcp["TCP connect to ip:15820<br/>(30 second timeout)"]
+    connection_ok{"Connection successful?"}
 
-    crypto_init["SecureCrypto()<br/>Generate X25519 keypair"]:::green
-    exchange_keys["Exchange public keys<br/>with sender"]:::lightblue
-    derive_key["derive_session_key()<br/>ECDH + HKDF-SHA256 + token"]:::green
-    key_success{"Key derivation successful?"}:::yellow
+    crypto_init["SecureCrypto()<br/>Generate X25519 keypair"]
+    exchange_keys["Exchange public keys<br/>with sender"]
+    derive_key["derive_session_key()<br/>ECDH + HKDF-SHA256 + token"]
+    key_success{"Key derivation successful?"}
 
-    receive_metadata["Receive batch metadata:<br/>{filename, size, hash, offset}"]:::success
-    create_filewriters["Create FileWriter instances<br/>for incremental saving"]:::success
-    open_part_files["Initialize TransferLockManager<br/>(automatic resume detection)"]:::success
-    stream_loop["Stream chunks:<br/>recv() → decrypt() → write_chunk()"]:::success
-    complete_files["Complete files:<br/>move .part to final names"]:::success
-    verify_integrity["Verify SHA-256 hashes<br/>for all received files"]:::success
-    integrity_ok{"All hashes valid?"}:::yellow
+    receive_metadata["Receive batch metadata:<br/>{filename, size, hash, offset}"]
+    create_filewriters["Create FileWriter instances<br/>for incremental saving"]
+    open_part_files["Initialize TransferLockManager<br/>(automatic resume detection)"]
+    stream_loop["Stream chunks:<br/>recv() → decrypt() → write_chunk()"]
+    complete_files["Complete files:<br/>move .part to final names"]
+    verify_integrity["Verify SHA-256 hashes<br/>for all received files"]
+    integrity_ok{"All hashes valid?"}
 
-    calc_speed["calculate_speed()<br/>Compute transfer rate"]:::green
-    show_result["Display: 'Transfer complete!<br/>Saved: files'"]:::pink
-    cleanup["Close connections<br/>Cleanup resources"]:::gray
-    end_success(["Return (success)"]):::success
+    calc_speed["calculate_speed()<br/>Compute transfer rate"]
+    show_result["Display: 'Transfer complete!<br/>Saved: files'"]
+    cleanup["Close connections<br/>Cleanup resources"]
+    end_success(["Return (success)"])
 
-    error_parse["ParseError:<br/>Invalid connection string"]:::error
-    error_ip["ValueError:<br/>Invalid IP address"]:::error
-    error_peer["AuthenticationError:<br/>Peer not verified"]:::error
-    error_network["NetworkError:<br/>Connection failed"]:::error
-    error_crypto["CryptographicError:<br/>Key exchange failed"]:::error
-    error_integrity["IntegrityError:<br/>File hash mismatch"]:::error
-    end_error(["Raise Exception"]):::error
+    error_parse["ParseError:<br/>Invalid connection string"]
+    error_ip["ValueError:<br/>Invalid IP address"]
+    error_peer["AuthenticationError:<br/>Peer not verified"]
+    error_network["NetworkError:<br/>Connection failed"]
+    error_crypto["CryptographicError:<br/>Key exchange failed"]
+    error_integrity["IntegrityError:<br/>File hash mismatch"]
+    end_error(["Raise Exception"])
 
     start --> parse_conn
     parse_conn --> validate_format
@@ -147,16 +143,6 @@ graph TD
     error_network --> end_error
     error_crypto --> end_error
     error_integrity --> end_error
-
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff
-    classDef green fill:#56d364,stroke:#333,color:#fff
-    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
-    classDef orange fill:#ff9800,stroke:#333,color:#fff
-    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
-    classDef success fill:#4caf50,stroke:#333,color:#fff
-    classDef pink fill:#e91e63,stroke:#333,color:#fff
-    classDef gray fill:#9e9e9e,stroke:#333,color:#fff
-    classDef error fill:#f44336,stroke:#333,color:#fff
 ```
 
 ## Automatic Resume Workflow
@@ -165,33 +151,33 @@ The receiver implements intelligent automatic resume detection without requiring
 
 ```mermaid
 graph TD
-    start(["receive_files() starts"]):::pink
+    start(["receive_files() starts"])
 
-    check_lock["Initialize TransferLockManager<br/>Check for .transfer_lock.json"]:::success
-    lock_exists{"Valid lock file<br/>found?"}:::yellow
+    check_lock["Initialize TransferLockManager<br/>Check for .transfer_lock.json"]
+    lock_exists{"Valid lock file<br/>found?"}
 
-    load_lock["Load existing lock data:<br/>session, file states, hashes"]:::lightblue
-    analyze_files["Analyze incoming files vs<br/>lock state: completed/partial/fresh"]:::lightblue
-    create_plan["Generate resume plan:<br/>X completed, Y partial, Z fresh"]:::lightblue
-    show_resume["Display: 'Resuming transfer:<br/>X completed, Y partial, Z fresh files'"]:::pink
+    load_lock["Load existing lock data:<br/>session, file states, hashes"]
+    analyze_files["Analyze incoming files vs<br/>lock state: completed/partial/fresh"]
+    create_plan["Generate resume plan:<br/>X completed, Y partial, Z fresh"]
+    show_resume["Display: 'Resuming transfer:<br/>X completed, Y partial, Z fresh files'"]
 
-    create_lock["Create new lock file<br/>with session metadata"]:::success
-    show_fresh["Display: 'Starting fresh transfer'"]:::pink
+    create_lock["Create new lock file<br/>with session metadata"]
+    show_fresh["Display: 'Starting fresh transfer'"]
 
-    setup_writers["Setup FileWriter instances:<br/>- Resume from lock offsets<br/>- Fresh files from zero"]:::success
+    setup_writers["Setup FileWriter instances:<br/>- Resume from lock offsets<br/>- Fresh files from zero"]
 
-    transfer_loop["Transfer files with<br/>integrity verification"]:::success
-    check_integrity["Verify SHA-256 hashes<br/>for all files"]:::success
-    integrity_ok{"All files<br/>pass integrity?"}:::yellow
+    transfer_loop["Transfer files with<br/>integrity verification"]
+    check_integrity["Verify SHA-256 hashes<br/>for all files"]
+    integrity_ok{"All files<br/>pass integrity?"}
 
-    retry_count{"Retry attempts<br/>< 3?"}:::yellow
-    request_retry["Send retry request<br/>to sender for failed files"]:::orange
-    receive_retry["Receive retry data<br/>for failed files only"]:::orange
+    retry_count{"Retry attempts<br/>< 3?"}
+    request_retry["Send retry request<br/>to sender for failed files"]
+    receive_retry["Receive retry data<br/>for failed files only"]
 
-    cleanup_lock["Remove lock file<br/>(successful completion)"]:::success
-    complete(["Transfer complete!"]):::success
+    cleanup_lock["Remove lock file<br/>(successful completion)"]
+    complete(["Transfer complete!"])
 
-    final_error["Report integrity failure<br/>after 3 attempts"]:::error
+    final_error["Report integrity failure<br/>after 3 attempts"]
 
     start --> check_lock
     check_lock --> lock_exists
@@ -213,13 +199,6 @@ graph TD
     request_retry --> receive_retry
     receive_retry --> check_integrity
     cleanup_lock --> complete
-
-    classDef pink fill:#e91e63,stroke:#333,color:#fff
-    classDef success fill:#4caf50,stroke:#333,color:#fff
-    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
-    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
-    classDef orange fill:#ff9800,stroke:#333,color:#fff
-    classDef error fill:#f44336,stroke:#333,color:#fff
 ```
 
 ### **Lock File State Management**

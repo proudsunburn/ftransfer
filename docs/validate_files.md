@@ -10,22 +10,18 @@ Validates that all specified file paths exist and are accessible for reading. Co
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    validate_files["validate_files()"]:::highlight
-    pathlib_path["pathlib.Path()"]:::green
-    path_exists["Path.exists()"]:::green
-    path_is_file["Path.is_file()"]:::green
-    os_access["os.access()"]:::green
+    send_files["send_files()"]
+    validate_files["validate_files()"]
+    pathlib_path["pathlib.Path()"]
+    path_exists["Path.exists()"]
+    path_is_file["Path.is_file()"]
+    os_access["os.access()"]
 
     send_files --> validate_files
     validate_files --> pathlib_path
     validate_files --> path_exists
     validate_files --> path_is_file
     validate_files --> os_access
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

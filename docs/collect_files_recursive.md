@@ -10,20 +10,16 @@ Recursively traverses directory structures to collect all files with optional fi
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    collect_files_recursive["collect_files_recursive()"]:::highlight
-    os_walk["os.walk()"]:::green
-    os_path_join["os.path.join()"]:::green
-    fnmatch["fnmatch.fnmatch()"]:::green
+    send_files["send_files()"]
+    collect_files_recursive["collect_files_recursive()"]
+    os_walk["os.walk()"]
+    os_path_join["os.path.join()"]
+    fnmatch["fnmatch.fnmatch()"]
 
     send_files --> collect_files_recursive
     collect_files_recursive --> os_walk
     collect_files_recursive --> os_path_join
     collect_files_recursive --> fnmatch
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

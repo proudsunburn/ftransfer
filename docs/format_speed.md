@@ -10,18 +10,14 @@ Converts raw bytes-per-second transfer rates into human-readable speed represent
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    receive_files["receive_files()"]:::red
-    format_speed["format_speed()"]:::highlight
-    calculate_speed["calculate_speed()"]:::green
+    send_files["send_files()"]
+    receive_files["receive_files()"]
+    format_speed["format_speed()"]
+    calculate_speed["calculate_speed()"]
 
     send_files --> format_speed
     receive_files --> format_speed
     format_speed --> calculate_speed
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

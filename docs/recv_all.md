@@ -10,18 +10,14 @@ Utility function that ensures complete reception of a specified amount of data f
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    receive_files["receive_files()"]:::red
-    recv_all["recv_all()"]:::highlight
-    socket_recv["socket.recv()"]:::green
+    send_files["send_files()"]
+    receive_files["receive_files()"]
+    recv_all["recv_all()"]
+    socket_recv["socket.recv()"]
 
     send_files --> recv_all
     receive_files --> recv_all
     recv_all --> socket_recv
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

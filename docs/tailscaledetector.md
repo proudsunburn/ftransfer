@@ -10,22 +10,18 @@ Handles Tailscale network detection, IP address resolution, and peer verificatio
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    receive_files["receive_files()"]:::red
-    tailscaledetector["TailscaleDetector"]:::highlight
-    subprocess_run["subprocess.run()"]:::green
-    json_loads["json.loads()"]:::green
-    time_time["time.time()"]:::green
+    send_files["send_files()"]
+    receive_files["receive_files()"]
+    tailscaledetector["TailscaleDetector"]
+    subprocess_run["subprocess.run()"]
+    json_loads["json.loads()"]
+    time_time["time.time()"]
 
     send_files --> tailscaledetector
     receive_files --> tailscaledetector
     tailscaledetector --> subprocess_run
     tailscaledetector --> json_loads
     tailscaledetector --> time_time
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

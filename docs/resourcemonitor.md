@@ -62,19 +62,19 @@ Analyzes whether a transfer with given file count would risk FD exhaustion.
 
 ```mermaid
 graph TD
-    start(["Transfer begins with<br/>N files"]):::pink
+    start(["Transfer begins with<br/>N files"])
 
-    get_current["get_open_fd_count()<br/>Current FD usage"]:::success
-    get_limit["get_fd_limit()<br/>System FD limit"]:::success
+    get_current["get_open_fd_count()<br/>Current FD usage"]
+    get_limit["get_fd_limit()<br/>System FD limit"]
 
-    calculate["Calculate:<br/>Required FDs = N files<br/>+ network sockets<br/>+ system overhead"]:::lightblue
+    calculate["Calculate:<br/>Required FDs = N files<br/>+ network sockets<br/>+ system overhead"]
 
-    check_safe{"Usage + Required<br/>< 80% of limit?"}:::yellow
+    check_safe{"Usage + Required<br/>< 80% of limit?"}
 
-    proceed["Proceed with transfer<br/>(safe FD usage)"]:::success
-    warn["Log warning:<br/>'High FD usage detected'<br/>Suggest fewer files"]:::orange
+    proceed["Proceed with transfer<br/>(safe FD usage)"]
+    warn["Log warning:<br/>'High FD usage detected'<br/>Suggest fewer files"]
 
-    transfer["Begin file transfer<br/>with FD monitoring"]:::success
+    transfer["Begin file transfer<br/>with FD monitoring"]
 
     start --> get_current
     get_current --> get_limit
@@ -84,12 +84,6 @@ graph TD
     check_safe -->|risky| warn
     proceed --> transfer
     warn --> transfer
-
-    classDef pink fill:#e91e63,stroke:#333,color:#fff
-    classDef success fill:#4caf50,stroke:#333,color:#fff
-    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
-    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
-    classDef orange fill:#ff9800,stroke:#333,color:#fff
 ```
 
 ## Platform Support

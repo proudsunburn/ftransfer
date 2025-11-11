@@ -10,20 +10,16 @@ The constructor initializes a fresh X25519 elliptic curve key pair for each Secu
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    receive_files["receive_files()"]:::red
-    crypto_init["SecureCrypto.__init__()"]:::highlight
-    x25519_generate["x25519.X25519PrivateKey.generate()"]:::green
-    public_key["private_key.public_key()"]:::green
+    send_files["send_files()"]
+    receive_files["receive_files()"]
+    crypto_init["SecureCrypto.__init__()"]
+    x25519_generate["x25519.X25519PrivateKey.generate()"]
+    public_key["private_key.public_key()"]
 
     send_files --> crypto_init
     receive_files --> crypto_init
     crypto_init --> x25519_generate
     crypto_init --> public_key
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

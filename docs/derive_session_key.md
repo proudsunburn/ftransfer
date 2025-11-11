@@ -10,13 +10,13 @@ The core cryptographic method that establishes a secure session key using Ellipt
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    receive_files["receive_files()"]:::red
-    derive_session_key["derive_session_key()"]:::highlight
-    x25519_from_public["x25519.X25519PublicKey.from_public_bytes()"]:::green
-    private_exchange["private_key.exchange()"]:::green
-    hkdf["HKDF"]:::green
-    chacha20["ChaCha20Poly1305()"]:::green
+    send_files["send_files()"]
+    receive_files["receive_files()"]
+    derive_session_key["derive_session_key()"]
+    x25519_from_public["x25519.X25519PublicKey.from_public_bytes()"]
+    private_exchange["private_key.exchange()"]
+    hkdf["HKDF"]
+    chacha20["ChaCha20Poly1305()"]
 
     send_files --> derive_session_key
     receive_files --> derive_session_key
@@ -24,10 +24,6 @@ graph LR
     derive_session_key --> private_exchange
     derive_session_key --> hkdf
     derive_session_key --> chacha20
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

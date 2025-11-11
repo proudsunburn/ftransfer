@@ -78,22 +78,22 @@ log_warning(f"Stale lock file found (age: {age}), ignoring")
 
 ```mermaid
 graph TD
-    warning_event(["Warning condition<br/>detected"]):::pink
+    warning_event(["Warning condition<br/>detected"])
 
-    log_call["log_warning(message)<br/>called"]:::success
+    log_call["log_warning(message)<br/>called"]
 
-    generate_timestamp["Generate timestamp:<br/>YYYY-MM-DD HH:MM:SS"]:::lightblue
+    generate_timestamp["Generate timestamp:<br/>YYYY-MM-DD HH:MM:SS"]
 
-    open_file["Open transfer_warnings.log<br/>in append mode"]:::success
-    format_entry["Format entry:<br/>[timestamp] message"]:::success
-    write_entry["Write entry to file<br/>with newline"]:::success
+    open_file["Open transfer_warnings.log<br/>in append mode"]
+    format_entry["Format entry:<br/>[timestamp] message"]
+    write_entry["Write entry to file<br/>with newline"]
 
-    file_error{"File write error?"}:::yellow
-    silent_ignore["Silently ignore error<br/>(don't disrupt transfer)"]:::gray
+    file_error{"File write error?"}
+    silent_ignore["Silently ignore error<br/>(don't disrupt transfer)"]
 
-    console_clean["Console output<br/>remains clean"]:::success
+    console_clean["Console output<br/>remains clean"]
 
-    continue_transfer(["Transfer continues<br/>normally"]):::success
+    continue_transfer(["Transfer continues<br/>normally"])
 
     warning_event --> log_call
     log_call --> generate_timestamp
@@ -105,12 +105,6 @@ graph TD
     file_error -->|success| console_clean
     silent_ignore --> continue_transfer
     console_clean --> continue_transfer
-
-    classDef pink fill:#e91e63,stroke:#333,color:#fff
-    classDef success fill:#4caf50,stroke:#333,color:#fff
-    classDef lightblue fill:#2196f3,stroke:#333,color:#fff
-    classDef yellow fill:#ffeb3b,stroke:#333,color:#000
-    classDef gray fill:#9e9e9e,stroke:#333,color:#fff
 ```
 
 ## Design Principles

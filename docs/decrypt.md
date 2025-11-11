@@ -10,16 +10,12 @@ Performs authenticated decryption using ChaCha20Poly1305 AEAD, automatically ver
 
 ```mermaid
 graph LR
-    receive_files["receive_files()"]:::red
-    decrypt["decrypt()"]:::highlight
-    cipher_decrypt["cipher.decrypt()"]:::green
+    receive_files["receive_files()"]
+    decrypt["decrypt()"]
+    cipher_decrypt["cipher.decrypt()"]
 
     receive_files --> decrypt
     decrypt --> cipher_decrypt
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

@@ -10,16 +10,12 @@ Generates human-readable two-word authentication tokens using cryptographically 
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    generate_token["generate_token()"]:::highlight
-    secrets_choice["secrets.choice()"]:::green
+    send_files["send_files()"]
+    generate_token["generate_token()"]
+    secrets_choice["secrets.choice()"]
 
     send_files --> generate_token
     generate_token --> secrets_choice
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

@@ -6,19 +6,15 @@ Secure file transfer program over Tailscale networks using end-to-end encryption
 
 ```mermaid
 graph TD
-    sender["Sender<br/>(send_files)"]:::blue
-    tailscale["Tailscale Network<br/>(Encrypted Tunnel)"]:::green
-    receiver["Receiver<br/>(receive_files)"]:::blue
-    crypto["X25519 + ChaCha20Poly1305<br/>End-to-End Encryption"]:::red
+    sender["Sender<br/>(send_files)"]
+    tailscale["Tailscale Network<br/>(Encrypted Tunnel)"]
+    receiver["Receiver<br/>(receive_files)"]
+    crypto["X25519 + ChaCha20Poly1305<br/>End-to-End Encryption"]
 
     sender -->|Port 15820| tailscale
     tailscale -->|Encrypted Data| receiver
     sender -.->|uses| crypto
     receiver -.->|uses| crypto
-
-    classDef blue fill:#58a6ff,stroke:#333,color:#fff
-    classDef green fill:#56d364,stroke:#333,color:#fff
-    classDef red fill:#f78166,stroke:#333,color:#fff
 ```
 
 ## Transfer Protocol Flow
@@ -27,31 +23,23 @@ graph TD
 
 ```mermaid
 graph LR
-    main["main()"]:::red --> send["send_files()"]:::blue
-    send --> validate["validate_files()"]:::green
-    validate --> getip["get_tailscale_ip()"]:::green
-    getip --> token["generate_token()"]:::green
-    token --> crypto1["SecureCrypto()"]:::green
-    crypto1 --> stream["Stream Files<br/>(1MB buffers)"]:::green
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef blue fill:#58a6ff,stroke:#333,color:#fff
-    classDef green fill:#56d364,stroke:#333,color:#fff
+    main["main()"] --> send["send_files()"]
+    send --> validate["validate_files()"]
+    validate --> getip["get_tailscale_ip()"]
+    getip --> token["generate_token()"]
+    token --> crypto1["SecureCrypto()"]
+    crypto1 --> stream["Stream Files<br/>(1MB buffers)"]
 ```
 
 ### Receiver Workflow
 
 ```mermaid
 graph LR
-    main2["main()"]:::red --> receive["receive_files()"]:::blue
-    receive --> verify["verify_peer_ip_cached()"]:::green
-    verify --> crypto2["SecureCrypto()"]:::green
-    crypto2 --> recvall["recv_all()"]:::green
-    recvall --> decrypt["decrypt()"]:::green
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef blue fill:#58a6ff,stroke:#333,color:#fff
-    classDef green fill:#56d364,stroke:#333,color:#fff
+    main2["main()"] --> receive["receive_files()"]
+    receive --> verify["verify_peer_ip_cached()"]
+    verify --> crypto2["SecureCrypto()"]
+    crypto2 --> recvall["recv_all()"]
+    recvall --> decrypt["decrypt()"]
 ```
 
 ## Security Architecture
@@ -59,28 +47,24 @@ graph LR
 ```mermaid
 graph TD
     subgraph network[" Network Security "]
-        tailscale_net["Tailscale Peer Verification"]:::green
-        port["Fixed Port 15820"]:::green
+        tailscale_net["Tailscale Peer Verification"]
+        port["Fixed Port 15820"]
     end
 
     subgraph cryptography[" Cryptographic Security "]
-        x25519["X25519 ECDH<br/>Key Exchange"]:::blue
-        chacha20["ChaCha20Poly1305<br/>AEAD Encryption"]:::blue
-        hkdf["HKDF-SHA256<br/>Key Derivation"]:::blue
+        x25519["X25519 ECDH<br/>Key Exchange"]
+        chacha20["ChaCha20Poly1305<br/>AEAD Encryption"]
+        hkdf["HKDF-SHA256<br/>Key Derivation"]
     end
 
     subgraph auth[" Authentication "]
-        tokens["2-Word Tokens<br/>34.6 bits entropy"]:::red
+        tokens["2-Word Tokens<br/>34.6 bits entropy"]
     end
 
     tailscale_net --> x25519
     x25519 --> hkdf
     hkdf --> chacha20
     tokens --> x25519
-
-    classDef blue fill:#58a6ff,stroke:#333,color:#fff
-    classDef green fill:#56d364,stroke:#333,color:#fff
-    classDef red fill:#f78166,stroke:#333,color:#fff
 ```
 
 ## Performance Features

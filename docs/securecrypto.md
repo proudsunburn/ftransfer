@@ -10,14 +10,14 @@ Implements file transfer encryption using X25519 elliptic curve Diffie-Hellman k
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    receive_files["receive_files()"]:::red
-    securecrypto["SecureCrypto"]:::highlight
-    x25519_generate["X25519PrivateKey.generate()"]:::green
-    chacha20_encrypt["ChaCha20Poly1305.encrypt()"]:::green
-    chacha20_decrypt["ChaCha20Poly1305.decrypt()"]:::green
-    hkdf_derive["HKDF.derive()"]:::green
-    os_urandom["os.urandom()"]:::green
+    send_files["send_files()"]
+    receive_files["receive_files()"]
+    securecrypto["SecureCrypto"]
+    x25519_generate["X25519PrivateKey.generate()"]
+    chacha20_encrypt["ChaCha20Poly1305.encrypt()"]
+    chacha20_decrypt["ChaCha20Poly1305.decrypt()"]
+    hkdf_derive["HKDF.derive()"]
+    os_urandom["os.urandom()"]
 
     send_files --> securecrypto
     receive_files --> securecrypto
@@ -26,10 +26,6 @@ graph LR
     securecrypto --> chacha20_decrypt
     securecrypto --> hkdf_derive
     securecrypto --> os_urandom
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
-    classDef green fill:#56d364,stroke:#333,color:#000
 ```
 
 ## Parameters

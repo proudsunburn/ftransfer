@@ -10,17 +10,14 @@ Calculates transfer speed in bytes per second based on the number of bytes trans
 
 ```mermaid
 graph LR
-    send_files["send_files()"]:::red
-    receive_files["receive_files()"]:::red
-    format_speed["format_speed()"]:::red
-    calculate_speed["calculate_speed()"]:::highlight
+    send_files["send_files()"]
+    receive_files["receive_files()"]
+    format_speed["format_speed()"]
+    calculate_speed["calculate_speed()"]
 
     send_files --> calculate_speed
     receive_files --> calculate_speed
     format_speed --> calculate_speed
-
-    classDef red fill:#f78166,stroke:#333,color:#fff
-    classDef highlight fill:#58a6ff,stroke:#333,color:#fff,stroke-width:3px
 ```
 
 ## Parameters

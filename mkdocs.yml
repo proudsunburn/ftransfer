@@ -57,6 +57,9 @@ plugins:
       lang: en
   - mermaid2:  # Critical: Mermaid diagram support
       version: 10.6.1
+      arguments:
+        theme: |
+          ^(JSON.parse(__md_get("__palette").index == 1)) ? 'dark' : 'base'
   - git-revision-date-localized:
       enable_creation_date: true
       type: timeago
