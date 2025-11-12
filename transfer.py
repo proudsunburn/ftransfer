@@ -6,6 +6,7 @@ import json
 import os
 import secrets
 import shutil
+import signal
 import socket
 import subprocess
 import sys
@@ -42,6 +43,64 @@ def log_warning(message: str):
     except Exception:
         # Silently ignore logging failures to avoid disrupting transfer
         pass
+
+def safe_print(*args, **kwargs):
+    """Print with protection against stdout failures (BrokenPipeError, IOError)"""
+    try:
+        print(*args, **kwargs)
+        # Explicit flush to detect broken pipes early
+        if kwargs.get('flush', False) or (not kwargs.get('end', '\n') == '\n'):
+            sys.stdout.flush()
+    except (BrokenPipeError, IOError, OSError) as e:
+        # stdout is broken - try stderr as fallback
+        try:
+            message = ' '.join(str(arg) for arg in args)
+            sys.stderr.write(f"{message}\n")
+            sys.stderr.flush()
+        except:
+            pass  # Both stdout and stderr broken
+
+        # Log the critical message to file
+        try:
+            message = ' '.join(str(arg) for arg in args)
+            log_warning(f"Console output failed: {message}")
+        except:
+            pass  # Last resort logging also failed
+
+        # For certain critical errors, we should exit
+        if 'complete' in ' '.join(str(arg) for arg in args).lower():
+            # This is a completion message - exit after logging
+            sys.exit(0)
+
+def safe_flush():
+    """Safely flush stdout, catching any errors"""
+    try:
+        sys.stdout.flush()
+    except (BrokenPipeError, IOError, OSError):
+        # stdout is broken, don't raise
+        pass
+
+# Signal handlers for graceful handling of terminal disconnection
+def handle_sigpipe(signum, frame):
+    """Handle SIGPIPE (broken pipe) gracefully"""
+    log_warning("SIGPIPE received - terminal disconnected")
+    sys.exit(0)
+
+def handle_sighup(signum, frame):
+    """Handle SIGHUP (hangup) gracefully"""
+    log_warning("SIGHUP received - terminal hung up")
+    sys.exit(0)
+
+# Install signal handlers (skip on Windows where SIGPIPE doesn't exist)
+try:
+    signal.signal(signal.SIGPIPE, handle_sigpipe)
+except AttributeError:
+    pass  # SIGPIPE doesn't exist on Windows
+
+try:
+    signal.signal(signal.SIGHUP, handle_sighup)
+except AttributeError:
+    pass  # SIGHUP might not exist on Windows
 
 # Configure Blosc for optimal performance with LZ4
 blosc.set_nthreads(4)  # Use 4 threads for compression
@@ -381,27 +440,27 @@ def get_current_file_info(stream_position: int, files_metadata: List[Dict]) -> O
             return file_info
     return None
 
-def print_transfer_progress(filename: str, file_size: int, progress_percent: float, 
-                           speed_str: str, eta_str: str, is_first_update: bool, 
+def print_transfer_progress(filename: str, file_size: int, progress_percent: float,
+                           speed_str: str, eta_str: str, is_first_update: bool,
                            action: str = "Transferring", warning_msg: str = ""):
     """Print three-line progress display with file info, progress, and warnings"""
     size_str = format_size(file_size)
-    
+
     if not is_first_update:
         # Move cursor up 2 lines to overwrite all three lines
-        print("\033[2A\r", end='')
-    
+        safe_print("\033[2A\r", end='')
+
     # Line 1: Current filename being processed (clear line and print)
-    print(f"\r{action}: {filename} ({size_str})\033[K")
-    
+    safe_print(f"\r{action}: {filename} ({size_str})\033[K")
+
     # Line 2: Overall progress, speed, and ETA (clear line and print)
-    print(f"\rProgress: {progress_percent:.1f}% | Speed: {speed_str} | ETA: {eta_str}\033[K")
-    
+    safe_print(f"\rProgress: {progress_percent:.1f}% | Speed: {speed_str} | ETA: {eta_str}\033[K")
+
     # Line 3: Warning messages (clear line and print, no newline at end)
     if warning_msg:
-        print(f"\r{warning_msg}\033[K", end='', flush=True)
+        safe_print(f"\r{warning_msg}\033[K", end='', flush=True)
     else:
-        print(f"\r\033[K", end='', flush=True)  # Clear warning line
+        safe_print(f"\r\033[K", end='', flush=True)  # Clear warning line
 
 class TailscaleDetector:
     """Tailscale network detection and peer validation"""
@@ -1062,7 +1121,7 @@ def send_files(file_paths: List[str], pod: bool = False):
     # Get Tailscale IP for connection string
     tailscale_ip = TailscaleDetector.get_tailscale_ip()
     if not tailscale_ip:
-        print("Error: Could not detect Tailscale IP. Ensure Tailscale is running.")
+        safe_print("Error: Could not detect Tailscale IP. Ensure Tailscale is running.")
         sys.exit(1)
     
     # Auto-detect Tailscale userspace mode or use explicit pod flag
@@ -1073,9 +1132,9 @@ def send_files(file_paths: List[str], pod: bool = False):
     if effective_pod_mode:
         bind_ip = "127.0.0.1"
         if auto_pod_mode and not pod:
-            print("Tailscale userspace mode detected: enabling pod mode")
+            safe_print("Tailscale userspace mode detected: enabling pod mode")
         else:
-            print("Pod mode: Binding to localhost")
+            safe_print("Pod mode: Binding to localhost")
     else:
         bind_ip = "0.0.0.0"  # Bind to all interfaces for Tailscale peer connections
     
@@ -1133,28 +1192,28 @@ def send_files(file_paths: List[str], pod: bool = False):
     
     # Check for potential resource issues
     ResourceMonitor.check_fd_usage(len(collected_files))
-    
-    print(f"type into receiver: transfer receive {tailscale_ip}:{token}")
-    
+
+    safe_print(f"type into receiver: transfer receive {tailscale_ip}:{token}")
+
     # Start server
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((bind_ip, TRANSFER_PORT))
     server_socket.listen(1)
     server_socket.settimeout(300)  # 5 minute timeout
-    
-    print("Waiting for receiver to connect... ", end="")
+
+    safe_print("Waiting for receiver to connect... ", end="")
     
     try:
         client_socket, client_addr = server_socket.accept()
         
         # Validate client is from Tailscale network (skip for localhost in pod mode)
         if effective_pod_mode and client_addr[0] == "127.0.0.1":
-            print("Pod mode: Accepting localhost connection")
+            safe_print("Pod mode: Accepting localhost connection")
         else:
             is_valid, peer_name = TailscaleDetector.verify_peer_ip_cached(client_addr[0])
             if not is_valid:
-                print(f"Error: Rejected connection from unauthorized IP: {client_addr[0]}")
+                safe_print(f"Error: Rejected connection from unauthorized IP: {client_addr[0]}")
                 client_socket.close()
                 return
         
@@ -1187,13 +1246,13 @@ def send_files(file_paths: List[str], pod: bool = False):
         # Receive response
         response_len = int.from_bytes(recv_all(client_socket, 4), 'big')
         response = recv_all(client_socket, response_len)
-        
+
         if response != expected_response:
-            print("Error: Authentication failed")
+            safe_print("Error: Authentication failed")
             client_socket.close()
             return
-        
-        print("Authentication successful")
+
+        safe_print("Authentication successful")
         
         # Send batch metadata for all files
         files_metadata = []
@@ -1379,14 +1438,14 @@ def send_files(file_paths: List[str], pod: bool = False):
                 
                 failed_files = retry_request.get('failed_files', [])
                 attempt = retry_request.get('attempt', 1)
-                
-                print(f"\nRetry attempt {attempt}: Resending {len(failed_files)} failed files...")
-                
+
+                safe_print(f"\nRetry attempt {attempt}: Resending {len(failed_files)} failed files...")
+
                 # Resend failed files
                 retry_file_hashes = {}
                 for failed_filename in failed_files:
                     if failed_filename in file_hashes:
-                        print(f"Resending: {failed_filename}")
+                        safe_print(f"Resending: {failed_filename}")
                         
                         # Find and resend the file from files list
                         for file_info in files:
@@ -1425,8 +1484,8 @@ def send_files(file_paths: List[str], pod: bool = False):
                 
                 # Send retry end marker
                 client_socket.send(b'\x00\x00\x00\x00')
-                
-                print(f"Retry attempt {attempt} completed")
+
+                safe_print(f"Retry attempt {attempt} completed")
             except socket.timeout:
                 # No retry request - normal completion
                 break
@@ -1438,40 +1497,50 @@ def send_files(file_paths: List[str], pod: bool = False):
                     # Re-raise only if it's an unexpected OSError
                     raise
                 break
-        
+
         # Calculate and show completion
         total_time = time.time() - start_time
         avg_speed = calculate_speed(original_bytes_processed, total_time)
         avg_speed_str = format_speed(avg_speed)
-        print(f"\nTransfer complete! (avg: {avg_speed_str})")
+
+        # Health check stdout before final message
+        try:
+            sys.stdout.write('')
+            sys.stdout.flush()
+        except (BrokenPipeError, IOError, OSError):
+            # stdout is broken - log and exit gracefully
+            log_warning(f"Transfer complete but stdout unavailable (avg: {avg_speed_str})")
+            sys.exit(0)
+
+        safe_print(f"\nTransfer complete! (avg: {avg_speed_str})")
         
     except socket.timeout:
-        print("Error: Connection timeout - no receiver connected")
+        safe_print("Error: Connection timeout - no receiver connected")
     except OSError as e:
         if e.errno == 24:  # "Too many open files"
-            print("Error: Too many open files - system file descriptor limit exceeded")
-            print("This typically happens when reading very large numbers of files.")
-            print("Try transferring fewer files at once or increase system limits.")
-        elif e.errno == 28:  # "No space left on device" 
-            print("Error: No space left on device")
-            print("The system has run out of disk space for temporary operations.")
+            safe_print("Error: Too many open files - system file descriptor limit exceeded")
+            safe_print("This typically happens when reading very large numbers of files.")
+            safe_print("Try transferring fewer files at once or increase system limits.")
+        elif e.errno == 28:  # "No space left on device"
+            safe_print("Error: No space left on device")
+            safe_print("The system has run out of disk space for temporary operations.")
         else:
-            print(f"Error: System error during transfer: {e}")
+            safe_print(f"Error: System error during transfer: {e}")
     except Exception as e:
         # Handle blosc compression errors specifically
         if 'blosc_extension.error' in str(type(e)):
-            print(f"Error: Data compression failed: {e}")
-            print("This may indicate system resource issues or corrupted source files.")
+            safe_print(f"Error: Data compression failed: {e}")
+            safe_print("This may indicate system resource issues or corrupted source files.")
         elif isinstance(e, json.JSONDecodeError):
-            print(f"Error: Data encoding failed: {e}")
-            print("This may indicate corrupted metadata or system issues.")
+            safe_print(f"Error: Data encoding failed: {e}")
+            safe_print("This may indicate corrupted metadata or system issues.")
         else:
-            print(f"Error during transfer: {e}")
-            print(f"Error type: {type(e).__name__}")
+            safe_print(f"Error during transfer: {e}")
+            safe_print(f"Error type: {type(e).__name__}")
             if hasattr(e, 'errno'):
-                print(f"Error code: {e.errno}")
+                safe_print(f"Error code: {e.errno}")
     except KeyboardInterrupt:
-        print("\nTransfer interrupted by user")
+        safe_print("\nTransfer interrupted by user")
     finally:
         server_socket.close()
 
