@@ -1430,10 +1430,12 @@ def send_files(file_paths: List[str], pod: bool = False):
             except socket.timeout:
                 # No retry request - normal completion
                 break
-            except (ConnectionResetError, OSError) as e:
+            except (ConnectionError, ConnectionResetError, OSError) as e:
                 # Connection closed by receiver - normal completion
-                if isinstance(e, OSError) and e.errno != 54:
-                    # Re-raise if it's not a connection reset
+                # ConnectionError (including "Socket connection broken") is normal
+                # errno 54 is ECONNRESET on macOS/BSD
+                if isinstance(e, OSError) and hasattr(e, 'errno') and e.errno not in (None, 54):
+                    # Re-raise only if it's an unexpected OSError
                     raise
                 break
         
