@@ -1206,7 +1206,10 @@ def send_files(file_paths: List[str], pod: bool = False):
     
     try:
         client_socket, client_addr = server_socket.accept()
-        
+
+        # Enable TCP_NODELAY for lower latency (disable Nagle's algorithm)
+        client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
         # Validate client is from Tailscale network (skip for localhost in pod mode)
         if effective_pod_mode and client_addr[0] == "127.0.0.1":
             safe_print("Pod mode: Accepting localhost connection")
@@ -1401,35 +1404,46 @@ def send_files(file_paths: List[str], pod: bool = False):
         client_socket.send(nonce_hash)
         client_socket.send(len(encrypted_hashes).to_bytes(4, 'big'))
         client_socket.send(encrypted_hashes)
-        
+
         # Send end marker
         client_socket.send(b'\x00\x00\x00\x00')
+
+        # Log timing: sender finished sending all data
+        data_send_time = time.time() - start_time
+        log_warning(f"Sender: All data sent (time: {data_send_time:.1f}s, bytes: {total_bytes_sent})")
         
         # Wait for potential retry requests or completion signal
-        client_socket.settimeout(10)  # 10 second timeout for retry requests
+        # IMPORTANT: Increased timeout from 10s to 120s to allow receiver to complete
+        # hash verification and post-processing before sender exits
+        client_socket.settimeout(120)  # 120 second timeout for retry requests and completion
+        completion_received = False
+        completion_start_time = time.time()
+
         while True:
             try:
                 # Check for retry request or completion signal
                 nonce_len_bytes = client_socket.recv(4)
                 if not nonce_len_bytes or nonce_len_bytes == b'\x00\x00\x00\x00':
                     break
-                    
+
                 nonce_len = int.from_bytes(nonce_len_bytes, 'big')
                 nonce = recv_all(client_socket, nonce_len)
                 encrypted_len_bytes = recv_all(client_socket, 4)
                 encrypted_len = int.from_bytes(encrypted_len_bytes, 'big')
                 encrypted_data = recv_all(client_socket, encrypted_len)
-                
+
                 # Decrypt the message
                 try:
                     decrypted_data = crypto.decrypt(encrypted_data, nonce)
                     message = json.loads(decrypted_data.decode())
-                    
+
                     # Check if it's a completion signal
                     if message.get("status") == "completed":
                         # Receiver confirmed successful completion
+                        completion_received = True
+                        log_warning(f"Sender: Completion signal received after {time.time() - completion_start_time:.1f}s")
                         break
-                    
+
                     # Otherwise, treat as retry request
                     retry_request = message
                 except:
@@ -1487,15 +1501,18 @@ def send_files(file_paths: List[str], pod: bool = False):
 
                 safe_print(f"Retry attempt {attempt} completed")
             except socket.timeout:
-                # No retry request - normal completion
+                # Timeout waiting for completion signal
+                # Log this but don't treat as error - receiver may have finished successfully
+                log_warning(f"Sender: Timeout waiting for completion signal after {time.time() - completion_start_time:.1f}s")
                 break
             except (ConnectionError, ConnectionResetError, OSError) as e:
-                # Connection closed by receiver - normal completion
+                # Connection closed by receiver
                 # ConnectionError (including "Socket connection broken") is normal
                 # errno 54 is ECONNRESET on macOS/BSD
                 if isinstance(e, OSError) and hasattr(e, 'errno') and e.errno not in (None, 54):
                     # Re-raise only if it's an unexpected OSError
                     raise
+                log_warning(f"Sender: Connection closed by receiver (completion_received={completion_received})")
                 break
 
         # Calculate and show completion
@@ -1512,7 +1529,15 @@ def send_files(file_paths: List[str], pod: bool = False):
             log_warning(f"Transfer complete but stdout unavailable (avg: {avg_speed_str})")
             sys.exit(0)
 
-        safe_print(f"\nTransfer complete! (avg: {avg_speed_str})")
+        # Display completion message based on whether we received confirmation
+        if completion_received:
+            log_warning(f"Sender: Transfer confirmed complete by receiver (total time: {total_time:.1f}s)")
+            safe_print(f"\nTransfer complete! (avg: {avg_speed_str})")
+        else:
+            # No completion signal received - warn user
+            log_warning(f"Sender: No completion signal received (total time: {total_time:.1f}s)")
+            safe_print(f"\nData sent (avg: {avg_speed_str})")
+            safe_print("Note: Receiver may still be processing. Check receiver status.")
         
     except socket.timeout:
         safe_print("Error: Connection timeout - no receiver connected")
@@ -1542,6 +1567,12 @@ def send_files(file_paths: List[str], pod: bool = False):
     except KeyboardInterrupt:
         safe_print("\nTransfer interrupted by user")
     finally:
+        # Gracefully shutdown sockets before closing
+        try:
+            if 'client_socket' in locals():
+                client_socket.shutdown(socket.SHUT_RDWR)
+        except (OSError, AttributeError):
+            pass  # Socket may already be closed
         server_socket.close()
 
 
@@ -1583,7 +1614,10 @@ def receive_files(connection_string: str, pod: bool = False):
     try:
         print("Connecting to sender... ", end="")
         client_socket.connect((ip, TRANSFER_PORT))
-        
+
+        # Enable TCP_NODELAY for lower latency (disable Nagle's algorithm)
+        client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
         # Perform secure handshake
         crypto = SecureCrypto()
         public_key_bytes = crypto.get_public_key_bytes()
@@ -1804,7 +1838,7 @@ def receive_files(connection_string: str, pod: bool = False):
                 
                 stream_position += len(chunk)
                 total_bytes_received += len(chunk)
-                
+
                 # Update progress with throttling (only every 200ms)
                 current_time = time.time()
                 if first_progress_update or (current_time - last_progress_update) >= PROGRESS_UPDATE_INTERVAL:
@@ -1842,15 +1876,30 @@ def receive_files(connection_string: str, pod: bool = False):
             # Always close file handles
             for writer in file_writers:
                 writer.close()
-        
+
+        # Log timing: receiver finished receiving all data
+        data_receive_time = time.time() - start_time
+        log_warning(f"Receiver: All data received (time: {data_receive_time:.1f}s, bytes: {total_bytes_received})")
+
         # Verify file integrity and collect any failures
+        # Display progress during verification since this can take time for many files
+        print("\n\nVerifying file integrity...")
+        verification_start_time = time.time()
+        log_warning(f"Receiver: Starting hash verification for {len(file_writers)} files")
         received_files = []
         failed_files = []
-        for writer in file_writers:
+        total_files = len(file_writers)
+
+        for idx, writer in enumerate(file_writers, 1):
+            # Display verification progress every 10 files or on first/last file
+            if idx == 1 or idx == total_files or idx % 10 == 0:
+                progress_pct = (idx / total_files) * 100
+                print(f"\rVerifying: {idx}/{total_files} ({progress_pct:.1f}%) - {writer.filename[:50]}...", end='', flush=True)
+
             # Ensure all files are completed
             if not writer.is_complete:
                 writer.complete_file()
-            
+
             # Verify file integrity
             expected_hash = file_hashes.get(writer.filename)
             if expected_hash:
@@ -1882,7 +1931,19 @@ def receive_files(connection_string: str, pod: bool = False):
                     if counter > 100:  # Prevent infinite loop
                         log_warning(f"Could not locate final file for {writer.filename}")
                         break
-        
+
+        # Clear verification progress line
+        print("\r" + " " * 100 + "\r", end='', flush=True)
+
+        # Log timing: hash verification complete
+        verification_time = time.time() - verification_start_time
+        log_warning(f"Receiver: Hash verification complete (time: {verification_time:.1f}s, failed: {len(failed_files)})")
+
+        if failed_files:
+            print(f"Verification complete: {len(failed_files)} file(s) failed integrity check")
+        else:
+            print(f"Verification complete: All {total_files} file(s) passed integrity check")
+
         # Handle integrity check failures with retry mechanism
         retry_attempt = 0
         
@@ -2021,25 +2082,51 @@ def receive_files(connection_string: str, pod: bool = False):
         # Clean up lock file on successful completion
         if lock_manager:
             lock_manager.cleanup_on_completion()
-        
-        # Send completion signal to sender before closing connection
-        try:
-            completion_signal = json.dumps({"status": "completed", "message": "Transfer successful"}).encode()
-            completion_nonce = secrets.token_bytes(12)
-            encrypted_completion = crypto.encrypt(completion_signal, completion_nonce)
-            
-            client_socket.send(len(completion_nonce).to_bytes(4, 'big'))
-            client_socket.send(completion_nonce)
-            client_socket.send(len(encrypted_completion).to_bytes(4, 'big'))
-            client_socket.send(encrypted_completion)
-        except:
-            # If we can't send completion signal, that's okay - transfer still succeeded
-            pass
-        
+
         # Flush any pending lock file updates before completion
         if lock_manager:
             lock_manager.flush_pending_updates()
-            
+
+        # Send completion signal to sender before closing connection
+        # This is CRITICAL to prevent sender from exiting before receiver is done
+        completion_sent = False
+        for attempt in range(3):  # Try up to 3 times
+            try:
+                completion_signal = json.dumps({
+                    "status": "completed",
+                    "message": "Transfer successful",
+                    "completion_time": time.time()
+                }).encode()
+                completion_nonce = secrets.token_bytes(12)
+                encrypted_completion = crypto.encrypt(completion_signal, completion_nonce)
+
+                client_socket.send(len(completion_nonce).to_bytes(4, 'big'))
+                client_socket.send(completion_nonce)
+                client_socket.send(len(encrypted_completion).to_bytes(4, 'big'))
+                client_socket.send(encrypted_completion)
+
+                # Use shutdown to ensure data is flushed before close
+                try:
+                    client_socket.shutdown(socket.SHUT_WR)  # Signal we're done sending
+                except OSError:
+                    # Socket may already be closed by sender
+                    pass
+
+                completion_sent = True
+                log_warning(f"Receiver: Completion signal sent successfully (attempt {attempt + 1})")
+                break
+
+            except (ConnectionError, BrokenPipeError, OSError) as e:
+                # Connection may have been closed by sender
+                log_warning(f"Receiver: Failed to send completion signal (attempt {attempt + 1}): {e}")
+                if attempt < 2:  # Don't sleep on last attempt
+                    time.sleep(0.1)  # Brief delay before retry
+                continue
+
+        if not completion_sent:
+            log_warning("Receiver: Failed to send completion signal after 3 attempts")
+
+        log_warning(f"Receiver: Transfer complete (total time: {total_time:.1f}s)")
         print(f"\nTransfer complete! (avg: {avg_speed_str})")
         
     except socket.timeout:
@@ -2110,6 +2197,11 @@ def receive_files(connection_string: str, pod: bool = False):
             print(f"Error code: {e.errno}")
         sys.exit(1)
     finally:
+        # Gracefully shutdown socket before closing
+        try:
+            client_socket.shutdown(socket.SHUT_RDWR)
+        except (OSError, AttributeError):
+            pass  # Socket may already be closed or shutdown
         client_socket.close()
 
 
