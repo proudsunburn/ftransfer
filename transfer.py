@@ -254,6 +254,41 @@ def format_speed(speed: float) -> str:
     else:
         return f"{speed / (1024 * 1024 * 1024):.1f} GB/s"
 
+def should_skip_conflict_detection(has_existing_lock: bool, resume_dict: Dict, output_dir: str, num_files: int) -> bool:
+    """Determine if we can safely skip upfront conflict checking
+
+    Args:
+        has_existing_lock: Whether resuming an existing transfer
+        resume_dict: Resume plan from lock manager
+        output_dir: Directory where files will be written
+        num_files: Number of files in the transfer
+
+    Returns:
+        True if conflict detection can be skipped safely
+    """
+    # Case 1: Resuming a transfer - conflicts already handled previously
+    if has_existing_lock and resume_dict and resume_dict.get("action") == "resume":
+        return True
+
+    # Case 2: Output directory doesn't exist or is empty
+    output_path = Path(output_dir)
+    if not output_path.exists():
+        return True
+
+    try:
+        if not any(output_path.iterdir()):  # Empty directory
+            return True
+    except (PermissionError, OSError):
+        pass  # Fall through to normal checking
+
+    # Case 3: Very large transfer - defer to on-demand checking
+    # FileWriter.open_for_writing() handles overwrites naturally
+    if num_files > 5000:
+        return True
+
+    return False
+
+
 def detect_existing_conflicts(files_info: List[Dict], output_dir: str = '.') -> List[str]:
     """Detect existing files/folders that would conflict with incoming transfer
 
@@ -450,13 +485,31 @@ def progress_update_thread(state: dict, stop_event: threading.Event):
             current_time = time.time()
             current_bytes = state.get('bytes_transferred', 0)
             total_size = state.get('total_size', 0)
+            start_time = state.get('start_time', current_time)
 
-            # Calculate delta values for instantaneous speed
-            delta_bytes = current_bytes - last_bytes
-            delta_time = current_time - last_time
+            # OPTIMIZATION: Warmup mode for smooth initial speed calculation
+            # Use cumulative speed for first 5 seconds, then switch to delta speed
+            elapsed_total = current_time - start_time
+            warmup_period = state.get('warmup_period', False)
 
-            # Calculate smoothed speed using delta values
-            smoothed_speed = calculate_smoothed_speed(recent_speeds, delta_bytes, delta_time)
+            if warmup_period and elapsed_total < 5.0:
+                # Cumulative average - more stable during warmup
+                if elapsed_total > 0:
+                    smoothed_speed = current_bytes / elapsed_total
+                else:
+                    smoothed_speed = 0.0
+            else:
+                # Graduated to delta speed - more responsive
+                if warmup_period:
+                    state['warmup_period'] = False  # Switch off warmup mode
+
+                # Calculate delta values for instantaneous speed
+                delta_bytes = current_bytes - last_bytes
+                delta_time = current_time - last_time
+
+                # Calculate smoothed speed using delta values
+                smoothed_speed = calculate_smoothed_speed(recent_speeds, delta_bytes, delta_time)
+
             speed_str = format_speed(smoothed_speed)
 
             # Calculate progress and ETA
@@ -827,6 +880,74 @@ class FileWriter:
         pass  # Files are opened and closed immediately in write_chunk
 
 
+class LazyFileWriterDict:
+    """Creates FileWriters on-demand as data arrives, eliminating upfront delay
+
+    OPTIMIZATION: Instead of creating all FileWriters upfront (which triggers O(N)
+    lock updates and disk I/O), this class creates them lazily as chunks arrive.
+    This eliminates setup delay and allows READY signal to be sent immediately.
+    """
+
+    def __init__(self, files_info: List[Dict], resume_dict: Dict[str, int],
+                 output_dir: str, lock_manager: 'TransferLockManager',
+                 overwrite_mode: bool = False):
+        """Initialize with file metadata but don't create FileWriters yet
+
+        Args:
+            files_info: List of file metadata dicts with filename, size, offset
+            resume_dict: Dict mapping filename to resume byte count
+            output_dir: Directory where files will be written
+            lock_manager: TransferLockManager instance for state tracking
+            overwrite_mode: Whether to overwrite existing files
+        """
+        # Build lookup dict but don't create FileWriters yet
+        self._files_info = {f['filename']: f for f in files_info}
+        self._resume_dict = resume_dict
+        self._output_dir = output_dir
+        self._lock_manager = lock_manager
+        self._overwrite_mode = overwrite_mode
+        self._writers = {}  # Created on-demand
+
+    def __getitem__(self, filename: str) -> FileWriter:
+        """Get existing writer or create new one on first access"""
+        if filename not in self._writers:
+            if filename not in self._files_info:
+                raise KeyError(f"File {filename} not in transfer")
+
+            file_info = self._files_info[filename]
+            resume_bytes = self._resume_dict.get(filename, 0)
+
+            # Create FileWriter only when needed
+            writer = FileWriter(
+                filename,
+                file_info['size'],
+                file_info['offset'],
+                self._lock_manager,
+                self._overwrite_mode,
+                self._output_dir
+            )
+            writer.open_for_writing(resume_bytes)
+            self._writers[filename] = writer
+
+        return self._writers[filename]
+
+    def __contains__(self, filename: str) -> bool:
+        """Check if filename is in transfer (not whether writer was created)"""
+        return filename in self._files_info
+
+    def values(self):
+        """Return all created writers (for cleanup)"""
+        return self._writers.values()
+
+    def items(self):
+        """Return all created (filename, writer) pairs"""
+        return self._writers.items()
+
+    def keys(self):
+        """Return all filenames that have had writers created"""
+        return self._writers.keys()
+
+
 class SecureCrypto:
     """Cryptographic operations for secure file transfer"""
     
@@ -891,6 +1012,9 @@ class TransferLockManager:
         self._last_save_time = 0
         self._save_interval = 2.0  # Save every 2 seconds max
         self._max_pending = 150   # Max pending updates before forced save
+        # OPTIMIZATION: Defer mode for bulk FileWriter creation
+        self._defer_mode = False
+        self._deferred_updates = []
     
     def create_lock_file(self, sender_ip: str, file_list: List[Dict], total_size: int):
         """Create a new transfer lock file"""
@@ -962,25 +1086,30 @@ class TransferLockManager:
         """Update status of a specific file with batching optimization"""
         if not self.lock_data or filename not in self.lock_data["files"]:
             return
-        
+
+        # OPTIMIZATION: If in defer mode, just buffer the update without any disk I/O
+        if self._defer_mode:
+            self._deferred_updates.append((filename, status, transferred_bytes, partial_hash))
+            return
+
         # Update the actual lock data
         file_entry = self.lock_data["files"][filename]
         file_entry["status"] = status
         file_entry["transferred_bytes"] = transferred_bytes
         if partial_hash:
             file_entry["partial_hash"] = partial_hash
-        
+
         # Buffer this update for batched saving
         self._pending_updates[filename] = {
             "status": status,
             "transferred_bytes": transferred_bytes,
             "partial_hash": partial_hash
         }
-        
+
         # Save immediately for critical operations or when batch limits reached
         current_time = time.time()
-        if (force_save or 
-            status == "completed" or 
+        if (force_save or
+            status == "completed" or
             status == "failed" or
             len(self._pending_updates) >= self._max_pending or
             current_time - self._last_save_time >= self._save_interval):
@@ -996,6 +1125,32 @@ class TransferLockManager:
     def flush_pending_updates(self):
         """Public method to force flush pending updates"""
         self._flush_pending_updates()
+
+    def enable_defer_mode(self):
+        """Enable defer mode to buffer updates without writing to disk"""
+        self._defer_mode = True
+        self._deferred_updates = []
+
+    def flush_deferred_updates(self):
+        """Apply all buffered updates in one operation and save once"""
+        if not self._deferred_updates:
+            self._defer_mode = False
+            return
+
+        # Apply all deferred updates to lock_data
+        for filename, status, transferred_bytes, partial_hash in self._deferred_updates:
+            if filename in self.lock_data["files"]:
+                file_entry = self.lock_data["files"][filename]
+                file_entry["status"] = status
+                file_entry["transferred_bytes"] = transferred_bytes
+                if partial_hash:
+                    file_entry["partial_hash"] = partial_hash
+
+        # Single disk write for all updates
+        self._save_lock_file()
+        self._deferred_updates = []
+        self._defer_mode = False
+        self._last_save_time = time.time()
     
     def get_resume_plan(self, incoming_files: List[Dict]) -> Dict:
         """Analyze what needs to be transferred based on existing lock"""
@@ -1045,18 +1200,26 @@ class TransferLockManager:
         """Save lock data to file"""
         if not self.lock_data:
             return
-        
+
         try:
             # Create parent directory if needed
             self.lock_file_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             # Write to temporary file first, then rename for atomicity
             temp_path = self.lock_file_path.with_suffix('.tmp')
+            num_files = len(self.lock_data.get("files", {}))
+
+            # OPTIMIZATION: Use compact JSON for large transfers to reduce write time
             with open(temp_path, 'w', encoding='utf-8') as f:
-                json.dump(self.lock_data, f, indent=2)
-            
+                if num_files > 1000:
+                    # Compact JSON - no indentation for large transfers
+                    json.dump(self.lock_data, f, separators=(',', ':'))
+                else:
+                    # Pretty JSON for small transfers (debugging friendly)
+                    json.dump(self.lock_data, f, indent=2)
+
             temp_path.rename(self.lock_file_path)
-            
+
         except OSError as e:
             log_warning(f"Failed to save lock file: {e}")
     
@@ -1370,8 +1533,19 @@ def send_files(file_paths: List[str], pod: bool = False):
         client_socket.send(encrypted_metadata)
 
         # Wait for RECEIVER_READY signal before streaming files
-        # Set a reasonable timeout (30 seconds) for user interaction on receiver side
-        client_socket.settimeout(30)
+        # OPTIMIZATION: Adaptive timeout based on file count for large transfers
+        num_files = len(files_metadata)
+        if num_files > 10000:
+            timeout = 180  # 3 minutes for very large transfers
+            safe_print(f"Waiting for receiver to be ready (processing {num_files:,} files may take 1-2 minutes)...")
+        elif num_files > 1000:
+            timeout = 120  # 2 minutes for large transfers
+            safe_print(f"Waiting for receiver to be ready (processing {num_files:,} files may take 30-60 seconds)...")
+        else:
+            timeout = 60   # 1 minute for normal transfers
+            safe_print("Waiting for receiver to be ready...")
+
+        client_socket.settimeout(timeout)
         try:
             ready_len = int.from_bytes(recv_all(client_socket, 4), 'big')
             ready_signal = recv_all(client_socket, ready_len)
@@ -1380,7 +1554,7 @@ def send_files(file_paths: List[str], pod: bool = False):
                 client_socket.close()
                 return
         except socket.timeout:
-            safe_print("Error: Timeout waiting for receiver to be ready (30s)")
+            safe_print(f"Error: Timeout waiting for receiver to be ready ({timeout}s)")
             client_socket.close()
             return
 
@@ -1808,45 +1982,56 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
             sender_ip = ip
             lock_manager.create_lock_file(sender_ip, files_info, total_size)
             resume_plan = {"action": "fresh_transfer", "completed_files": [], "resume_files": [], "fresh_files": files_info}
-            
-            # For fresh transfers, check for conflicts and ask user about overwrite
-            conflicts = detect_existing_conflicts(files_info, output_dir)
-            if conflicts:
-                response = input("Existing files/folders will be overwritten. Continue? [Y/n]: ").strip().lower()
-                if response == 'n' or response == 'no':
-                    print("Transfer cancelled to avoid overwriting existing files")
-                    sys.exit(0)
-                else:
+
+            # OPTIMIZATION: Smart conflict detection - skip when safe
+            if should_skip_conflict_detection(has_existing_lock, resume_plan, output_dir, len(files_info)):
+                conflicts = []
+                # For very large transfers (>5K files), show warning about overwrites
+                if len(files_info) > 5000:
+                    safe_print(f"Large transfer detected ({len(files_info):,} files). Existing files will be overwritten.")
                     overwrite_mode = True
+            else:
+                # For fresh transfers with potential conflicts, check and ask user
+                conflicts = detect_existing_conflicts(files_info, output_dir)
+                if conflicts:
+                    response = input("Existing files/folders will be overwritten. Continue? [Y/n]: ").strip().lower()
+                    if response == 'n' or response == 'no':
+                        print("Transfer cancelled to avoid overwriting existing files")
+                        sys.exit(0)
+                    else:
+                        overwrite_mode = True
         
-        # Create FileWriter instances for incremental saving
-        file_writers = []
+        # OPTIMIZATION Phase 3: Lazy FileWriter creation
+        # Build resume bytes dict for lazy initialization (O(1) lookups)
+        resume_bytes_dict = {}
+        completed_set = set()
+        if has_existing_lock:
+            resume_bytes_dict = {f: b for f, b in resume_plan.get("resume_files", [])}
+            completed_set = set(resume_plan.get("completed_files", []))
+
+        # Filter out unsafe filenames upfront
+        safe_files_info = []
         for file_info in files_info:
             filename = file_info['filename']
-            file_size = file_info['size']
-            file_offset = file_info['offset']
-            
-            # Check for unsafe filename
             if os.path.isabs(filename) or ".." in filename:
                 log_warning(f"Skipping unsafe filename: {filename}")
                 print(f"\nWarning: Skipping unsafe filename: {filename}")
                 continue
-            
-            # Determine resume bytes for this file
-            resume_bytes = 0
-            if has_existing_lock:
-                # Check if this file should be resumed
-                for resume_filename, resume_byte_count in resume_plan["resume_files"]:
-                    if resume_filename == filename:
-                        resume_bytes = resume_byte_count
-                        break
-                # Check if file is already completed
-                if filename in resume_plan["completed_files"]:
-                    resume_bytes = file_size  # Mark as complete
-            
-            writer = FileWriter(filename, file_size, file_offset, lock_manager, overwrite_mode, output_dir)
-            writer.open_for_writing(resume_bytes)
-            file_writers.append(writer)
+
+            # Mark completed files in resume dict
+            if filename in completed_set:
+                resume_bytes_dict[filename] = file_info['size']
+
+            safe_files_info.append(file_info)
+
+        # Create LazyFileWriterDict - FileWriters created on-demand as chunks arrive
+        file_writers = LazyFileWriterDict(
+            safe_files_info,
+            resume_bytes_dict,
+            output_dir,
+            lock_manager,
+            overwrite_mode
+        )
 
         # Send RECEIVER_READY signal to sender after setup is complete
         ready_signal = b'READY'
@@ -1859,14 +2044,19 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         total_compressed_bytes_received = 0  # Tracks actual compressed data received
         start_time = time.time()
 
-        # Setup background progress thread
+        # OPTIMIZATION: Setup background progress thread with real initial data
+        # Initialize with first file data to avoid empty state display
+        first_file = safe_files_info[0] if safe_files_info else None
         progress_state = {
-            'filename': '',
-            'file_size': 0,
+            'filename': first_file['filename'] if first_file else '',
+            'file_size': first_file['size'] if first_file else 0,
             'bytes_transferred': 0,
             'total_size': uncompressed_total,
             'action': 'Receiving',
-            'start_time': start_time
+            'start_time': start_time,
+            'last_update_time': start_time,
+            'last_update_bytes': 0,
+            'warmup_period': True  # Use cumulative speed for first 5 seconds
         }
         stop_progress = threading.Event()
         progress_thread = threading.Thread(
