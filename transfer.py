@@ -962,6 +962,27 @@ class LazyFileWriterDict:
         """Return total number of files in transfer (not just created writers)"""
         return len(self._files_info)
 
+    def get_writer_at_offset(self, stream_position: int):
+        """Get the writer for the file at the given stream position (O(N) lookup)
+
+        Args:
+            stream_position: Position in the stream (after decompression)
+
+        Returns:
+            FileWriter for the file at this position, or None if position is beyond all files
+        """
+        # Find the file that contains this stream position
+        for file_info in self._files_info.values():
+            file_start = file_info['offset']
+            file_end = file_start + file_info['size']
+
+            if file_start <= stream_position < file_end:
+                # Found the file - return writer (creating lazily if needed)
+                return self[file_info['filename']]
+
+        # Position is beyond all files
+        return None
+
 
 class SecureCrypto:
     """Cryptographic operations for secure file transfer"""
@@ -1787,6 +1808,11 @@ def send_files(file_paths: List[str], pod: bool = False):
                 # Timeout waiting for completion signal
                 # Log this but don't treat as error - receiver may have finished successfully
                 log_warning(f"Sender: Timeout waiting for completion signal after {time.time() - completion_start_time:.1f}s")
+                # Close socket immediately so receiver gets clear error if trying to send
+                try:
+                    client_socket.shutdown(socket.SHUT_RDWR)
+                except (OSError, AttributeError):
+                    pass  # Socket may already be closed
                 break
             except (ConnectionError, ConnectionResetError, OSError) as e:
                 # Connection closed by receiver
@@ -2053,6 +2079,10 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         client_socket.send(len(ready_signal).to_bytes(4, 'big'))
         client_socket.send(ready_signal)
 
+        # Remove timeout during data transfer to prevent deadlock
+        # Sender has no timeout during transfer, receiver should match
+        client_socket.settimeout(None)
+
         # Receive streaming data with incremental saving
         stream_position = 0  # Tracks uncompressed data position in the stream
         total_bytes_received = 0  # Tracks compressed bytes received from network
@@ -2150,13 +2180,12 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
                 while chunk_offset < len(chunk):
                     remaining_chunk = chunk[chunk_offset:]
                     bytes_written = 0
-                    
-                    # Find which files need data at this stream position
-                    for writer in file_writers:
-                        if writer.needs_data(stream_position + chunk_offset):
-                            bytes_written = writer.write_chunk(remaining_chunk)
-                            break
-                    
+
+                    # Find which file needs data at this stream position (O(N) but no writer creation)
+                    writer = file_writers.get_writer_at_offset(stream_position + chunk_offset)
+                    if writer and writer.needs_data(stream_position + chunk_offset):
+                        bytes_written = writer.write_chunk(remaining_chunk)
+
                     if bytes_written == 0:
                         # No file needed this data, advance position
                         chunk_offset = len(chunk)
@@ -2179,8 +2208,8 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
                     progress_state['file_size'] = total_size
         
         finally:
-            # Always close file handles
-            for writer in file_writers:
+            # Always close file handles (only created writers)
+            for writer in file_writers.values():
                 writer.close()
 
         # Log timing: receiver finished receiving all data
@@ -2191,12 +2220,15 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         # Display progress during verification since this can take time for many files
         print("\n\nVerifying file integrity...")
         verification_start_time = time.time()
-        log_warning(f"Receiver: Starting hash verification for {len(file_writers)} files")
+
+        # Only verify created writers (files that were actually transferred)
+        created_writers = list(file_writers.values())
+        log_warning(f"Receiver: Starting hash verification for {len(created_writers)} files")
         received_files = []
         failed_files = []
-        total_files = len(file_writers)
+        total_files = len(created_writers)
 
-        for idx, writer in enumerate(file_writers, 1):
+        for idx, writer in enumerate(created_writers, 1):
             # Display verification progress every 10 files or on first/last file
             if idx == 1 or idx == total_files or idx % 10 == 0:
                 progress_pct = (idx / total_files) * 100
