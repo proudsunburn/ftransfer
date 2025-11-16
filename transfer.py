@@ -10,6 +10,7 @@ import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any
@@ -353,23 +354,32 @@ def calculate_eta(remaining_bytes: int, current_speed: float) -> int:
         return 0
     return int(remaining_bytes / current_speed)
 
-def calculate_smoothed_speed(recent_speeds: list, current_bytes: int, elapsed_time: float) -> float:
-    """Calculate smoothed speed using moving average of recent measurements"""
-    if elapsed_time <= 0:
-        return 0.0
-    
-    # Calculate current speed
-    current_speed = current_bytes / elapsed_time
-    
+def calculate_smoothed_speed(recent_speeds: list, delta_bytes: int, delta_time: float) -> float:
+    """Calculate smoothed speed using moving average of recent measurements
+
+    Args:
+        recent_speeds: List of recent speed measurements
+        delta_bytes: Bytes transferred since last measurement
+        delta_time: Time elapsed since last measurement
+
+    Returns:
+        Smoothed speed in bytes/second
+    """
+    # Calculate instantaneous speed from delta values
+    if delta_time <= 0 or delta_bytes <= 0:
+        current_speed = 0.0
+    else:
+        current_speed = delta_bytes / delta_time
+
     # Add to recent speeds list (keep last 15 measurements)
     recent_speeds.append(current_speed)
     if len(recent_speeds) > 15:
         recent_speeds.pop(0)
-    
+
     # Use weighted average favoring recent measurements
     if len(recent_speeds) == 1:
         return current_speed
-    
+
     # Weight recent speeds more heavily (exponential weighting)
     total_weight = 0
     weighted_sum = 0
@@ -377,7 +387,7 @@ def calculate_smoothed_speed(recent_speeds: list, current_bytes: int, elapsed_ti
         weight = (i + 1) ** 1.5  # Exponential weighting favoring recent values
         weighted_sum += speed * weight
         total_weight += weight
-    
+
     return weighted_sum / total_weight if total_weight > 0 else current_speed
 
 def calculate_smoothed_eta(remaining_bytes: int, smoothed_speed: float, previous_eta: int, progress_percent: float) -> int:
@@ -409,6 +419,74 @@ def calculate_smoothed_eta(remaining_bytes: int, smoothed_speed: float, previous
         return max(0, smoothed_eta)
     
     return raw_eta
+
+def progress_update_thread(state: dict, stop_event: threading.Event):
+    """Background thread to continuously update progress display every 200ms
+
+    Args:
+        state: Shared state dictionary with keys:
+            - 'filename': Current file being transferred
+            - 'file_size': Size of current file
+            - 'bytes_transferred': Total bytes transferred so far
+            - 'total_size': Total transfer size
+            - 'action': "Sending" or "Receiving"
+            - 'start_time': Transfer start timestamp
+        stop_event: Event to signal thread to stop
+    """
+    PROGRESS_UPDATE_INTERVAL = 0.2  # Update every 200ms
+    recent_speeds = []
+    previous_eta = 0
+    last_bytes = 0
+    last_time = time.time()
+    first_update = True
+
+    while not stop_event.is_set():
+        try:
+            # Wait for the update interval
+            stop_event.wait(PROGRESS_UPDATE_INTERVAL)
+            if stop_event.is_set():
+                break
+
+            current_time = time.time()
+            current_bytes = state.get('bytes_transferred', 0)
+            total_size = state.get('total_size', 0)
+
+            # Calculate delta values for instantaneous speed
+            delta_bytes = current_bytes - last_bytes
+            delta_time = current_time - last_time
+
+            # Calculate smoothed speed using delta values
+            smoothed_speed = calculate_smoothed_speed(recent_speeds, delta_bytes, delta_time)
+            speed_str = format_speed(smoothed_speed)
+
+            # Calculate progress and ETA
+            if total_size > 0:
+                progress_percent = (current_bytes / total_size) * 100
+            else:
+                progress_percent = 100
+
+            remaining_bytes = total_size - current_bytes
+            eta_seconds = calculate_smoothed_eta(remaining_bytes, smoothed_speed, previous_eta, progress_percent)
+            eta_str = format_eta(eta_seconds)
+            previous_eta = eta_seconds
+
+            # Display progress
+            filename = state.get('filename', 'transfer')
+            file_size = state.get('file_size', total_size)
+            action = state.get('action', 'Transferring')
+
+            print_transfer_progress(filename, file_size, progress_percent,
+                                  speed_str, eta_str, first_update, action)
+            first_update = False
+
+            # Update tracking variables
+            last_bytes = current_bytes
+            last_time = current_time
+
+        except Exception as e:
+            # Log errors but don't crash the thread
+            log_warning(f"Progress thread error: {e}")
+            continue
 
 def format_eta(seconds: int) -> str:
     """Format ETA for display as MM:SS or HH:MM:SS"""
@@ -1312,21 +1390,37 @@ def send_files(file_paths: List[str], pod: bool = False):
         # Stream all files using large buffer chunks
         buffer_size = 1024 * 1024  # 1MB buffer for streaming
         start_time = time.time()
-        
+
         # Create streaming buffer and track progress
         buffer = bytearray()
         file_hashes = {}
         original_bytes_processed = 0  # Track original file bytes for progress
         total_bytes_sent = 0  # Track total compressed bytes sent over network
         current_file_start = 0  # Track start position of current file
-        first_progress_update = True  # Track if this is the first progress update
-        last_progress_update = 0  # Track last progress update time
-        PROGRESS_UPDATE_INTERVAL = 0.2  # Update progress every 200ms
-        recent_speeds = []  # Track recent speed measurements for smoothing
-        previous_eta = 0  # Track previous ETA for smoothing
-        
+
+        # Setup background progress thread
+        progress_state = {
+            'filename': '',
+            'file_size': 0,
+            'bytes_transferred': 0,
+            'total_size': total_size,
+            'action': 'Sending',
+            'start_time': start_time
+        }
+        stop_progress = threading.Event()
+        progress_thread = threading.Thread(
+            target=progress_update_thread,
+            args=(progress_state, stop_progress),
+            daemon=True
+        )
+        progress_thread.start()
+
         for file_path, relative_path in collected_files:
             file_size = file_path.stat().st_size
+
+            # Update progress state for this file
+            progress_state['filename'] = relative_path
+            progress_state['file_size'] = file_size
 
             # Read file, compress, and calculate hash of original data
             hasher = hashlib.sha256()
@@ -1370,30 +1464,8 @@ def send_files(file_paths: List[str], pod: bool = False):
                         # Track total bytes sent over network
                         total_bytes_sent += len(encrypted_chunk)
 
-                    # Update progress after each chunk (outside buffer send block)
-                    # This ensures small files show progress even if buffer never fills
-                    current_time = time.time()
-                    if first_progress_update or (current_time - last_progress_update) >= PROGRESS_UPDATE_INTERVAL:
-                        elapsed = current_time - start_time
-                        if elapsed > 0:
-                            # Calculate overall transfer progress
-                            overall_progress = (original_bytes_processed / total_size) * 100 if total_size > 0 else 100
-
-                            # Use smoothed speed calculation
-                            smoothed_speed = calculate_smoothed_speed(recent_speeds, original_bytes_processed, elapsed)
-                            speed_str = format_speed(smoothed_speed)
-
-                            # Use smoothed ETA calculation
-                            remaining_bytes = total_size - original_bytes_processed
-                            eta_seconds = calculate_smoothed_eta(remaining_bytes, smoothed_speed, previous_eta, overall_progress)
-                            eta_str = format_eta(eta_seconds)
-                            previous_eta = eta_seconds
-
-                            # Use three-line progress display with overall progress
-                            print_transfer_progress(relative_path, file_size, overall_progress,
-                                                  speed_str, eta_str, first_progress_update, "Transferring")
-                            first_progress_update = False
-                            last_progress_update = current_time
+                    # Update progress state (background thread will display it)
+                    progress_state['bytes_transferred'] = original_bytes_processed
 
             # Store file hash
             file_hashes[relative_path] = hasher.hexdigest()
@@ -1537,6 +1609,10 @@ def send_files(file_paths: List[str], pod: bool = False):
                 log_warning(f"Sender: Connection closed by receiver (completion_received={completion_received})")
                 break
 
+        # Stop progress thread
+        stop_progress.set()
+        progress_thread.join(timeout=1.0)
+
         # Calculate and show completion
         total_time = time.time() - start_time
         avg_speed = calculate_speed(original_bytes_processed, total_time)
@@ -1589,6 +1665,12 @@ def send_files(file_paths: List[str], pod: bool = False):
     except KeyboardInterrupt:
         safe_print("\nTransfer interrupted by user")
     finally:
+        # Stop progress thread if it exists
+        if 'stop_progress' in locals():
+            stop_progress.set()
+        if 'progress_thread' in locals():
+            progress_thread.join(timeout=1.0)
+
         # Gracefully shutdown sockets before closing
         try:
             if 'client_socket' in locals():
@@ -1776,12 +1858,24 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         total_bytes_received = 0  # Tracks compressed bytes received from network
         total_compressed_bytes_received = 0  # Tracks actual compressed data received
         start_time = time.time()
-        first_progress_update = True  # Track if this is the first progress update
-        last_progress_update = 0  # Track last progress update time
-        PROGRESS_UPDATE_INTERVAL = 0.2  # Update progress every 200ms
-        recent_speeds = []  # Track recent speed measurements for smoothing
-        previous_eta = 0  # Track previous ETA for smoothing
-        
+
+        # Setup background progress thread
+        progress_state = {
+            'filename': '',
+            'file_size': 0,
+            'bytes_transferred': 0,
+            'total_size': uncompressed_total,
+            'action': 'Receiving',
+            'start_time': start_time
+        }
+        stop_progress = threading.Event()
+        progress_thread = threading.Thread(
+            target=progress_update_thread,
+            args=(progress_state, stop_progress),
+            daemon=True
+        )
+        progress_thread.start()
+
         try:
             # Receive all streaming data chunks
             while True:
@@ -1867,38 +1961,17 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
                 stream_position += len(chunk)
                 total_bytes_received += len(chunk)
 
-                # Update progress with throttling (only every 200ms)
-                current_time = time.time()
-                if first_progress_update or (current_time - last_progress_update) >= PROGRESS_UPDATE_INTERVAL:
-                    elapsed = current_time - start_time
-                    if elapsed > 0:
-                        # Calculate overall transfer progress
-                        overall_progress = (total_bytes_received / uncompressed_total) * 100 if uncompressed_total > 0 else 100
-                        
-                        # Use smoothed speed calculation
-                        smoothed_speed = calculate_smoothed_speed(recent_speeds, total_bytes_received, elapsed)
-                        speed_str = format_speed(smoothed_speed)
-                        
-                        # Use smoothed ETA calculation
-                        remaining_bytes = total_size - total_bytes_received
-                        eta_seconds = calculate_smoothed_eta(remaining_bytes, smoothed_speed, previous_eta, overall_progress)
-                        eta_str = format_eta(eta_seconds)
-                        previous_eta = eta_seconds
-                        
-                        # Find current file being received for display
-                        current_file = get_current_file_info(stream_position, files_info)
-                        if current_file:
-                            # Show current file with overall progress
-                            print_transfer_progress(current_file['filename'], current_file['size'], overall_progress, 
-                                                  speed_str, eta_str, first_progress_update, "Receiving")
-                            first_progress_update = False
-                            last_progress_update = current_time
-                        else:
-                            # Fallback to overall progress display
-                            print_transfer_progress("multiple files", total_size, overall_progress, 
-                                                  speed_str, eta_str, first_progress_update, "Receiving")
-                            first_progress_update = False
-                            last_progress_update = current_time
+                # Update progress state (background thread will display it)
+                progress_state['bytes_transferred'] = total_bytes_received
+
+                # Update current filename for display
+                current_file = get_current_file_info(stream_position, files_info)
+                if current_file:
+                    progress_state['filename'] = current_file['filename']
+                    progress_state['file_size'] = current_file['size']
+                else:
+                    progress_state['filename'] = 'multiple files'
+                    progress_state['file_size'] = total_size
         
         finally:
             # Always close file handles
@@ -2154,6 +2227,10 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         if not completion_sent:
             log_warning("Receiver: Failed to send completion signal after 3 attempts")
 
+        # Stop progress thread
+        stop_progress.set()
+        progress_thread.join(timeout=1.0)
+
         log_warning(f"Receiver: Transfer complete (total time: {total_time:.1f}s)")
         print(f"\nTransfer complete! (avg: {avg_speed_str})")
         
@@ -2225,6 +2302,12 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
             print(f"Error code: {e.errno}")
         sys.exit(1)
     finally:
+        # Stop progress thread if it exists
+        if 'stop_progress' in locals():
+            stop_progress.set()
+        if 'progress_thread' in locals():
+            progress_thread.join(timeout=1.0)
+
         # Gracefully shutdown socket before closing
         try:
             client_socket.shutdown(socket.SHUT_RDWR)
