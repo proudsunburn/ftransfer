@@ -7,5 +7,6 @@ Security-critical classes providing encryption, network validation, authenticati
 - **[TailscaleDetector](tailscaledetector.md)** - Network peer validation and IP discovery
 - **[SecureCrypto](securecrypto.md)** - End-to-end encryption and key management
 - **[SecureTokenGenerator](securetokengenerator.md)** - Human-readable authentication token generation
+- **[FileWriter](filewriter.md)** - Incremental file writing with hash tracking and resume capability
 - **[TransferLockManager](transferlockmanager.md)** - Automatic resume state management
 - **[ResourceMonitor](resourcemonitor.md)** - File descriptor and resource monitoring
