@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import secrets
+import select
 import shutil
 import signal
 import socket
@@ -455,7 +456,7 @@ def calculate_smoothed_eta(remaining_bytes: int, smoothed_speed: float, previous
     
     return raw_eta
 
-def progress_update_thread(state: dict, stop_event: threading.Event):
+def progress_update_thread(state: dict, stop_event: threading.Event, stall_callback=None):
     """Background thread to continuously update progress display every 200ms
 
     Args:
@@ -466,14 +467,21 @@ def progress_update_thread(state: dict, stop_event: threading.Event):
             - 'total_size': Total transfer size
             - 'action': "Sending" or "Receiving"
             - 'start_time': Transfer start timestamp
+            - 'stream_position': Current stream position (for stall recovery)
         stop_event: Event to signal thread to stop
+        stall_callback: Optional callback function(stream_position) called when stall detected
     """
     PROGRESS_UPDATE_INTERVAL = 0.2  # Update every 200ms
+    STALL_TIMEOUT = 10.0  # 10 seconds of zero progress = stall
     recent_speeds = []
     previous_eta = 0
     last_bytes = 0
     last_time = time.time()
     first_update = True
+
+    # Stall detection tracking
+    last_stall_check_time = time.time()
+    last_stall_check_bytes = 0
 
     while not stop_event.is_set():
         try:
@@ -523,6 +531,27 @@ def progress_update_thread(state: dict, stop_event: threading.Event):
             eta_str = format_eta(eta_seconds)
             previous_eta = eta_seconds
 
+            # Stall detection logic
+            if stall_callback and not warmup_period:
+                time_since_last_progress = current_time - last_stall_check_time
+                bytes_since_last_check = current_bytes - last_stall_check_bytes
+
+                if time_since_last_progress >= STALL_TIMEOUT and bytes_since_last_check == 0:
+                    # STALL DETECTED - trigger callback if not already recovering
+                    if not state.get('stall_recovery_in_progress', False):
+                        state['stall_recovery_in_progress'] = True
+                        stream_position = state.get('stream_position', current_bytes)
+                        log_warning(f"Stall detected: no progress for {STALL_TIMEOUT}s at position {stream_position}")
+                        stall_callback(stream_position)
+                        last_stall_check_time = current_time  # Reset timer after triggering
+
+                # Update stall check tracking if progress made
+                if bytes_since_last_check > 0:
+                    # Progress made, reset stall timer
+                    last_stall_check_time = current_time
+                    last_stall_check_bytes = current_bytes
+                    state['stall_recovery_in_progress'] = False
+
             # Display progress
             filename = state.get('filename', 'transfer')
             file_size = state.get('file_size', total_size)
@@ -540,6 +569,158 @@ def progress_update_thread(state: dict, stop_event: threading.Event):
             # Log errors but don't crash the thread
             log_warning(f"Progress thread error: {e}")
             continue
+
+def send_resend_request(client_socket, crypto, stream_position, retry_count=0):
+    """Send RESEND request to sender when transfer stalls
+
+    Args:
+        client_socket: Socket connection to sender
+        crypto: SecureCrypto instance for encryption
+        stream_position: Current byte offset in stream where stall occurred
+        retry_count: Number of RESEND attempts so far
+    """
+    try:
+        resend_message = {
+            'type': 'resend_request',
+            'stream_position': stream_position,
+            'timestamp': time.time(),
+            'retry_count': retry_count
+        }
+
+        # Encrypt and send using existing protocol pattern
+        message_json = json.dumps(resend_message).encode()
+        nonce = secrets.token_bytes(12)
+        encrypted_message = crypto.encrypt(message_json, nonce)
+
+        # Send using standard 4-byte length prefix pattern
+        client_socket.send(len(nonce).to_bytes(4, 'big'))
+        client_socket.send(nonce)
+        client_socket.send(len(encrypted_message).to_bytes(4, 'big'))
+        client_socket.send(encrypted_message)
+
+        log_warning(f"Receiver: Sent RESEND request for position {stream_position} (attempt {retry_count + 1})")
+
+    except Exception as e:
+        log_warning(f"Receiver: Failed to send RESEND request: {e}")
+
+def find_file_at_stream_position(collected_files, stream_position):
+    """Find which file and offset corresponds to stream position
+
+    Args:
+        collected_files: List of (file_path, relative_path) tuples
+        stream_position: Byte offset in the stream
+
+    Returns:
+        Tuple of ((file_path, relative_path), offset_in_file) or (None, 0)
+    """
+    current_position = 0
+    for file_path, relative_path in collected_files:
+        try:
+            file_size = file_path.stat().st_size
+            if current_position <= stream_position < current_position + file_size:
+                offset = stream_position - current_position
+                return (file_path, relative_path), offset
+            current_position += file_size
+        except Exception as e:
+            log_warning(f"Sender: Error checking file {relative_path}: {e}")
+            continue
+    return None, 0
+
+def send_chunk_from_position(client_socket, crypto, file_path, offset, chunk_size, use_compression):
+    """Send a specific chunk from file at offset
+
+    Args:
+        client_socket: Socket to send through
+        crypto: SecureCrypto instance
+        file_path: Path to file
+        offset: Byte offset to start reading from
+        chunk_size: Number of bytes to read
+        use_compression: Whether to compress the chunk
+    """
+    try:
+        with open(file_path, 'rb') as f:
+            f.seek(offset)
+            chunk = f.read(chunk_size)
+
+        if not chunk:
+            log_warning(f"Sender: No data at offset {offset} in {file_path}")
+            return
+
+        # Compress if needed
+        if use_compression:
+            chunk_to_send = blosc.compress(chunk, cname='lz4', clevel=3, shuffle=blosc.BITSHUFFLE, nthreads=4)
+        else:
+            chunk_to_send = chunk
+
+        # Encrypt and send (same pattern as normal chunk sending)
+        nonce = secrets.token_bytes(12)
+        encrypted_chunk = crypto.encrypt(chunk_to_send, nonce)
+
+        client_socket.send(len(nonce).to_bytes(4, 'big'))
+        client_socket.send(nonce)
+        client_socket.send(len(encrypted_chunk).to_bytes(4, 'big'))
+        client_socket.send(encrypted_chunk)
+
+        log_warning(f"Sender: Resent {len(chunk)} bytes from offset {offset}")
+
+    except Exception as e:
+        log_warning(f"Sender: Error resending chunk: {e}")
+
+def handle_resend_request(client_socket, crypto, collected_files, use_compression):
+    """Handle RESEND request from receiver during active transfer
+
+    Args:
+        client_socket: Socket connection
+        crypto: SecureCrypto instance
+        collected_files: List of (file_path, relative_path) tuples
+        use_compression: Whether compression is enabled
+
+    Returns:
+        True if RESEND was handled, False if no RESEND or error
+    """
+    try:
+        # Read RESEND message (non-blocking, we know data is available)
+        nonce_len_bytes = client_socket.recv(4)
+        if not nonce_len_bytes or len(nonce_len_bytes) < 4:
+            return False
+
+        nonce_len = int.from_bytes(nonce_len_bytes, 'big')
+        nonce = recv_all(client_socket, nonce_len)
+        msg_len_bytes = recv_all(client_socket, 4)
+        msg_len = int.from_bytes(msg_len_bytes, 'big')
+        encrypted_msg = recv_all(client_socket, msg_len)
+
+        # Decrypt and parse
+        decrypted = crypto.decrypt(encrypted_msg, nonce)
+        resend_req = json.loads(decrypted.decode())
+
+        if resend_req.get('type') != 'resend_request':
+            log_warning(f"Sender: Received unexpected message type: {resend_req.get('type')}")
+            return False
+
+        stream_position = resend_req.get('stream_position', 0)
+        retry_count = resend_req.get('retry_count', 0)
+
+        # Find which file corresponds to stream position
+        target_file, file_offset = find_file_at_stream_position(collected_files, stream_position)
+
+        if not target_file:
+            log_warning(f"Sender: RESEND request for invalid position {stream_position}")
+            return False
+
+        log_warning(f"Sender: RESEND request for position {stream_position} "
+                   f"(file: {target_file[1]}, offset: {file_offset}, attempt: {retry_count + 1})")
+
+        # Send a chunk from the requested position (1MB)
+        resend_chunk_size = 1024 * 1024  # 1MB
+        send_chunk_from_position(client_socket, crypto, target_file[0],
+                                file_offset, resend_chunk_size, use_compression)
+
+        return True
+
+    except Exception as e:
+        log_warning(f"Sender: Error handling RESEND request: {e}")
+        return False
 
 def format_eta(seconds: int) -> str:
     """Format ETA for display as MM:SS or HH:MM:SS"""
@@ -1601,6 +1782,11 @@ def send_files(file_paths: List[str], pod: bool = False):
         buffer_size = 1024 * 1024  # 1MB buffer for streaming
         start_time = time.time()
 
+        # RESEND detection tracking
+        last_resend_check_time = time.time()
+        RESEND_CHECK_INTERVAL = 0.5  # Check every 500ms
+        chunks_sent = 0
+
         # Create streaming buffer and track progress
         buffer = bytearray()
         file_hashes = {}
@@ -1673,6 +1859,18 @@ def send_files(file_paths: List[str], pod: bool = False):
 
                         # Track total bytes sent over network
                         total_bytes_sent += len(encrypted_chunk)
+                        chunks_sent += 1
+
+                        # Periodically check for RESEND requests from receiver
+                        current_time = time.time()
+                        if current_time - last_resend_check_time >= RESEND_CHECK_INTERVAL:
+                            last_resend_check_time = current_time
+
+                            # Use select with 0 timeout to check if data available (non-blocking)
+                            readable, _, _ = select.select([client_socket], [], [], 0)
+                            if readable:
+                                # RESEND request available - handle it
+                                handle_resend_request(client_socket, crypto, collected_files, use_compression)
 
                     # Update progress state (background thread will display it)
                     progress_state['bytes_transferred'] = original_bytes_processed
@@ -2101,12 +2299,28 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
             'start_time': start_time,
             'last_update_time': start_time,
             'last_update_bytes': 0,
-            'warmup_period': True  # Use cumulative speed for first 5 seconds
+            'warmup_period': True,  # Use cumulative speed for first 5 seconds
+            'stream_position': 0  # Track position for stall recovery
         }
+
+        # Setup stall detection and recovery
+        stall_event = threading.Event()
+        resend_count = {'value': 0}  # Track RESEND attempts
+        MAX_RESEND_ATTEMPTS = 3
+
+        def handle_stall(stream_position):
+            """Called by progress thread when stall detected"""
+            if resend_count['value'] < MAX_RESEND_ATTEMPTS:
+                log_warning(f"Receiver: Triggering stall recovery at position {stream_position}")
+                stall_event.set()
+            else:
+                log_warning(f"Receiver: Maximum RESEND attempts ({MAX_RESEND_ATTEMPTS}) reached, giving up")
+                stop_progress.set()
+
         stop_progress = threading.Event()
         progress_thread = threading.Thread(
             target=progress_update_thread,
-            args=(progress_state, stop_progress),
+            args=(progress_state, stop_progress, handle_stall),  # Add callback
             daemon=True
         )
         progress_thread.start()
@@ -2114,6 +2328,15 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         try:
             # Receive all streaming data chunks
             while True:
+                # Check if stall event is set (triggered by progress thread)
+                if stall_event.is_set():
+                    stall_event.clear()
+                    current_position = progress_state.get('stream_position', stream_position)
+                    send_resend_request(client_socket, crypto, current_position, resend_count['value'])
+                    resend_count['value'] += 1
+                    progress_state['stall_recovery_in_progress'] = False
+                    log_warning(f"Receiver: Sent RESEND request #{resend_count['value']} for position {current_position}")
+
                 # Check for hashes marker (indicates data stream is complete)
                 nonce_len_bytes = recv_all(client_socket, 4)
                 if nonce_len_bytes == b'\x00\x00\x00\x00':
@@ -2197,6 +2420,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
 
                 # Update progress state (background thread will display it)
                 progress_state['bytes_transferred'] = total_bytes_received
+                progress_state['stream_position'] = stream_position  # For stall recovery
 
                 # Update current filename for display
                 current_file = get_current_file_info(stream_position, files_info)
