@@ -1249,9 +1249,9 @@ class TransferLockManager:
     def handle_stale_locks(self):
         """Clean up old lock files"""
         try:
-            lock_files = list(self.working_dir.glob("*.transfer_lock.json"))
+            lock_files = [self.lock_file_path] if self.lock_file_path.exists() else []
             current_time = datetime.datetime.now()
-            
+
             for lock_file in lock_files:
                 try:
                     # Check file age
