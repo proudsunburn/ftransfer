@@ -1724,8 +1724,9 @@ def receive_files(connection_string: str, pod: bool = False):
             
             # Check for unsafe filename
             if os.path.isabs(filename) or ".." in filename:
-                print(f"\nError: Unsafe filename: {filename}")
-                sys.exit(1)
+                log_warning(f"Skipping unsafe filename: {filename}")
+                print(f"\nWarning: Skipping unsafe filename: {filename}")
+                continue
             
             # Determine resume bytes for this file
             resume_bytes = 0
