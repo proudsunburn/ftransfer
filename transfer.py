@@ -947,6 +947,21 @@ class LazyFileWriterDict:
         """Return all filenames that have had writers created"""
         return self._writers.keys()
 
+    def __iter__(self):
+        """Iterate over all writers in stream order (by offset), creating them lazily
+
+        This enables iteration with 'for writer in file_writers:' without triggering
+        Python's numeric indexing fallback that would cause KeyError.
+        """
+        # Sort files by offset to iterate in stream order
+        sorted_infos = sorted(self._files_info.values(), key=lambda f: f['offset'])
+        for file_info in sorted_infos:
+            yield self[file_info['filename']]  # Creates writer on-demand via __getitem__
+
+    def __len__(self):
+        """Return total number of files in transfer (not just created writers)"""
+        return len(self._files_info)
+
 
 class SecureCrypto:
     """Cryptographic operations for secure file transfer"""
