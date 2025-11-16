@@ -253,25 +253,27 @@ def format_speed(speed: float) -> str:
     else:
         return f"{speed / (1024 * 1024 * 1024):.1f} GB/s"
 
-def detect_existing_conflicts(files_info: List[Dict]) -> List[str]:
+def detect_existing_conflicts(files_info: List[Dict], output_dir: str = '.') -> List[str]:
     """Detect existing files/folders that would conflict with incoming transfer
-    
+
     Args:
         files_info: List of file metadata dictionaries from sender
-        
+        output_dir: Directory where files will be written
+
     Returns:
         List of conflicting file/folder paths
     """
     conflicts = []
-    
+    output_path = Path(output_dir)
+
     for file_info in files_info:
         filename = file_info['filename']
-        
+
         # Check for unsafe filename (should already be caught earlier, but double-check)
         if os.path.isabs(filename) or ".." in filename:
             continue
-            
-        final_path = Path(filename)
+
+        final_path = output_path / filename
         
         # Check for direct file conflict
         if final_path.exists():
@@ -559,13 +561,14 @@ class SecureTokenGenerator:
 class FileWriter:
     """Manages incremental file writing with hash tracking for resume capability"""
     
-    def __init__(self, filename: str, size: int, offset: int, lock_manager: 'TransferLockManager' = None, overwrite_mode: bool = False):
+    def __init__(self, filename: str, size: int, offset: int, lock_manager: 'TransferLockManager' = None, overwrite_mode: bool = False, output_dir: str = '.'):
         self.filename = filename
         self.size = size
         self.offset = offset
         self.written = 0
         self.hasher = hashlib.sha256()
-        self.part_file = Path(f"{filename}.part")
+        self.output_dir = Path(output_dir)
+        self.part_file = self.output_dir / f"{filename}.part"
         self.is_complete = False
         self.lock_manager = lock_manager
         self.needs_rehash = False
@@ -670,7 +673,7 @@ class FileWriter:
         if self.written == self.size and not self.is_complete:
             try:
                 # Move .part file to final location
-                final_path = Path(self.filename)
+                final_path = self.output_dir / self.filename
                 
                 # Handle filename conflicts based on overwrite mode
                 if self.overwrite_mode and final_path.exists():
@@ -1287,7 +1290,25 @@ def send_files(file_paths: List[str], pod: bool = False):
         client_socket.send(nonce_meta)
         client_socket.send(len(encrypted_metadata).to_bytes(4, 'big'))
         client_socket.send(encrypted_metadata)
-        
+
+        # Wait for RECEIVER_READY signal before streaming files
+        # Set a reasonable timeout (30 seconds) for user interaction on receiver side
+        client_socket.settimeout(30)
+        try:
+            ready_len = int.from_bytes(recv_all(client_socket, 4), 'big')
+            ready_signal = recv_all(client_socket, ready_len)
+            if ready_signal != b'READY':
+                safe_print("Error: Invalid receiver ready signal")
+                client_socket.close()
+                return
+        except socket.timeout:
+            safe_print("Error: Timeout waiting for receiver to be ready (30s)")
+            client_socket.close()
+            return
+
+        # Remove timeout for actual data transfer (or use a much longer timeout)
+        client_socket.settimeout(None)
+
         # Stream all files using large buffer chunks
         buffer_size = 1024 * 1024  # 1MB buffer for streaming
         start_time = time.time()
@@ -1577,7 +1598,7 @@ def send_files(file_paths: List[str], pod: bool = False):
         server_socket.close()
 
 
-def receive_files(connection_string: str, pod: bool = False):
+def receive_files(connection_string: str, output_dir: str = '.', pod: bool = False):
     """Receiver mode: connect to sender and receive files"""
     
     # Parse connection string
@@ -1679,7 +1700,7 @@ def receive_files(connection_string: str, pod: bool = False):
         ResourceMonitor.check_fd_usage(file_count)
         
         # Initialize transfer lock manager for automatic resume detection
-        lock_manager = TransferLockManager()
+        lock_manager = TransferLockManager(working_dir=output_dir)
         lock_manager.handle_stale_locks()  # Clean up old locks first
         
         # Check for existing lock file and get resume plan
@@ -1707,7 +1728,7 @@ def receive_files(connection_string: str, pod: bool = False):
             resume_plan = {"action": "fresh_transfer", "completed_files": [], "resume_files": [], "fresh_files": files_info}
             
             # For fresh transfers, check for conflicts and ask user about overwrite
-            conflicts = detect_existing_conflicts(files_info)
+            conflicts = detect_existing_conflicts(files_info, output_dir)
             if conflicts:
                 response = input("Existing files/folders will be overwritten. Continue? [Y/n]: ").strip().lower()
                 if response == 'n' or response == 'no':
@@ -1741,10 +1762,15 @@ def receive_files(connection_string: str, pod: bool = False):
                 if filename in resume_plan["completed_files"]:
                     resume_bytes = file_size  # Mark as complete
             
-            writer = FileWriter(filename, file_size, file_offset, lock_manager, overwrite_mode)
+            writer = FileWriter(filename, file_size, file_offset, lock_manager, overwrite_mode, output_dir)
             writer.open_for_writing(resume_bytes)
             file_writers.append(writer)
-        
+
+        # Send RECEIVER_READY signal to sender after setup is complete
+        ready_signal = b'READY'
+        client_socket.send(len(ready_signal).to_bytes(4, 'big'))
+        client_socket.send(ready_signal)
+
         # Receive streaming data with incremental saving
         stream_position = 0  # Tracks uncompressed data position in the stream
         total_bytes_received = 0  # Tracks compressed bytes received from network
@@ -2218,9 +2244,10 @@ def main():
     send_parser.add_argument('files', nargs='+', help='Files or folders to send')
     send_parser.add_argument('--pod', action='store_true', help='Bind to localhost (127.0.0.1) for containerized environments')
     
-    # Receive command  
+    # Receive command
     receive_parser = subparsers.add_parser('receive', help='Receive files')
     receive_parser.add_argument('connection', help='Connection string: ip:token')
+    receive_parser.add_argument('-o', '--output-dir', default='.', help='Output directory for received files (default: current directory)')
     receive_parser.add_argument('--pod', action='store_true', help='Accept connections from localhost (127.0.0.1) for containerized environments')
     
     args = parser.parse_args()
@@ -2232,7 +2259,7 @@ def main():
     if args.command == 'send':
         send_files(args.files, pod=args.pod)
     elif args.command == 'receive':
-        receive_files(args.connection, pod=args.pod)
+        receive_files(args.connection, output_dir=args.output_dir, pod=args.pod)
 
 
 if __name__ == "__main__":
