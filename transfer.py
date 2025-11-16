@@ -1306,25 +1306,25 @@ def send_files(file_paths: List[str], pod: bool = False):
         
         for file_path, relative_path in collected_files:
             file_size = file_path.stat().st_size
-            
+
             # Read file, compress, and calculate hash of original data
             hasher = hashlib.sha256()
             file_bytes_processed = 0
-            
+
             with open(file_path, 'rb') as f:
                 while True:
                     chunk = f.read(64 * 1024)  # Read in 64KB chunks
                     if not chunk:
                         break
-                    
+
                     # Hash original data for integrity verification
                     hasher.update(chunk)
                     original_bytes_processed += len(chunk)
                     file_bytes_processed += len(chunk)
-                    
+
                     # Accumulate uncompressed chunks in buffer
                     buffer.extend(chunk)
-                    
+
                     # When buffer reaches target size, compress entire buffer and send
                     while len(buffer) >= buffer_size:
                         # Extract 1MB of data
@@ -1340,39 +1340,40 @@ def send_files(file_paths: List[str], pod: bool = False):
                         # Encrypt and send
                         nonce = secrets.token_bytes(12)
                         encrypted_chunk = crypto.encrypt(chunk_to_send, nonce)
-                        
+
                         client_socket.send(len(nonce).to_bytes(4, 'big'))
                         client_socket.send(nonce)
                         client_socket.send(len(encrypted_chunk).to_bytes(4, 'big'))
                         client_socket.send(encrypted_chunk)
-                        
+
                         # Track total bytes sent over network
                         total_bytes_sent += len(encrypted_chunk)
-                        
-                        # Update progress with throttling (only every 200ms)
-                        current_time = time.time()
-                        if first_progress_update or (current_time - last_progress_update) >= PROGRESS_UPDATE_INTERVAL:
-                            elapsed = current_time - start_time
-                            if elapsed > 0:
-                                # Calculate overall transfer progress
-                                overall_progress = (original_bytes_processed / total_size) * 100 if total_size > 0 else 100
-                                
-                                # Use smoothed speed calculation
-                                smoothed_speed = calculate_smoothed_speed(recent_speeds, original_bytes_processed, elapsed)
-                                speed_str = format_speed(smoothed_speed)
-                                
-                                # Use smoothed ETA calculation
-                                remaining_bytes = total_size - original_bytes_processed
-                                eta_seconds = calculate_smoothed_eta(remaining_bytes, smoothed_speed, previous_eta, overall_progress)
-                                eta_str = format_eta(eta_seconds)
-                                previous_eta = eta_seconds
-                                
-                                # Use three-line progress display with overall progress
-                                print_transfer_progress(relative_path, file_size, overall_progress, 
-                                                      speed_str, eta_str, first_progress_update, "Transferring")
-                                first_progress_update = False
-                                last_progress_update = current_time
-            
+
+                    # Update progress after each chunk (outside buffer send block)
+                    # This ensures small files show progress even if buffer never fills
+                    current_time = time.time()
+                    if first_progress_update or (current_time - last_progress_update) >= PROGRESS_UPDATE_INTERVAL:
+                        elapsed = current_time - start_time
+                        if elapsed > 0:
+                            # Calculate overall transfer progress
+                            overall_progress = (original_bytes_processed / total_size) * 100 if total_size > 0 else 100
+
+                            # Use smoothed speed calculation
+                            smoothed_speed = calculate_smoothed_speed(recent_speeds, original_bytes_processed, elapsed)
+                            speed_str = format_speed(smoothed_speed)
+
+                            # Use smoothed ETA calculation
+                            remaining_bytes = total_size - original_bytes_processed
+                            eta_seconds = calculate_smoothed_eta(remaining_bytes, smoothed_speed, previous_eta, overall_progress)
+                            eta_str = format_eta(eta_seconds)
+                            previous_eta = eta_seconds
+
+                            # Use three-line progress display with overall progress
+                            print_transfer_progress(relative_path, file_size, overall_progress,
+                                                  speed_str, eta_str, first_progress_update, "Transferring")
+                            first_progress_update = False
+                            last_progress_update = current_time
+
             # Store file hash
             file_hashes[relative_path] = hasher.hexdigest()
             current_file_start += file_size
