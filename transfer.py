@@ -1831,10 +1831,6 @@ def send_files(file_paths: List[str], pod: bool = False):
         for file_path, relative_path in collected_files:
             file_size = file_path.stat().st_size
 
-            # Update progress state for this file
-            progress_state['filename'] = relative_path
-            progress_state['file_size'] = file_size
-
             # Read file, compress, and calculate hash of original data
             hasher = hashlib.sha256()
             file_bytes_processed = 0
@@ -2567,10 +2563,15 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
                 'failed_files': failed_filenames,
                 'attempt': retry_attempt
             }).encode()
-            
-            # Send retry request
-            client_socket.send(len(retry_request).to_bytes(4, 'big'))
-            client_socket.send(retry_request)
+
+            # Encrypt and send retry request
+            retry_nonce = secrets.token_bytes(12)
+            encrypted_retry = crypto.encrypt(retry_request, retry_nonce)
+
+            client_socket.send(len(retry_nonce).to_bytes(4, 'big'))
+            client_socket.send(retry_nonce)
+            client_socket.send(len(encrypted_retry).to_bytes(4, 'big'))
+            client_socket.send(encrypted_retry)
             
             # Reset failed file writers for retry
             for failed_file in failed_files:
