@@ -1793,6 +1793,7 @@ def send_files(file_paths: List[str], pod: bool = False):
         original_bytes_processed = 0  # Track original file bytes for progress
         total_bytes_sent = 0  # Track total compressed bytes sent over network
         current_file_start = 0  # Track start position of current file
+        buffer_stream_position = 0  # Track stream position of data being sent (for display sync)
 
         # Setup background progress thread
         progress_state = {
@@ -1842,6 +1843,13 @@ def send_files(file_paths: List[str], pod: bool = False):
                         chunk_data = bytes(buffer[:buffer_size])
                         buffer = buffer[buffer_size:]
 
+                        # Update progress display to show file being SENT (not read)
+                        # This syncs sender display with receiver display
+                        current_file_sending = get_current_file_info(buffer_stream_position, files_metadata)
+                        if current_file_sending:
+                            progress_state['filename'] = current_file_sending['filename']
+                            progress_state['file_size'] = current_file_sending['size']
+
                         # Conditionally compress based on user choice
                         if use_compression:
                             chunk_to_send = blosc.compress(chunk_data, cname=BLOSC_COMPRESSOR, clevel=BLOSC_LEVEL)
@@ -1860,6 +1868,9 @@ def send_files(file_paths: List[str], pod: bool = False):
                         # Track total bytes sent over network
                         total_bytes_sent += len(encrypted_chunk)
                         chunks_sent += 1
+
+                        # Increment buffer stream position (tracks where we are in sending)
+                        buffer_stream_position += len(chunk_data)
 
                         # Periodically check for RESEND requests from receiver
                         current_time = time.time()
@@ -1881,6 +1892,12 @@ def send_files(file_paths: List[str], pod: bool = False):
         
         # Send remaining buffer if non-empty
         if buffer:
+            # Update progress display for remaining data
+            current_file_sending = get_current_file_info(buffer_stream_position, files_metadata)
+            if current_file_sending:
+                progress_state['filename'] = current_file_sending['filename']
+                progress_state['file_size'] = current_file_sending['size']
+
             # Conditionally compress remaining data
             remaining_data = bytes(buffer)
             if use_compression:
@@ -1890,12 +1907,12 @@ def send_files(file_paths: List[str], pod: bool = False):
 
             nonce = secrets.token_bytes(12)
             encrypted_chunk = crypto.encrypt(data_to_send, nonce)
-            
+
             client_socket.send(len(nonce).to_bytes(4, 'big'))
             client_socket.send(nonce)
             client_socket.send(len(encrypted_chunk).to_bytes(4, 'big'))
             client_socket.send(encrypted_chunk)
-            
+
             total_bytes_sent += len(encrypted_chunk)
         
         # Send file hashes for verification
