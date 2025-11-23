@@ -593,10 +593,10 @@ def send_resend_request(client_socket, crypto, stream_position, retry_count=0):
         encrypted_message = crypto.encrypt(message_json, nonce)
 
         # Send using standard 4-byte length prefix pattern
-        client_socket.send(len(nonce).to_bytes(4, 'big'))
-        client_socket.send(nonce)
-        client_socket.send(len(encrypted_message).to_bytes(4, 'big'))
-        client_socket.send(encrypted_message)
+        client_socket.sendall(len(nonce).to_bytes(4, 'big'))
+        client_socket.sendall(nonce)
+        client_socket.sendall(len(encrypted_message).to_bytes(4, 'big'))
+        client_socket.sendall(encrypted_message)
 
         log_warning(f"Receiver: Sent RESEND request for position {stream_position} (attempt {retry_count + 1})")
 
@@ -656,10 +656,10 @@ def send_chunk_from_position(client_socket, crypto, file_path, offset, chunk_siz
         nonce = secrets.token_bytes(12)
         encrypted_chunk = crypto.encrypt(chunk_to_send, nonce)
 
-        client_socket.send(len(nonce).to_bytes(4, 'big'))
-        client_socket.send(nonce)
-        client_socket.send(len(encrypted_chunk).to_bytes(4, 'big'))
-        client_socket.send(encrypted_chunk)
+        client_socket.sendall(len(nonce).to_bytes(4, 'big'))
+        client_socket.sendall(nonce)
+        client_socket.sendall(len(encrypted_chunk).to_bytes(4, 'big'))
+        client_socket.sendall(encrypted_chunk)
 
         log_warning(f"Sender: Resent {len(chunk)} bytes from offset {offset}")
 
@@ -1579,10 +1579,10 @@ def send_single_file(client_socket, crypto, file_path: str, relative_path: str, 
             encrypted_chunk = crypto.encrypt(chunk_to_send, nonce)
             
             # Send encrypted chunk
-            client_socket.send(len(nonce).to_bytes(4, 'big'))
-            client_socket.send(nonce)
-            client_socket.send(len(encrypted_chunk).to_bytes(4, 'big'))
-            client_socket.send(encrypted_chunk)
+            client_socket.sendall(len(nonce).to_bytes(4, 'big'))
+            client_socket.sendall(nonce)
+            client_socket.sendall(len(encrypted_chunk).to_bytes(4, 'big'))
+            client_socket.sendall(encrypted_chunk)
             
             bytes_sent += len(chunk)
     
@@ -1702,8 +1702,8 @@ def send_files(file_paths: List[str], pod: bool = False):
         public_key_bytes = crypto.get_public_key_bytes()
         
         # Send public key first
-        client_socket.send(len(public_key_bytes).to_bytes(4, 'big'))
-        client_socket.send(public_key_bytes)
+        client_socket.sendall(len(public_key_bytes).to_bytes(4, 'big'))
+        client_socket.sendall(public_key_bytes)
         
         # Receive peer's public key
         peer_key_len = int.from_bytes(recv_all(client_socket, 4), 'big')
@@ -1718,10 +1718,10 @@ def send_files(file_paths: List[str], pod: bool = False):
         
         nonce1 = secrets.token_bytes(12)
         encrypted_challenge = crypto.encrypt(challenge, nonce1)
-        client_socket.send(len(nonce1).to_bytes(4, 'big'))
-        client_socket.send(nonce1)
-        client_socket.send(len(encrypted_challenge).to_bytes(4, 'big'))
-        client_socket.send(encrypted_challenge)
+        client_socket.sendall(len(nonce1).to_bytes(4, 'big'))
+        client_socket.sendall(nonce1)
+        client_socket.sendall(len(encrypted_challenge).to_bytes(4, 'big'))
+        client_socket.sendall(encrypted_challenge)
         
         # Receive response
         response_len = int.from_bytes(recv_all(client_socket, 4), 'big')
@@ -1760,10 +1760,10 @@ def send_files(file_paths: List[str], pod: bool = False):
         
         nonce_meta = secrets.token_bytes(12)
         encrypted_metadata = crypto.encrypt(metadata_json, nonce_meta)
-        client_socket.send(len(nonce_meta).to_bytes(4, 'big'))
-        client_socket.send(nonce_meta)
-        client_socket.send(len(encrypted_metadata).to_bytes(4, 'big'))
-        client_socket.send(encrypted_metadata)
+        client_socket.sendall(len(nonce_meta).to_bytes(4, 'big'))
+        client_socket.sendall(nonce_meta)
+        client_socket.sendall(len(encrypted_metadata).to_bytes(4, 'big'))
+        client_socket.sendall(encrypted_metadata)
 
         # Wait for RECEIVER_READY signal before streaming files
         # OPTIMIZATION: Adaptive timeout based on file count for large transfers
@@ -1872,10 +1872,10 @@ def send_files(file_paths: List[str], pod: bool = False):
                         nonce = secrets.token_bytes(12)
                         encrypted_chunk = crypto.encrypt(chunk_to_send, nonce)
 
-                        client_socket.send(len(nonce).to_bytes(4, 'big'))
-                        client_socket.send(nonce)
-                        client_socket.send(len(encrypted_chunk).to_bytes(4, 'big'))
-                        client_socket.send(encrypted_chunk)
+                        client_socket.sendall(len(nonce).to_bytes(4, 'big'))
+                        client_socket.sendall(nonce)
+                        client_socket.sendall(len(encrypted_chunk).to_bytes(4, 'big'))
+                        client_socket.sendall(encrypted_chunk)
 
                         # Track total bytes sent over network
                         total_bytes_sent += len(encrypted_chunk)
@@ -1920,10 +1920,10 @@ def send_files(file_paths: List[str], pod: bool = False):
             nonce = secrets.token_bytes(12)
             encrypted_chunk = crypto.encrypt(data_to_send, nonce)
 
-            client_socket.send(len(nonce).to_bytes(4, 'big'))
-            client_socket.send(nonce)
-            client_socket.send(len(encrypted_chunk).to_bytes(4, 'big'))
-            client_socket.send(encrypted_chunk)
+            client_socket.sendall(len(nonce).to_bytes(4, 'big'))
+            client_socket.sendall(nonce)
+            client_socket.sendall(len(encrypted_chunk).to_bytes(4, 'big'))
+            client_socket.sendall(encrypted_chunk)
 
             total_bytes_sent += len(encrypted_chunk)
         
@@ -1931,13 +1931,13 @@ def send_files(file_paths: List[str], pod: bool = False):
         hash_data = json.dumps(file_hashes).encode()
         nonce_hash = secrets.token_bytes(12)
         encrypted_hashes = crypto.encrypt(hash_data, nonce_hash)
-        client_socket.send(len(nonce_hash).to_bytes(4, 'big'))
-        client_socket.send(nonce_hash)
-        client_socket.send(len(encrypted_hashes).to_bytes(4, 'big'))
-        client_socket.send(encrypted_hashes)
+        client_socket.sendall(len(nonce_hash).to_bytes(4, 'big'))
+        client_socket.sendall(nonce_hash)
+        client_socket.sendall(len(encrypted_hashes).to_bytes(4, 'big'))
+        client_socket.sendall(encrypted_hashes)
 
         # Send end marker
-        client_socket.send(b'\x00\x00\x00\x00')
+        client_socket.sendall(b'\x00\x00\x00\x00')
 
         # Log timing: sender finished sending all data
         data_send_time = time.time() - start_time
@@ -2022,13 +2022,13 @@ def send_files(file_paths: List[str], pod: bool = False):
                 retry_hash_data = json.dumps(retry_file_hashes).encode()
                 retry_nonce_hash = secrets.token_bytes(12)
                 retry_encrypted_hashes = crypto.encrypt(retry_hash_data, retry_nonce_hash)
-                client_socket.send(len(retry_nonce_hash).to_bytes(4, 'big'))
-                client_socket.send(retry_nonce_hash)
-                client_socket.send(len(retry_encrypted_hashes).to_bytes(4, 'big'))
-                client_socket.send(retry_encrypted_hashes)
+                client_socket.sendall(len(retry_nonce_hash).to_bytes(4, 'big'))
+                client_socket.sendall(retry_nonce_hash)
+                client_socket.sendall(len(retry_encrypted_hashes).to_bytes(4, 'big'))
+                client_socket.sendall(retry_encrypted_hashes)
                 
                 # Send retry end marker
-                client_socket.send(b'\x00\x00\x00\x00')
+                client_socket.sendall(b'\x00\x00\x00\x00')
 
                 safe_print(f"Retry attempt {attempt} completed")
             except socket.timeout:
@@ -2173,8 +2173,8 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         sender_public_key = recv_all(client_socket, sender_key_len)
         
         # Send our public key
-        client_socket.send(len(public_key_bytes).to_bytes(4, 'big'))
-        client_socket.send(public_key_bytes)
+        client_socket.sendall(len(public_key_bytes).to_bytes(4, 'big'))
+        client_socket.sendall(public_key_bytes)
         
         # Derive session key
         crypto.derive_session_key(sender_public_key, token)
@@ -2190,8 +2190,8 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         
         # Generate and send response
         response = hashlib.sha256(challenge + token.encode()).digest()
-        client_socket.send(len(response).to_bytes(4, 'big'))
-        client_socket.send(response)
+        client_socket.sendall(len(response).to_bytes(4, 'big'))
+        client_socket.sendall(response)
         
         print("Authentication successful")
         
@@ -2303,8 +2303,8 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
 
         # Send RECEIVER_READY signal to sender after setup is complete
         ready_signal = b'READY'
-        client_socket.send(len(ready_signal).to_bytes(4, 'big'))
-        client_socket.send(ready_signal)
+        client_socket.sendall(len(ready_signal).to_bytes(4, 'big'))
+        client_socket.sendall(ready_signal)
 
         # Use 5 minute timeout to detect true stalls (instead of infinite blocking)
         client_socket.settimeout(300)
@@ -2568,10 +2568,10 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
             retry_nonce = secrets.token_bytes(12)
             encrypted_retry = crypto.encrypt(retry_request, retry_nonce)
 
-            client_socket.send(len(retry_nonce).to_bytes(4, 'big'))
-            client_socket.send(retry_nonce)
-            client_socket.send(len(encrypted_retry).to_bytes(4, 'big'))
-            client_socket.send(encrypted_retry)
+            client_socket.sendall(len(retry_nonce).to_bytes(4, 'big'))
+            client_socket.sendall(retry_nonce)
+            client_socket.sendall(len(encrypted_retry).to_bytes(4, 'big'))
+            client_socket.sendall(encrypted_retry)
             
             # Reset failed file writers for retry
             for failed_file in failed_files:
@@ -2695,10 +2695,10 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
                 completion_nonce = secrets.token_bytes(12)
                 encrypted_completion = crypto.encrypt(completion_signal, completion_nonce)
 
-                client_socket.send(len(completion_nonce).to_bytes(4, 'big'))
-                client_socket.send(completion_nonce)
-                client_socket.send(len(encrypted_completion).to_bytes(4, 'big'))
-                client_socket.send(encrypted_completion)
+                client_socket.sendall(len(completion_nonce).to_bytes(4, 'big'))
+                client_socket.sendall(completion_nonce)
+                client_socket.sendall(len(encrypted_completion).to_bytes(4, 'big'))
+                client_socket.sendall(encrypted_completion)
 
                 # Use shutdown to ensure data is flushed before close
                 try:
