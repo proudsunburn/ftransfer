@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# VERSION: 1.0.1
 
 import argparse
 import hashlib
@@ -1670,6 +1671,7 @@ def send_files(file_paths: List[str], pod: bool = False):
     # Check for potential resource issues
     ResourceMonitor.check_fd_usage(len(collected_files))
 
+    safe_print("[ftransfer v1.0.1]")
     safe_print(f"type into receiver: transfer receive {tailscale_ip}:{token}")
 
     # Start server
@@ -1760,10 +1762,19 @@ def send_files(file_paths: List[str], pod: bool = False):
         
         nonce_meta = secrets.token_bytes(12)
         encrypted_metadata = crypto.encrypt(metadata_json, nonce_meta)
+
+        # DEBUG: Log metadata transmission details
+        print(f"[DEBUG SENDER] Metadata JSON size: {len(metadata_json)} bytes")
+        print(f"[DEBUG SENDER] Nonce length: {len(nonce_meta)} bytes")
+        print(f"[DEBUG SENDER] Encrypted metadata size: {len(encrypted_metadata)} bytes")
+        print(f"[DEBUG SENDER] Sending nonce_len: {len(nonce_meta)}")
+
         client_socket.sendall(len(nonce_meta).to_bytes(4, 'big'))
         client_socket.sendall(nonce_meta)
         client_socket.sendall(len(encrypted_metadata).to_bytes(4, 'big'))
         client_socket.sendall(encrypted_metadata)
+
+        print(f"[DEBUG SENDER] Metadata sent successfully")
 
         # Wait for RECEIVER_READY signal before streaming files
         # OPTIMIZATION: Adaptive timeout based on file count for large transfers
@@ -2158,6 +2169,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
     client_socket.settimeout(30)  # 30 second timeout
     
     try:
+        print("[ftransfer v1.0.1]")
         print("Connecting to sender... ", end="")
         client_socket.connect((ip, TRANSFER_PORT))
 
@@ -2196,12 +2208,25 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         print("Authentication successful")
         
         # Receive file metadata
+        print("[DEBUG RECEIVER] Receiving metadata nonce length...")
         meta_nonce_len = int.from_bytes(recv_all(client_socket, 4), 'big')
+        print(f"[DEBUG RECEIVER] Nonce length received: {meta_nonce_len} (expected: 12)")
+
+        print(f"[DEBUG RECEIVER] Receiving nonce ({meta_nonce_len} bytes)...")
         meta_nonce = recv_all(client_socket, meta_nonce_len)
+        print(f"[DEBUG RECEIVER] Nonce received: {len(meta_nonce)} bytes")
+
+        print("[DEBUG RECEIVER] Receiving encrypted metadata length...")
         meta_len = int.from_bytes(recv_all(client_socket, 4), 'big')
+        print(f"[DEBUG RECEIVER] Encrypted metadata length: {meta_len} bytes")
+
+        print(f"[DEBUG RECEIVER] Receiving encrypted metadata ({meta_len} bytes)...")
         encrypted_metadata = recv_all(client_socket, meta_len)
-        
+        print(f"[DEBUG RECEIVER] Encrypted metadata received: {len(encrypted_metadata)} bytes")
+
+        print("[DEBUG RECEIVER] Attempting to decrypt metadata...")
         metadata_json = crypto.decrypt(encrypted_metadata, meta_nonce)
+        print(f"[DEBUG RECEIVER] Metadata decrypted successfully: {len(metadata_json)} bytes")
         metadata = json.loads(metadata_json.decode())
         
         # Handle new streaming protocol
@@ -2769,7 +2794,8 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
             print(f"Error: JSON decoding failed: {e}")
             print("This may indicate network corruption or protocol issues.")
         elif 'InvalidTag' in str(type(e)) or type(e).__name__ == 'InvalidTag':
-            print("Error: Authentication failed, check key")
+            print("Error: Data decryption failed (possible data corruption, network issue, or protocol mismatch)")
+            print("This is NOT an authentication issue - authentication succeeded.")
             sys.exit(1)
         else:
             print(f"Error during transfer: {e}")
