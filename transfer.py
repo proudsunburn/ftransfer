@@ -1018,7 +1018,10 @@ class FileWriter:
                         name_parts = original_path.stem, counter, original_path.suffix
                         final_path = parent_dir / f"{name_parts[0]}_{name_parts[1]}{name_parts[2]}"
                         counter += 1
-                
+
+                # Ensure parent directories exist for final destination
+                final_path.parent.mkdir(parents=True, exist_ok=True)
+
                 self.part_file.rename(final_path)
                 self.is_complete = True
                 
