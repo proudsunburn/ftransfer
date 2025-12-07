@@ -215,7 +215,8 @@ def collect_files_recursive(file_paths: List[Path]) -> Tuple[List[Tuple[Path, st
                 if item.is_file():
                     # Calculate relative path from the base directory being sent
                     relative_path = item.relative_to(base_path.parent)
-                    collected_files.append((item, str(relative_path)))
+                    # Normalize to POSIX path (forward slashes) for cross-platform compatibility
+                    collected_files.append((item, relative_path.as_posix()))
                 elif item.is_dir():
                     # Check if this directory matches venv patterns
                     if is_venv_dir(item.name):
