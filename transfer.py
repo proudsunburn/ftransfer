@@ -559,8 +559,30 @@ def progress_update_thread(state: dict, stop_event: threading.Event, stall_callb
             file_size = state.get('file_size', total_size)
             action = state.get('action', 'Transferring')
 
+            # Calculate current file's transferred bytes
+            current_file_bytes = 0
+            stream_position = state.get('stream_position', current_bytes)
+            files_metadata = state.get('files_metadata', [])
+
+            if files_metadata:
+                current_file = get_current_file_info(stream_position, files_metadata)
+                if current_file:
+                    # Calculate bytes transferred for current file
+                    file_offset = current_file['offset']
+                    current_file_bytes = stream_position - file_offset
+                    # Clamp to file size to handle edge cases
+                    current_file_bytes = min(current_file_bytes, current_file['size'])
+                    current_file_bytes = max(current_file_bytes, 0)
+                else:
+                    # File not found - likely at completion, show full file size
+                    current_file_bytes = file_size
+            else:
+                # No metadata - fallback to showing current_bytes
+                current_file_bytes = current_bytes if current_bytes <= file_size else file_size
+
             print_transfer_progress(filename, file_size, progress_percent,
-                                  speed_str, eta_str, first_update, action)
+                                  speed_str, eta_str, first_update, action,
+                                  "", current_file_bytes)
             first_update = False
 
             # Update tracking variables
@@ -758,16 +780,18 @@ def get_current_file_info(stream_position: int, files_metadata: List[Dict]) -> O
 
 def print_transfer_progress(filename: str, file_size: int, progress_percent: float,
                            speed_str: str, eta_str: str, is_first_update: bool,
-                           action: str = "Transferring", warning_msg: str = ""):
+                           action: str = "Transferring", warning_msg: str = "",
+                           current_file_bytes: int = 0):
     """Print three-line progress display with file info, progress, and warnings"""
-    size_str = format_size(file_size)
+    current_str = format_size(current_file_bytes)
+    total_str = format_size(file_size)
 
     if not is_first_update:
         # Move cursor up 2 lines to overwrite all three lines
         safe_print("\033[2A\r", end='')
 
     # Line 1: Current filename being processed (clear line and print)
-    safe_print(f"\r{action}: {filename} ({size_str})\033[K")
+    safe_print(f"\r{action}: {filename} ({current_str}/{total_str})\033[K")
 
     # Line 2: Overall progress, speed, and ETA (clear line and print)
     safe_print(f"\rProgress: {progress_percent:.1f}% | Speed: {speed_str} | ETA: {eta_str}\033[K")
@@ -1833,7 +1857,8 @@ def send_files(file_paths: List[str], pod: bool = False):
             'bytes_transferred': 0,
             'total_size': total_size,
             'action': 'Sending',
-            'start_time': start_time
+            'start_time': start_time,
+            'files_metadata': files_metadata
         }
         stop_progress = threading.Event()
         progress_thread = threading.Thread(
@@ -1898,6 +1923,7 @@ def send_files(file_paths: List[str], pod: bool = False):
 
                         # Increment buffer stream position (tracks where we are in sending)
                         buffer_stream_position += len(chunk_data)
+                        progress_state['stream_position'] = buffer_stream_position
 
                         # Periodically check for RESEND requests from receiver
                         current_time = time.time()
@@ -1941,6 +1967,8 @@ def send_files(file_paths: List[str], pod: bool = False):
             client_socket.sendall(encrypted_chunk)
 
             total_bytes_sent += len(encrypted_chunk)
+            buffer_stream_position += len(remaining_data)
+            progress_state['stream_position'] = buffer_stream_position
         
         # Send file hashes for verification
         hash_data = json.dumps(file_hashes).encode()
@@ -2357,7 +2385,8 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
             'last_update_time': start_time,
             'last_update_bytes': 0,
             'warmup_period': True,  # Use cumulative speed for first 5 seconds
-            'stream_position': 0  # Track position for stall recovery
+            'stream_position': 0,  # Track position for stall recovery
+            'files_metadata': files_info
         }
 
         # Setup stall detection and recovery
