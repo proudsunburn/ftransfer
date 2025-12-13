@@ -820,7 +820,24 @@ class TailscaleDetector:
         except (subprocess.TimeoutExpired, FileNotFoundError):
             pass
         return None
-    
+
+    @classmethod
+    def get_local_hostname(cls) -> Optional[str]:
+        """Get the Tailscale hostname for this machine from cached status"""
+        # Get our local IP first
+        local_ip = cls.get_tailscale_ip()
+        if not local_ip:
+            return None
+
+        # Use verify_peer_ip_cached to get hostname from cache
+        # This automatically updates cache if needed
+        is_valid, hostname = cls.verify_peer_ip_cached(local_ip)
+
+        if is_valid and hostname and hostname != "unknown":
+            return hostname
+
+        return None
+
     @classmethod
     def verify_peer_ip_cached(cls, ip: str) -> Tuple[bool, Optional[str]]:
         """Verify if IP is a Tailscale peer with caching"""
@@ -1702,6 +1719,11 @@ def send_files(file_paths: List[str], pod: bool = False):
     safe_print("[ftransfer v1.0.1]")
     safe_print(f"type into receiver: transfer receive {tailscale_ip}:{token}")
 
+    # Also display hostname-based connection string if available
+    tailscale_hostname = TailscaleDetector.get_local_hostname()
+    if tailscale_hostname:
+        safe_print(f"                or: transfer receive {tailscale_hostname}:{token}")
+
     # Start server
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -2179,11 +2201,24 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         sys.exit(1)
     
     ip, token = parts
-    
+
+    # Resolve hostname to IP if needed (for hostname-based connection strings)
+    original_connection_param = ip
+    if ip != "127.0.0.1":
+        # Try to resolve hostname to IP for validation
+        try:
+            import socket as sock_module
+            # gethostbyname works for both IPs (passthrough) and hostnames (DNS lookup)
+            resolved_ip = sock_module.gethostbyname(ip)
+            ip = resolved_ip  # Use resolved IP for validation
+        except (sock_module.gaierror, sock_module.herror):
+            # If resolution fails, keep original (might already be an IP)
+            pass
+
     # Auto-detect Tailscale userspace mode or use explicit pod flag
     auto_pod_mode = detect_tailscale_userspace_mode()
     effective_pod_mode = pod or auto_pod_mode
-    
+
     # Validate IP is Tailscale peer (skip for localhost in pod mode)
     if effective_pod_mode and ip == "127.0.0.1":
         if auto_pod_mode and not pod:
@@ -2193,7 +2228,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
     else:
         is_valid, peer_name = TailscaleDetector.verify_peer_ip_cached(ip)
         if not is_valid:
-            print(f"Error: IP address {ip} is not an active peer in Tailscale network")
+            print(f"Error: {original_connection_param} is not an active peer in Tailscale network")
             sys.exit(1)
     
     # Connect to sender
