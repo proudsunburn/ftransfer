@@ -4,6 +4,7 @@
 import argparse
 import hashlib
 import json
+import logging
 import os
 import secrets
 import select
@@ -37,15 +38,28 @@ import uuid
 TRANSFER_PORT = 15820
 MAX_RETRY_ATTEMPTS = 3
 
+# Setup logging configuration
+logger = logging.getLogger('transfer')
+logger.setLevel(logging.DEBUG)  # Allow all levels, filter at handler
+
+# Create console handler that outputs to stderr
+console_handler = logging.StreamHandler(sys.stderr)
+console_handler.setLevel(logging.WARNING)  # Default: only WARNING and above
+
+# Create formatter with timestamp
+formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+console_handler.setFormatter(formatter)
+
+# Add handler to logger
+logger.addHandler(console_handler)
+
 def log_warning(message: str):
-    """Log warning message to transfer_warnings.log file"""
-    try:
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open("transfer_warnings.log", "a", encoding="utf-8") as f:
-            f.write(f"[{timestamp}] {message}\n")
-    except Exception:
-        # Silently ignore logging failures to avoid disrupting transfer
-        pass
+    """Log warning message using Python's logging module
+
+    Outputs to stderr only when debug mode is enabled.
+    Maintains clean console output by default.
+    """
+    logger.warning(message)
 
 def safe_print(*args, **kwargs):
     """Print with protection against stdout failures (BrokenPipeError, IOError)"""
@@ -2969,19 +2983,28 @@ def main():
     send_parser = subparsers.add_parser('send', help='Send files/folders')
     send_parser.add_argument('files', nargs='+', help='Files or folders to send')
     send_parser.add_argument('--pod', action='store_true', help='Bind to localhost (127.0.0.1) for containerized environments')
+    send_parser.add_argument('--debug', action='store_true', help='Enable debug output (shows detailed diagnostic messages)')
     
     # Receive command
     receive_parser = subparsers.add_parser('receive', help='Receive files')
     receive_parser.add_argument('connection', help='Connection string: ip:token')
     receive_parser.add_argument('-o', '--output-dir', default='.', help='Output directory for received files (default: current directory)')
     receive_parser.add_argument('--pod', action='store_true', help='Accept connections from localhost (127.0.0.1) for containerized environments')
+    receive_parser.add_argument('--debug', action='store_true', help='Enable debug output (shows detailed diagnostic messages)')
     
     args = parser.parse_args()
-    
+
+    # Activate debug mode if requested
+    if hasattr(args, 'debug') and args.debug:
+        # Set console handler to DEBUG level to show all messages
+        for handler in logger.handlers:
+            if isinstance(handler, logging.StreamHandler):
+                handler.setLevel(logging.DEBUG)
+
     if not args.command:
         parser.print_help()
         sys.exit(1)
-    
+
     if args.command == 'send':
         send_files(args.files, pod=args.pod)
     elif args.command == 'receive':
