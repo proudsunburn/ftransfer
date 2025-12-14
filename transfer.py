@@ -177,17 +177,72 @@ def recv_all(socket, n):
         data += packet
     return data
 
+def expand_glob_patterns(file_patterns: List[str]) -> List[str]:
+    """Expand glob patterns to actual file/directory paths.
+
+    Args:
+        file_patterns: List of file paths or glob patterns (e.g., "*.png", "**/*.txt")
+
+    Returns:
+        List of expanded file paths (strings)
+    """
+    expanded_paths = []
+
+    for pattern in file_patterns:
+        # Check if pattern contains glob metacharacters
+        if any(char in pattern for char in ['*', '?', '[']):
+            # Expand glob pattern using pathlib
+            if '**' in pattern:
+                # Recursive glob (e.g., "**/*.txt")
+                matches = list(Path('.').glob(pattern))
+            else:
+                # Simple pattern (e.g., "*.txt", "file?.log")
+                matches = list(Path('.').glob(pattern))
+
+            # Error if pattern matches nothing
+            if not matches:
+                print(f"Error: Pattern '{pattern}' matched no files")
+                sys.exit(1)
+
+            # Convert Path objects to strings
+            expanded_paths.extend([str(p) for p in matches])
+        else:
+            # Not a glob pattern - treat as literal path
+            expanded_paths.append(pattern)
+
+    return expanded_paths
+
 def validate_files(file_paths: List[str]) -> List[Path]:
-    """Validate that all file paths exist and are accessible"""
+    """Validate that all file paths exist and are accessible
+
+    Args:
+        file_paths: List of file paths or glob patterns
+
+    Returns:
+        List of validated Path objects (deduplicated)
+    """
+    # Step 1: Expand glob patterns
+    expanded_paths = expand_glob_patterns(file_paths)
+
+    # Step 2: Validate and deduplicate
     validated_files = []
-    
-    for file_path_str in file_paths:
-        file_path = Path(file_path_str)
+    seen_paths = set()
+
+    for file_path_str in expanded_paths:
+        file_path = Path(file_path_str).resolve()  # Normalize to absolute path
+
+        # Skip duplicates
+        if file_path in seen_paths:
+            continue
+
+        # Validate existence
         if not file_path.exists():
             print(f"Error: File or directory does not exist: {file_path}")
             sys.exit(1)
+
         validated_files.append(file_path)
-    
+        seen_paths.add(file_path)
+
     return validated_files
 
 def collect_files_recursive(file_paths: List[Path]) -> Tuple[List[Tuple[Path, str]], List[str]]:
