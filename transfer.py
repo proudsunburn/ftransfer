@@ -1704,11 +1704,26 @@ def send_single_file(client_socket, crypto, file_path: str, relative_path: str, 
     return hasher.hexdigest()
 
 
-def send_files(file_paths: List[str], pod: bool = False):
+def send_files(file_paths: List[str] = None, message_text: str = None, pod: bool = False):
     """Sender mode: listen for connections and send files"""
     
-    # Validate files exist
-    files = validate_files(file_paths)
+    is_message = message_text is not None
+    temp_dir = None
+    
+    if is_message:
+        # Create temporary directory for the message
+        temp_dir = tempfile.mkdtemp()
+        # Use a distinctive name
+        temp_file_path = Path(temp_dir) / "message.txt"
+        with open(temp_file_path, "w", encoding="utf-8") as f:
+            f.write(message_text)
+        files = [temp_file_path]
+    else:
+        # Validate files exist
+        if not file_paths:
+             safe_print("Error: No files specified")
+             sys.exit(1)
+        files = validate_files(file_paths)
     
     # Get Tailscale IP for connection string
     tailscale_ip = TailscaleDetector.get_tailscale_ip()
@@ -1775,8 +1790,11 @@ def send_files(file_paths: List[str], pod: bool = False):
         collected_files = [(f, f.name) for f in files]
 
     # Ask user about compression
-    response = input(f"Use compression? [y/N]: ").strip().lower()
-    use_compression = response == 'y'
+    if is_message:
+        use_compression = False  # Text is small, no need for compression overhead
+    else:
+        response = input(f"Use compression? [y/N]: ").strip().lower()
+        use_compression = response == 'y'
 
     # Calculate total size and prepare metadata for all files
     total_size = sum(abs_path.stat().st_size for abs_path, _ in collected_files)
@@ -1875,7 +1893,8 @@ def send_files(file_paths: List[str], pod: bool = False):
             'total_size': total_size,  # Original uncompressed size for progress tracking
             'compressed': use_compression,
             'compressor': BLOSC_COMPRESSOR if use_compression else 'none',
-            'files': files_metadata
+            'files': files_metadata,
+            'is_message': is_message
         }
         metadata_json = json.dumps(batch_metadata).encode()
         
@@ -2241,6 +2260,13 @@ def send_files(file_paths: List[str], pod: bool = False):
     except KeyboardInterrupt:
         safe_print("\nTransfer interrupted by user")
     finally:
+        # Cleanup temporary directory if it was created
+        if temp_dir and os.path.exists(temp_dir):
+            try:
+                shutil.rmtree(temp_dir)
+            except OSError:
+                pass
+
         # Stop progress thread if it exists
         if 'stop_progress' in locals():
             stop_progress.set()
@@ -2375,6 +2401,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         files_info = metadata['files']
         is_compressed = metadata.get('compressed', False)
         compressor = metadata.get('compressor', 'none')
+        is_message = metadata.get('is_message', False)
         
         # Calculate uncompressed total for debugging large transfers
         uncompressed_total = sum(file_info['size'] for file_info in files_info)
@@ -2400,7 +2427,11 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
                 fresh_count = len(resume_plan["fresh_files"])
                 
                 # Ask user if they want to resume (default: yes)
-                response = input(f"Resume transfer? ({completed_count} completed, {resume_count} partial, {fresh_count} fresh files) [Y/n]: ").strip().lower()
+                if is_message:
+                    response = 'y'
+                else:
+                    response = input(f"Resume transfer? ({completed_count} completed, {resume_count} partial, {fresh_count} fresh files) [Y/n]: ").strip().lower()
+                
                 if response == 'n' or response == 'no':
                     # User declined resume - clear lock and fall through to fresh transfer logic
                     has_existing_lock = False
@@ -2888,7 +2919,18 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         progress_thread.join(timeout=1.0)
 
         log_warning(f"Receiver: Transfer complete (total time: {total_time:.1f}s)")
-        print(f"\nTransfer complete! (avg: {avg_speed_str})")
+        
+        if is_message and received_files:
+            # Print message content and cleanup
+            for file_path in received_files:
+                try:
+                    with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                        print(f.read())
+                    file_path.unlink()  # Delete after printing
+                except Exception as e:
+                    print(f"Error reading message: {e}")
+        elif not is_message:
+            print(f"\nTransfer complete! (avg: {avg_speed_str})")
         
     except socket.timeout:
         print("Error: Connection timeout")
@@ -3006,7 +3048,18 @@ def main():
         sys.exit(1)
 
     if args.command == 'send':
-        send_files(args.files, pod=args.pod)
+        message_text = None
+        files_to_send = args.files
+        
+        # Check for text message mode (starts with $)
+        if files_to_send and files_to_send[0].startswith('$'):
+            # Reconstruct message (join all args with space)
+            full_text = " ".join(files_to_send)
+            # Remove the leading '$'
+            message_text = full_text[1:]
+            files_to_send = None  # No files to validate
+            
+        send_files(files_to_send, message_text=message_text, pod=args.pod)
     elif args.command == 'receive':
         receive_files(args.connection, output_dir=args.output_dir, pod=args.pod)
 
