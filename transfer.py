@@ -2145,30 +2145,10 @@ def send_files(file_paths: List[str] = None, message_text: str = None, pod: bool
                     if failed_filename in file_hashes:
                         safe_print(f"Resending: {failed_filename}")
                         
-                        # Find and resend the file from files list
-                        for file_info in files:
-                            if file_info['path'] == failed_filename:
-                                # Find the actual file path based on the original source
-                                actual_file_path = None
-                                for file_path in file_paths:
-                                    if os.path.isfile(file_path):
-                                        if os.path.basename(file_path) == failed_filename:
-                                            actual_file_path = file_path
-                                            break
-                                    else:
-                                        # Search in directory
-                                        for root, dirs, dir_files in os.walk(file_path):
-                                            for dir_file in dir_files:
-                                                full_path = os.path.join(root, dir_file)
-                                                relative_path = os.path.relpath(full_path, file_path)
-                                                if relative_path == failed_filename:
-                                                    actual_file_path = full_path
-                                                    break
-                                            if actual_file_path:
-                                                break
-                                
-                                if actual_file_path:
-                                    retry_file_hashes[failed_filename] = send_single_file(client_socket, crypto, actual_file_path, failed_filename, use_compression)
+                        # Find and resend the file from collected_files list
+                        for file_path, relative_path in collected_files:
+                            if relative_path == failed_filename:
+                                retry_file_hashes[failed_filename] = send_single_file(client_socket, crypto, file_path, failed_filename, use_compression)
                                 break
                 
                 # Send retry file hashes
@@ -2677,7 +2657,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
             # Display verification progress every 10 files or on first/last file
             if idx == 1 or idx == total_files or idx % 10 == 0:
                 progress_pct = (idx / total_files) * 100
-                print(f"\rVerifying: {idx}/{total_files} ({progress_pct:.1f}%) - {writer.filename[:50]}...", end='', flush=True)
+                print(f"\rVerifying: {idx}/{total_files} ({progress_pct:.1f}%) - {str(writer.filename)[:50]}...", end='', flush=True)
 
             # Ensure all files are completed
             if not writer.is_complete:
@@ -2816,7 +2796,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
                     for failed_file in failed_files:
                         writer = failed_file['writer']
                         if not writer.is_complete:
-                            file_info = next(f for f in files_info if f['path'] == writer.filename)
+                            file_info = next(f for f in files_info if f['filename'] == writer.filename)
                             file_size = file_info['size']
                             
                             bytes_needed = file_size - writer.written
