@@ -53,13 +53,16 @@ console_handler.setFormatter(formatter)
 # Add handler to logger
 logger.addHandler(console_handler)
 
-def log_warning(message: str):
-    """Log warning message using Python's logging module
+def log_debug(message: str):
+    """Log diagnostic message using Python's logging module
 
-    Outputs to stderr only when debug mode is enabled.
+    Outputs to stderr only when debug mode is enabled (--debug flag).
     Maintains clean console output by default.
+
+    These are diagnostic messages for troubleshooting, not critical warnings.
+    Critical errors are shown to users via print() regardless of debug mode.
     """
-    logger.warning(message)
+    logger.debug(message)
 
 def safe_print(*args, **kwargs):
     """Print with protection against stdout failures (BrokenPipeError, IOError)"""
@@ -80,7 +83,7 @@ def safe_print(*args, **kwargs):
         # Log the critical message to file
         try:
             message = ' '.join(str(arg) for arg in args)
-            log_warning(f"Console output failed: {message}")
+            log_debug(f"Console output failed: {message}")
         except:
             pass  # Last resort logging also failed
 
@@ -100,12 +103,12 @@ def safe_flush():
 # Signal handlers for graceful handling of terminal disconnection
 def handle_sigpipe(signum, frame):
     """Handle SIGPIPE (broken pipe) gracefully"""
-    log_warning("SIGPIPE received - terminal disconnected")
+    log_debug("SIGPIPE received - terminal disconnected")
     sys.exit(0)
 
 def handle_sighup(signum, frame):
     """Handle SIGHUP (hangup) gracefully"""
-    log_warning("SIGHUP received - terminal hung up")
+    log_debug("SIGHUP received - terminal hung up")
     sys.exit(0)
 
 # Install signal handlers (skip on Windows where SIGPIPE doesn't exist)
@@ -297,7 +300,7 @@ def collect_files_recursive(file_paths: List[Path]) -> Tuple[List[Tuple[Path, st
                         # Recursively process subdirectory
                         collect_from_directory(base_path, item, exclude_venv)
         except PermissionError:
-            log_warning(f"Permission denied accessing {current_path}")
+            log_debug(f"Permission denied accessing {current_path}")
     
     for path in file_paths:
         if path.is_file():
@@ -305,7 +308,7 @@ def collect_files_recursive(file_paths: List[Path]) -> Tuple[List[Tuple[Path, st
         elif path.is_dir():
             collect_from_directory(path, path)
         else:
-            log_warning(f"Skipping {path} (not a regular file or directory)")
+            log_debug(f"Skipping {path} (not a regular file or directory)")
     
     return collected_files, list(set(detected_venv_dirs))  # Remove duplicates
 
@@ -612,7 +615,7 @@ def progress_update_thread(state: dict, stop_event: threading.Event, stall_callb
                     if not state.get('stall_recovery_in_progress', False):
                         state['stall_recovery_in_progress'] = True
                         stream_position = state.get('stream_position', current_bytes)
-                        log_warning(f"Stall detected: no progress for {STALL_TIMEOUT}s at position {stream_position}")
+                        log_debug(f"Stall detected: no progress for {STALL_TIMEOUT}s at position {stream_position}")
                         stall_callback(stream_position)
                         last_stall_check_time = current_time  # Reset timer after triggering
 
@@ -660,7 +663,7 @@ def progress_update_thread(state: dict, stop_event: threading.Event, stall_callb
 
         except Exception as e:
             # Log errors but don't crash the thread
-            log_warning(f"Progress thread error: {e}")
+            log_debug(f"Progress thread error: {e}")
             continue
 
 def send_resend_request(client_socket, crypto, stream_position, retry_count=0):
@@ -691,10 +694,10 @@ def send_resend_request(client_socket, crypto, stream_position, retry_count=0):
         client_socket.sendall(len(encrypted_message).to_bytes(4, 'big'))
         client_socket.sendall(encrypted_message)
 
-        log_warning(f"Receiver: Sent RESEND request for position {stream_position} (attempt {retry_count + 1})")
+        log_debug(f"Receiver: Sent RESEND request for position {stream_position} (attempt {retry_count + 1})")
 
     except Exception as e:
-        log_warning(f"Receiver: Failed to send RESEND request: {e}")
+        log_debug(f"Receiver: Failed to send RESEND request: {e}")
 
 def find_file_at_stream_position(collected_files, stream_position):
     """Find which file and offset corresponds to stream position
@@ -715,7 +718,7 @@ def find_file_at_stream_position(collected_files, stream_position):
                 return (file_path, relative_path), offset
             current_position += file_size
         except Exception as e:
-            log_warning(f"Sender: Error checking file {relative_path}: {e}")
+            log_debug(f"Sender: Error checking file {relative_path}: {e}")
             continue
     return None, 0
 
@@ -736,7 +739,7 @@ def send_chunk_from_position(client_socket, crypto, file_path, offset, chunk_siz
             chunk = f.read(chunk_size)
 
         if not chunk:
-            log_warning(f"Sender: No data at offset {offset} in {file_path}")
+            log_debug(f"Sender: No data at offset {offset} in {file_path}")
             return
 
         # Compress if needed
@@ -754,10 +757,10 @@ def send_chunk_from_position(client_socket, crypto, file_path, offset, chunk_siz
         client_socket.sendall(len(encrypted_chunk).to_bytes(4, 'big'))
         client_socket.sendall(encrypted_chunk)
 
-        log_warning(f"Sender: Resent {len(chunk)} bytes from offset {offset}")
+        log_debug(f"Sender: Resent {len(chunk)} bytes from offset {offset}")
 
     except Exception as e:
-        log_warning(f"Sender: Error resending chunk: {e}")
+        log_debug(f"Sender: Error resending chunk: {e}")
 
 def handle_resend_request(client_socket, crypto, collected_files, use_compression):
     """Handle RESEND request from receiver during active transfer
@@ -788,7 +791,7 @@ def handle_resend_request(client_socket, crypto, collected_files, use_compressio
         resend_req = json.loads(decrypted.decode())
 
         if resend_req.get('type') != 'resend_request':
-            log_warning(f"Sender: Received unexpected message type: {resend_req.get('type')}")
+            log_debug(f"Sender: Received unexpected message type: {resend_req.get('type')}")
             return False
 
         stream_position = resend_req.get('stream_position', 0)
@@ -798,10 +801,10 @@ def handle_resend_request(client_socket, crypto, collected_files, use_compressio
         target_file, file_offset = find_file_at_stream_position(collected_files, stream_position)
 
         if not target_file:
-            log_warning(f"Sender: RESEND request for invalid position {stream_position}")
+            log_debug(f"Sender: RESEND request for invalid position {stream_position}")
             return False
 
-        log_warning(f"Sender: RESEND request for position {stream_position} "
+        log_debug(f"Sender: RESEND request for position {stream_position} "
                    f"(file: {target_file[1]}, offset: {file_offset}, attempt: {retry_count + 1})")
 
         # Send a chunk from the requested position (1MB)
@@ -812,7 +815,7 @@ def handle_resend_request(client_socket, crypto, collected_files, use_compressio
         return True
 
     except Exception as e:
-        log_warning(f"Sender: Error handling RESEND request: {e}")
+        log_debug(f"Sender: Error handling RESEND request: {e}")
         return False
 
 def format_eta(seconds: int) -> str:
@@ -1090,7 +1093,7 @@ class FileWriter:
                     
             except OSError as e:
                 # Handle file operation errors gracefully
-                log_warning(f"Failed to write to {self.part_file}: {e}")
+                log_debug(f"Failed to write to {self.part_file}: {e}")
                 return 0
                 
         return bytes_to_write
@@ -1111,7 +1114,7 @@ class FileWriter:
                         else:
                             final_path.unlink()
                     except OSError as e:
-                        log_warning(f"Failed to remove existing file {final_path}: {e}")
+                        log_debug(f"Failed to remove existing file {final_path}: {e}")
                         # Fall back to renaming if overwrite fails
                         counter = 1
                         original_path = final_path
@@ -1143,7 +1146,7 @@ class FileWriter:
                 
                 # print(f"Completed: {final_path}")  # Removed to keep clean progress display
             except OSError as e:
-                log_warning(f"Failed to complete file {self.filename}: {e}")
+                log_debug(f"Failed to complete file {self.filename}: {e}")
                 pass
         
     def get_hash(self) -> str:
@@ -1406,20 +1409,20 @@ class TransferLockManager:
             
             # Validate lock file structure
             if not self._validate_lock_file():
-                log_warning(f"Invalid lock file structure, ignoring: {self.lock_file_path}")
+                log_debug(f"Invalid lock file structure, ignoring: {self.lock_file_path}")
                 return False
             
             # Check if lock file is stale (older than 24 hours)
             lock_time = datetime.datetime.fromisoformat(self.lock_data["timestamp"])
             age = datetime.datetime.now() - lock_time
             if age.total_seconds() > 24 * 3600:  # 24 hours
-                log_warning(f"Stale lock file found (age: {age}), ignoring")
+                log_debug(f"Stale lock file found (age: {age}), ignoring")
                 return False
             
             return True
             
         except (json.JSONDecodeError, OSError, KeyError) as e:
-            log_warning(f"Failed to load lock file: {e}")
+            log_debug(f"Failed to load lock file: {e}")
             return False
     
     def _validate_lock_file(self) -> bool:
@@ -1569,7 +1572,7 @@ class TransferLockManager:
             temp_path.rename(self.lock_file_path)
 
         except OSError as e:
-            log_warning(f"Failed to save lock file: {e}")
+            log_debug(f"Failed to save lock file: {e}")
     
     def cleanup_on_completion(self):
         """Remove lock file after successful transfer"""
@@ -1577,7 +1580,7 @@ class TransferLockManager:
             if self.lock_file_path.exists():
                 self.lock_file_path.unlink()
         except OSError as e:
-            log_warning(f"Failed to remove lock file: {e}")
+            log_debug(f"Failed to remove lock file: {e}")
     
     def handle_stale_locks(self):
         """Clean up old lock files"""
@@ -1593,7 +1596,7 @@ class TransferLockManager:
                     
                     if age.total_seconds() > 24 * 3600:  # 24 hours
                         lock_file.unlink()
-                        log_warning(f"Removed stale lock file: {lock_file}")
+                        log_debug(f"Removed stale lock file: {lock_file}")
                 
                 except OSError:
                     continue
@@ -1610,7 +1613,7 @@ class TransferLockManager:
                     hasher.update(chunk)
             return hasher.hexdigest()
         except OSError as e:
-            log_warning(f"Failed to hash file {file_path}: {e}")
+            log_debug(f"Failed to hash file {file_path}: {e}")
             return None
     
     def verify_source_files_unchanged(self, source_file_paths: Dict[str, str]) -> List[str]:
@@ -1641,7 +1644,7 @@ class TransferLockManager:
                 lock_info["status"] = "pending"
                 lock_info["transferred_bytes"] = 0
                 lock_info["original_hash"] = current_hash
-                log_warning(f"Source file changed: {filename} (will be retransferred)")
+                log_debug(f"Source file changed: {filename} (will be retransferred)")
         
         if changed_files:
             self._save_lock_file()
@@ -1775,7 +1778,7 @@ def send_files(file_paths: List[str] = None, message_text: str = None, pod: bool
                                     # Recursively process subdirectory
                                     filtered_files.extend(collect_from_directory_filtered(base_path, item))
                     except PermissionError:
-                        log_warning(f"Permission denied accessing {current_path}")
+                        log_debug(f"Permission denied accessing {current_path}")
                     return filtered_files
                 
                 # Rebuild collected_files excluding venv directories
@@ -2094,7 +2097,7 @@ def send_files(file_paths: List[str] = None, message_text: str = None, pod: bool
 
         # Log timing: sender finished sending all data
         data_send_time = time.time() - start_time
-        log_warning(f"Sender: All data sent (time: {data_send_time:.1f}s, bytes: {total_bytes_sent})")
+        log_debug(f"Sender: All data sent (time: {data_send_time:.1f}s, bytes: {total_bytes_sent})")
         
         # Wait for potential retry requests or completion signal
         # IMPORTANT: Increased timeout from 10s to 120s to allow receiver to complete
@@ -2125,7 +2128,7 @@ def send_files(file_paths: List[str] = None, message_text: str = None, pod: bool
                     if message.get("status") == "completed":
                         # Receiver confirmed successful completion
                         completion_received = True
-                        log_warning(f"Sender: Completion signal received after {time.time() - completion_start_time:.1f}s")
+                        log_debug(f"Sender: Completion signal received after {time.time() - completion_start_time:.1f}s")
                         break
 
                     # Otherwise, treat as retry request
@@ -2167,7 +2170,7 @@ def send_files(file_paths: List[str] = None, message_text: str = None, pod: bool
             except socket.timeout:
                 # Timeout waiting for completion signal
                 # Log this but don't treat as error - receiver may have finished successfully
-                log_warning(f"Sender: Timeout waiting for completion signal after {time.time() - completion_start_time:.1f}s")
+                log_debug(f"Sender: Timeout waiting for completion signal after {time.time() - completion_start_time:.1f}s")
                 # Close socket immediately so receiver gets clear error if trying to send
                 try:
                     client_socket.shutdown(socket.SHUT_RDWR)
@@ -2181,7 +2184,7 @@ def send_files(file_paths: List[str] = None, message_text: str = None, pod: bool
                 if isinstance(e, OSError) and hasattr(e, 'errno') and e.errno not in (None, 54):
                     # Re-raise only if it's an unexpected OSError
                     raise
-                log_warning(f"Sender: Connection closed by receiver (completion_received={completion_received})")
+                log_debug(f"Sender: Connection closed by receiver (completion_received={completion_received})")
                 break
 
         # Stop progress thread
@@ -2199,16 +2202,16 @@ def send_files(file_paths: List[str] = None, message_text: str = None, pod: bool
             sys.stdout.flush()
         except (BrokenPipeError, IOError, OSError):
             # stdout is broken - log and exit gracefully
-            log_warning(f"Transfer complete but stdout unavailable (avg: {avg_speed_str})")
+            log_debug(f"Transfer complete but stdout unavailable (avg: {avg_speed_str})")
             sys.exit(0)
 
         # Display completion message based on whether we received confirmation
         if completion_received:
-            log_warning(f"Sender: Transfer confirmed complete by receiver (total time: {total_time:.1f}s)")
+            log_debug(f"Sender: Transfer confirmed complete by receiver (total time: {total_time:.1f}s)")
             safe_print(f"\nTransfer complete! (avg: {avg_speed_str})")
         else:
             # No completion signal received - warn user
-            log_warning(f"Sender: No completion signal received (total time: {total_time:.1f}s)")
+            log_debug(f"Sender: No completion signal received (total time: {total_time:.1f}s)")
             safe_print(f"\nData sent (avg: {avg_speed_str})")
             safe_print("Note: Receiver may still be processing. Check receiver status.")
         
@@ -2454,7 +2457,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         for file_info in files_info:
             filename = file_info['filename']
             if os.path.isabs(filename) or ".." in filename:
-                log_warning(f"Skipping unsafe filename: {filename}")
+                log_debug(f"Skipping unsafe filename: {filename}")
                 print(f"\nWarning: Skipping unsafe filename: {filename}")
                 continue
 
@@ -2512,10 +2515,10 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
         def handle_stall(stream_position):
             """Called by progress thread when stall detected"""
             if resend_count['value'] < MAX_RESEND_ATTEMPTS:
-                log_warning(f"Receiver: Triggering stall recovery at position {stream_position}")
+                log_debug(f"Receiver: Triggering stall recovery at position {stream_position}")
                 stall_event.set()
             else:
-                log_warning(f"Receiver: Maximum RESEND attempts ({MAX_RESEND_ATTEMPTS}) reached, giving up")
+                log_debug(f"Receiver: Maximum RESEND attempts ({MAX_RESEND_ATTEMPTS}) reached, giving up")
                 stop_progress.set()
 
         stop_progress = threading.Event()
@@ -2536,7 +2539,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
                     send_resend_request(client_socket, crypto, current_position, resend_count['value'])
                     resend_count['value'] += 1
                     progress_state['stall_recovery_in_progress'] = False
-                    log_warning(f"Receiver: Sent RESEND request #{resend_count['value']} for position {current_position}")
+                    log_debug(f"Receiver: Sent RESEND request #{resend_count['value']} for position {current_position}")
 
                 # Check for hashes marker (indicates data stream is complete)
                 nonce_len_bytes = recv_all(client_socket, 4)
@@ -2639,7 +2642,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
 
         # Log timing: receiver finished receiving all data
         data_receive_time = time.time() - start_time
-        log_warning(f"Receiver: All data received (time: {data_receive_time:.1f}s, bytes: {total_bytes_received})")
+        log_debug(f"Receiver: All data received (time: {data_receive_time:.1f}s, bytes: {total_bytes_received})")
 
         # Verify file integrity and collect any failures
         # Display progress during verification since this can take time for many files
@@ -2648,7 +2651,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
 
         # Only verify created writers (files that were actually transferred)
         created_writers = list(file_writers.values())
-        log_warning(f"Receiver: Starting hash verification for {len(created_writers)} files")
+        log_debug(f"Receiver: Starting hash verification for {len(created_writers)} files")
         received_files = []
         failed_files = []
         total_files = len(created_writers)
@@ -2692,7 +2695,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
                         break
                     counter += 1
                     if counter > 100:  # Prevent infinite loop
-                        log_warning(f"Could not locate final file for {writer.filename}")
+                        log_debug(f"Could not locate final file for {writer.filename}")
                         break
 
         # Clear verification progress line
@@ -2700,7 +2703,7 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
 
         # Log timing: hash verification complete
         verification_time = time.time() - verification_start_time
-        log_warning(f"Receiver: Hash verification complete (time: {verification_time:.1f}s, failed: {len(failed_files)})")
+        log_debug(f"Receiver: Hash verification complete (time: {verification_time:.1f}s, failed: {len(failed_files)})")
 
         if failed_files:
             print(f"Verification complete: {len(failed_files)} file(s) failed integrity check")
@@ -2881,24 +2884,24 @@ def receive_files(connection_string: str, output_dir: str = '.', pod: bool = Fal
                     pass
 
                 completion_sent = True
-                log_warning(f"Receiver: Completion signal sent successfully (attempt {attempt + 1})")
+                log_debug(f"Receiver: Completion signal sent successfully (attempt {attempt + 1})")
                 break
 
             except (ConnectionError, BrokenPipeError, OSError) as e:
                 # Connection may have been closed by sender
-                log_warning(f"Receiver: Failed to send completion signal (attempt {attempt + 1}): {e}")
+                log_debug(f"Receiver: Failed to send completion signal (attempt {attempt + 1}): {e}")
                 if attempt < 2:  # Don't sleep on last attempt
                     time.sleep(0.1)  # Brief delay before retry
                 continue
 
         if not completion_sent:
-            log_warning("Receiver: Failed to send completion signal after 3 attempts")
+            log_debug("Receiver: Failed to send completion signal after 3 attempts")
 
         # Stop progress thread
         stop_progress.set()
         progress_thread.join(timeout=1.0)
 
-        log_warning(f"Receiver: Transfer complete (total time: {total_time:.1f}s)")
+        log_debug(f"Receiver: Transfer complete (total time: {total_time:.1f}s)")
         
         if is_message and received_files:
             # Print message content and cleanup
